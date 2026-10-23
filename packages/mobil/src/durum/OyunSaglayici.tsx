@@ -1,0 +1,169 @@
+// OyunSaglayici: durumu (useReducer) ve bağlantıları tutan React bağlamı.
+//
+// Ekranlar useOyun() ile buraya erişir: durumu okur, gonder() ile mesaj yollar.
+// Hangi bağlantının kullanılacağına burada karar verilir:
+//  - antrenmandaysak masa mesajları YerelBaglanti'ya,
+//  - diğer her şey OnlineBaglanti'ya (ya da ?onizleme=1 ile sahte sunucuya) gider.
+import { type IstemciMesaji, type OyuncuKarti, type SunucuMesaji, VARSAYILAN_ETIKET } from "@okey/kurallar";
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useReducer, useRef } from "react";
+import type { Baglanti } from "../baglanti/baglanti.ts";
+import { OnizlemeBaglanti } from "../baglanti/OnizlemeBaglanti.ts";
+import { OnlineBaglanti } from "../baglanti/OnlineBaglanti.ts";
+import { YerelBaglanti } from "../baglanti/YerelBaglanti.ts";
+import { type Ayarlar, DEPO, type Hesap, oku, sil, VARSAYILAN_AYARLAR, yaz } from "../platform/depo.ts";
+import { ONIZLEME, sunucuAdresi } from "./ayar.ts";
+import { magaza } from "../platform/magaza.ts";
+import { reklam } from "../platform/reklam.ts";
+import { sesAcik } from "../platform/ses.ts";
+import { type BildirimTuru, type Durum, type Ekran, ilkDurum, indirgeyici, type Kaynak } from "./durum.ts";
+
+interface OyunBaglami {
+  durum: Durum;
+  gonder: (m: IstemciMesaji) => void;
+  /** İlk giriş ya da kurtarma koduyla giriş. */
+  girisYap: (ad: string, kurtarma?: { oyuncuId: string; anahtar: string }) => void;
+  tekrarDene: () => void;
+  antrenmanBaslat: () => void;
+  ekranaGit: (e: Ekran) => void;
+  bildir: (metin: string, tur?: BildirimTuru) => void;
+  bildirimKapat: (id: number) => void;
+  sohbetOkundu: () => void;
+  ayarlariKaydet: (a: Ayarlar) => void;
+}
+
+const Baglam = createContext<OyunBaglami | null>(null);
+
+export function useOyun(): OyunBaglami {
+  const b = useContext(Baglam);
+  if (!b) throw new Error("useOyun, OyunSaglayici içinde kullanılmalı");
+  return b;
+}
+
+export function OyunSaglayici({ children }: { children: ReactNode }) {
+  const [durum, dagit] = useReducer(indirgeyici, ilkDurum);
+  const online = useRef<Baglanti | null>(null);
+  const yerel = useRef<YerelBaglanti | null>(null);
+  // Geri çağrılarda her zaman en güncel durumu okumak için.
+  const durumRef = useRef(durum);
+  durumRef.current = durum;
+
+  /** Bir bağlantının mesajlarını reducer'a bağlar ve yan etkileri (kaydetme vb.) yapar. */
+  const bagla = useCallback((b: Baglanti, kaynak: Kaynak) => {
+    b.dinle((mesaj) => {
+      yanEtkiler(mesaj, kaynak);
+      dagit({ tur: "sunucu", kaynak, mesaj });
+    });
+    if (kaynak === "online") b.durumDinle((d) => dagit({ tur: "baglanti", durum: d }));
+  }, []);
+
+  /** Mesajın durumu değiştirmekten başka gerektirdiği işler. */
+  const yanEtkiler = (m: SunucuMesaji, kaynak: Kaynak) => {
+    if (kaynak !== "online") return;
+    if (m.t === "hosgeldin" && !ONIZLEME) {
+      const hesap: Hesap = { oyuncuId: m.oyuncuId, anahtar: m.anahtar, ad: m.profil.ad };
+      void yaz(DEPO.hesap, hesap);
+      dagit({ tur: "hesap", hesap });
+      if (online.current instanceof OnlineBaglanti) online.current.girisGuncelle(hesap);
+      // Ödemesi alınmış ama sunucuya ulaşmamış satın almalar varsa şimdi gönder.
+      void magaza.bekleyenler().then((liste) => {
+        for (const s of liste) online.current?.gonder({ t: "satinAlma", urunId: s.urunId, satinAlmaJetonu: s.jeton });
+      });
+    }
+    if (m.t === "hesapSilindi") {
+      void sil(DEPO.hesap);
+      online.current?.kapat();
+      online.current = null;
+    }
+  };
+
+  const onlineBaglan = useCallback(
+    (giris: { ad: string; oyuncuId?: string; anahtar?: string }, ayarlar: Ayarlar) => {
+      online.current?.kapat();
+      const b = ONIZLEME ? new OnizlemeBaglanti() : new OnlineBaglanti(sunucuAdresi(ayarlar), giris);
+      online.current = b;
+      bagla(b, "online");
+    },
+    [bagla],
+  );
+
+  // Açılış: kayıtlı hesap ve ayarları oku; hesap varsa otomatik giriş yap.
+  useEffect(() => {
+    let iptal = false;
+    void (async () => {
+      const [hesap, ayarlar] = await Promise.all([oku<Hesap>(DEPO.hesap), oku<Ayarlar>(DEPO.ayarlar)]);
+      if (iptal) return;
+      const a = { ...VARSAYILAN_AYARLAR, ...ayarlar };
+      sesAcik(a.ses);
+      dagit({ tur: "yuklendi", hesap, ayarlar: a });
+      if (ONIZLEME) onlineBaglan({ ad: "Mustafa" }, a);
+      else if (hesap) onlineBaglan(hesap, a);
+    })();
+    // Reklam SDK'sı ve AB izin formu (telefonda). Hata uygulamayı durdurmasın.
+    reklam.hazirla().catch((e) => console.warn("Reklam hazırlanamadı", e));
+    return () => {
+      iptal = true;
+      online.current?.kapat();
+      yerel.current?.kapat();
+    };
+  }, [onlineBaglan]);
+
+  const gonder = useCallback((m: IstemciMesaji) => {
+    const d = durumRef.current;
+    if (d.antrenman && yerel.current) yerel.current.gonder(m);
+    else online.current?.gonder(m);
+  }, []);
+
+  const girisYap = useCallback<OyunBaglami["girisYap"]>(
+    (ad, kurtarma) => onlineBaglan({ ad, ...kurtarma }, durumRef.current.ayarlar),
+    [onlineBaglan],
+  );
+
+  const tekrarDene = useCallback(() => {
+    if (online.current instanceof OnlineBaglanti) online.current.simdiDene();
+  }, []);
+
+  const antrenmanBaslat = useCallback(() => {
+    const d = durumRef.current;
+    yerel.current?.kapat();
+    const p = d.profil;
+    const ben: OyuncuKarti = p
+      ? { id: p.id, ad: p.ad, seviye: p.seviye, etiket: p.etiket }
+      : { id: "yerel-oyuncu", ad: d.hesap?.ad ?? "Sen", seviye: 1, etiket: VARSAYILAN_ETIKET };
+    const b = new YerelBaglanti(ben);
+    yerel.current = b;
+    bagla(b, "yerel");
+    dagit({ tur: "antrenman", acik: true });
+    b.baslat();
+  }, [bagla]);
+
+  const ayarlariKaydet = useCallback(
+    (a: Ayarlar) => {
+      const eski = durumRef.current.ayarlar;
+      sesAcik(a.ses);
+      dagit({ tur: "ayarlar", ayarlar: a });
+      void yaz(DEPO.ayarlar, a);
+      // Sunucu adresi değiştiyse yeni adrese bağlan.
+      const h = durumRef.current.hesap;
+      if (a.sunucuUrl !== eski.sunucuUrl && h && !ONIZLEME) onlineBaglan(h, a);
+    },
+    [onlineBaglan],
+  );
+
+  // Sadece dagit kullanan basit eylemler: bir kez oluşturulur (kimlikleri değişmez).
+  const basitEylemler = useMemo(
+    () => ({
+      ekranaGit: (ekran: Ekran) => dagit({ tur: "ekran", ekran }),
+      bildir: (metin: string, tur: BildirimTuru = "bilgi") => dagit({ tur: "bildir", bildirimTuru: tur, metin }),
+      bildirimKapat: (id: number) => dagit({ tur: "bildirimKapat", id }),
+      sohbetOkundu: () => dagit({ tur: "sohbetOkundu" }),
+    }),
+    [],
+  );
+
+  const deger = useMemo<OyunBaglami>(
+    () => ({ durum, gonder, girisYap, tekrarDene, antrenmanBaslat, ayarlariKaydet, ...basitEylemler }),
+    [durum, gonder, girisYap, tekrarDene, antrenmanBaslat, ayarlariKaydet, basitEylemler],
+  );
+
+  return <Baglam.Provider value={deger}>{children}</Baglam.Provider>;
+}
