@@ -72,7 +72,7 @@ Play Console > **Uygulama oluştur**: ad "Okey Salonu", varsayılan dil Türkçe
 
 | Form | Ne seçilecek |
 | --- | --- |
-| Gizlilik politikası | `https://github.com/mustafagulturk/okey/blob/main/docs/GIZLILIK.md` |
+| Gizlilik politikası | `https://github.com/mustafagulturk/mobil-okey/blob/main/docs/GIZLILIK.md` |
 | Reklamlar | Evet, uygulama reklam içeriyor |
 | Uygulama erişimi | Tüm özellikler kısıtlamasız (giriş için sadece takma ad) |
 | İçerik derecelendirmesi | Kategori "Oyun". **Simüle kumar: Evet** (sanal çiple masaya oturuluyor). Gerçek parayla kumar: Hayır. Kullanıcılar arası etkileşim: Evet (sohbet). Dijital ürün satın alma: Evet |

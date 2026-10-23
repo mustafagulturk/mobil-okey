@@ -35,7 +35,7 @@ Uygulama 18 yaşından küçükler için tasarlanmamıştır ve bilerek çocukla
 
 ## İletişim
 
-Sorular ve silme istekleri için: https://github.com/mustafagulturk/okey/issues
+Sorular ve silme istekleri için: https://github.com/mustafagulturk/mobil-okey/issues
 
 ## Değişiklikler
 
