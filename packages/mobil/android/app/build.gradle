@@ -1,0 +1,83 @@
+apply plugin: 'com.android.application'
+
+// ---- Yayın ayarları ----
+// Sürüm numaraları ve AdMob kimliği gradle özelliklerinden verilebilir (CI böyle yapar):
+//   ./gradlew bundleRelease -PsurumKodu=3 -PsurumAdi=1.0.0 -PadmobUygulamaId=ca-app-pub-xxx~yyy
+def surumKodu = (project.findProperty("surumKodu") ?: "1").toString().toInteger()
+def surumAdi = (project.findProperty("surumAdi") ?: "1.0.0").toString()
+// Google'ın herkese açık TEST uygulama kimliği. Gerçek kimlik verilmezse test reklamları gösterilir.
+def admobUygulamaId = (project.findProperty("admobUygulamaId") ?: "ca-app-pub-3940256099942544~3347511713").toString()
+
+// İmza bilgileri ortam değişkenlerinden okunur; anahtar deposu (keystore) depoya girmez.
+// Değişkenler yoksa release derlemesi imzasız çıkar (debug derlemesi her zaman debug anahtarıyla imzalanır).
+def keystoreDosyasi = System.getenv("OKEY_KEYSTORE_DOSYASI")
+def imzaVar = keystoreDosyasi && file(keystoreDosyasi).exists()
+
+android {
+    namespace = "dev.mustafagulturk.okey"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "dev.mustafagulturk.okey"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode surumKodu
+        versionName surumAdi
+        manifestPlaceholders = [admobUygulamaId: admobUygulamaId]
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        if (imzaVar) {
+            release {
+                storeFile file(keystoreDosyasi)
+                storePassword System.getenv("OKEY_KEYSTORE_SIFRESI")
+                keyAlias System.getenv("OKEY_ANAHTAR_ADI")
+                keyPassword System.getenv("OKEY_ANAHTAR_SIFRESI")
+            }
+        }
+    }
+    buildTypes {
+        release {
+            if (imzaVar) {
+                signingConfig signingConfigs.release
+            } else {
+                logger.warn("OKEY_KEYSTORE_DOSYASI tanımlı değil: release derlemesi imzasız olacak.")
+            }
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'
+
+try {
+    def servicesJSON = file('google-services.json')
+    if (servicesJSON.text) {
+        apply plugin: 'com.google.gms.google-services'
+    }
+} catch(Exception e) {
+    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
