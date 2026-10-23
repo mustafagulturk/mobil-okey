@@ -6,7 +6,8 @@
   "description": "Okey oyun sunucusu: WebSocket, hesaplar, odalar, çip ekonomisi, mağaza ve reklam doğrulama.",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "start": "tsx src/index.ts"
+    "start": "tsx src/index.ts",
+    "yuk-testi": "tsx araclar/yuk-testi.ts"
   },
   "dependencies": {
     "@okey/kurallar": "*",

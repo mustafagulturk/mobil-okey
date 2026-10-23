@@ -71,6 +71,10 @@ export class Oda {
   turBitis: number | null = null;
   readonly sohbetGecmisi: SohbetMesaji[] = [];
   private zamanlayiciIptal: (() => void) | null = null;
+  /** Her hamlede artar; insan hamle süresinin hangi hamle için kurulduğunu ayırt eder. */
+  private hamleNo = 0;
+  /** Sıradaki insanın süresinin bittiği an ve hangi hamle için kurulduğu. */
+  private insanSureBitis: { hamleNo: number; an: number } | null = null;
   private kapandi = false;
 
   constructor(private readonly b: OdaBaglami) {}
@@ -138,7 +142,7 @@ export class Oda {
     if (this.sahipId === id) this.sahipId = this.ilkInsan();
     this.kapanisKontrol();
     if (!this.kapandi) {
-      this.zamanlayiciKur();
+      this.koltukDegisti(i);
       this.yayinla();
     }
   }
@@ -158,7 +162,7 @@ export class Oda {
     if (this.sahipId === id) this.sahipId = this.ilkInsan();
     this.kapanisKontrol();
     if (!this.kapandi) {
-      this.zamanlayiciKur();
+      this.koltukDegisti(i);
       this.yayinla();
     }
   }
@@ -169,7 +173,7 @@ export class Oda {
       const k = this.koltuklar[i] as Extract<Koltuk, { tur: "insan" }>;
       k.bagli = true;
       k.ayrildi = false;
-      this.zamanlayiciKur();
+      this.koltukDegisti(i);
     }
     this.yayinla();
     this.b.gonder(id, { t: "sohbetGecmisi", mesajlar: this.sohbetGecmisi });
@@ -264,12 +268,14 @@ export class Oda {
     this.masa = new Masa(baslayan, this.b.rastgele);
     this.sonEl = null;
     this.elNo++;
+    this.hamleNo++;
     this.zamanlayiciKur();
     this.yayinla();
   }
 
   private hamleSonrasi() {
     if (!this.masa) return;
+    this.hamleNo++;
     if (this.masa.sonuc) {
       this.elBitti();
       return;
@@ -305,8 +311,19 @@ export class Oda {
     this.zamanlayiciIptal = this.b.zamanla(() => this.elBaslat(), sonraki);
   }
 
+  /**
+   * Koltuktaki insanın durumu değişti (koptu, döndü, kalktı). Sıra ondaysa zamanlayıcı yeniden
+   * kurulur (bağlıysa kalan hamle süresi, değilse bot). Başkasının sırasındaki süre sıfırlanmaz.
+   */
+  private koltukDegisti(koltuk: number) {
+    if (koltuk !== -1 && this.masa && !this.masa.sonuc && this.masa.sira === koltuk) this.zamanlayiciKur();
+  }
+
   /** Sıradaki koltuğa göre zamanlayıcı kurar: insan için hamle süresi, bot için kısa bekleme. */
   private zamanlayiciKur() {
+    // El arasında bekleyen zamanlayıcı sonraki eli başlatır; kopma/kalkma/geri dönme onu
+    // iptal ederse oda sonsuza kadar el arasında takılı kalır.
+    if (this.elArasi()) return;
     this.zamanlayiciIptal?.();
     this.zamanlayiciIptal = null;
     if (!this.masa || this.masa.sonuc || this.kapandi) return;
@@ -314,8 +331,14 @@ export class Oda {
     const k = this.koltuklar[sira];
     const insanOynuyor = k.tur === "insan" && k.bagli && !k.ayrildi;
     if (insanOynuyor) {
-      this.turBitis = this.b.simdi() + this.turSuresi;
-      this.zamanlayiciIptal = this.b.zamanla(() => this.otomatikOyna(sira, true), this.turSuresi);
+      // Aynı hamle için süre yeniden kurulursa (ör. oyuncu kopup geri döndü) eski bitiş korunur;
+      // yoksa kopup geri dönerek süre sonsuza kadar uzatılabilirdi.
+      if (this.insanSureBitis?.hamleNo !== this.hamleNo) {
+        this.insanSureBitis = { hamleNo: this.hamleNo, an: this.b.simdi() + this.turSuresi };
+      }
+      this.turBitis = this.insanSureBitis.an;
+      const kalan = Math.max(0, this.turBitis - this.b.simdi());
+      this.zamanlayiciIptal = this.b.zamanla(() => this.otomatikOyna(sira, true), kalan);
     } else {
       this.turBitis = null;
       this.zamanlayiciIptal = this.b.zamanla(() => this.otomatikOyna(sira, false), this.b.botGecikmeMs ?? 900);

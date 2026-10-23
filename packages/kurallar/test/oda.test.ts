@@ -26,6 +26,19 @@ function sahteSaat() {
       enYakin[1].fn();
       return true;
     },
+    /** Saati ms ilerletir; bu arada vakti gelen zamanlayıcıları sırayla çalıştırır. */
+    atla(ms: number) {
+      const hedef = simdi + ms;
+      for (;;) {
+        let enYakin: [number, { an: number; fn: () => void }] | null = null;
+        for (const g of bekleyen) if (g[1].an <= hedef && (!enYakin || g[1].an < enYakin[1].an)) enYakin = g;
+        if (!enYakin) break;
+        bekleyen.delete(enYakin[0]);
+        simdi = enYakin[1].an;
+        enYakin[1].fn();
+      }
+      simdi = hedef;
+    },
   };
 }
 
@@ -106,6 +119,44 @@ describe("oda", () => {
     // a bağlı değildi, koltuğu boşaldı; c oturdu.
     expect(son("c").oda.benimKoltugum).not.toBeNull();
     expect(oda.koltuklar.some((k) => k.tur === "insan" && k.oyuncu.id === "a")).toBe(false);
+    oda.kapat();
+  });
+
+  it("el arasında kopma, geri dönme ya da kalkma sonraki eli iptal etmez", () => {
+    const { oda, saat, son } = kur();
+    oda.otur(kart("a", "Ayla"));
+    oda.basla("a");
+    oda.otur(kart("b", "Berk")); // el sürerken gelen: bekleyen
+    oda.baglantiKoptu("a");
+    let n = 0;
+    while (son("b").oda.sonEl === null && n++ < 3000) saat.ilerle();
+    expect(son("b").oda.sonEl).not.toBeNull();
+    // El arası: a geri döner, sonra tekrar kopar. Sonraki el yine de başlamalı.
+    oda.yenidenBaglandi("a");
+    oda.baglantiKoptu("a");
+    saat.ilerle();
+    expect(son("b").oda.elNo).toBe(2);
+    expect(son("b").oda.oyunda).toBe(true);
+    oda.kapat();
+  });
+
+  it("başka oyuncunun kopup geri dönmesi sıradaki oyuncunun süresini uzatmaz", () => {
+    const { oda, saat } = kur({ turSuresiMs: 1_000, botGecikmeMs: 10 });
+    oda.otur(kart("a", "Ayla"));
+    oda.otur(kart("b", "Berk"));
+    oda.basla("a");
+    const a = oda.koltuklar.findIndex((k) => k.tur === "insan" && k.oyuncu.id === "a");
+    let n = 0;
+    while (oda.masa!.sira !== a && n++ < 1000) saat.ilerle();
+    expect(oda.masa!.sira).toBe(a);
+    const atilan = oda.masa!.atilanlar[a].length;
+    // a hiç oynamıyor; b her 600 ms'de bir kopup geri geliyor. a'nın süresi yine de dolmalı.
+    for (let i = 0; i < 4; i++) {
+      saat.atla(600);
+      oda.baglantiKoptu("b");
+      oda.yenidenBaglandi("b");
+    }
+    expect(oda.masa!.atilanlar[a].length).toBeGreaterThan(atilan);
     oda.kapat();
   });
 
