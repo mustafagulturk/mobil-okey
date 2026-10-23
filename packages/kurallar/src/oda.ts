@@ -155,7 +155,7 @@ export class Oda {
     const k = this.koltuklar[i] as Extract<Koltuk, { tur: "insan" }>;
     k.bagli = false;
     if (!this.masa) this.koltuklar[i] = { tur: "bos" };
-    if (this.sahipId === id) this.sahipId = this.ilkInsan() ?? id;
+    if (this.sahipId === id) this.sahipId = this.ilkInsan();
     this.kapanisKontrol();
     if (!this.kapandi) {
       this.zamanlayiciKur();

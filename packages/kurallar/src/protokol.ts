@@ -29,7 +29,8 @@ export const eylemSemasi = z.discriminatedUnion("tur", [
 export const istemciMesajiSemasi = z.discriminatedUnion("t", [
   // Hesap. İlk girişte oyuncuId/anahtar yoktur; sunucu üretip "hosgeldin" ile döner.
   // Telefon bunları saklar ve sonraki girişlerde gönderir. Anahtar, hesap kurtarma kodudur.
-  z.object({ t: z.literal("giris"), ad, oyuncuId: z.string().uuid().optional(), anahtar: z.string().min(16).max(128).optional() }),
+  // surum: istemcinin protokol sürümü; sunucu eski uygulamadan güncelleme ister.
+  z.object({ t: z.literal("giris"), ad, surum: z.number().int().optional(), oyuncuId: z.string().uuid().optional(), anahtar: z.string().min(16).max(128).optional() }),
   z.object({ t: z.literal("adDegistir"), ad }),
   z.object({ t: z.literal("etiketSec"), cerceve: z.string().max(32), rozet: z.string().max(32), unvan: z.string().max(32) }),
   z.object({ t: z.literal("hesapSil") }),

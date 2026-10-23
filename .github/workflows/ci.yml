@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      surum:
+        description: "Sürüm adı (ör. 1.0.0). Doldurulursa imzalı AAB/APK üretilir ve GitHub Release açılır."
+        required: false
+      surumKodu:
+        description: "Play sürüm kodu (her yüklemede bir artmalı: 1, 2, 3...)"
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test ve tip kontrolü
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  android:
+    name: Android (test APK)
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21, cache: gradle }
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_SUNUCU_URL: ${{ vars.SUNUCU_URL }}
+      - run: npx cap sync android
+        working-directory: packages/mobil
+      - run: ./gradlew assembleDebug --no-daemon
+        working-directory: packages/mobil/android
+      - run: mv packages/mobil/android/app/build/outputs/apk/debug/app-debug.apk okey-test.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: okey-test-apk, path: okey-test.apk }
+
+  sunucu:
+    name: Sunucu Docker imajı
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f packages/sunucu/Dockerfile -t okey-sunucu .
+
+  yayin:
+    name: İmzalı sürüm (Google Play)
+    if: github.event_name == 'workflow_dispatch' && inputs.surum != ''
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      OKEY_KEYSTORE_DOSYASI: ${{ github.workspace }}/yukleme-anahtari.jks
+      OKEY_KEYSTORE_SIFRESI: ${{ secrets.OKEY_KEYSTORE_SIFRESI }}
+      OKEY_ANAHTAR_ADI: ${{ secrets.OKEY_ANAHTAR_ADI }}
+      OKEY_ANAHTAR_SIFRESI: ${{ secrets.OKEY_ANAHTAR_SIFRESI }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21, cache: gradle }
+      - name: Yükleme anahtarını gizli değişkenden çıkar
+        run: |
+          if [ -z "${{ secrets.OKEY_KEYSTORE_BASE64 }}" ]; then
+            echo "OKEY_KEYSTORE_BASE64 gizli değişkeni yok. docs/GOOGLE_PLAY.md 2. adıma bak." && exit 1
+          fi
+          echo "${{ secrets.OKEY_KEYSTORE_BASE64 }}" | base64 -d > "$OKEY_KEYSTORE_DOSYASI"
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_SUNUCU_URL: ${{ vars.SUNUCU_URL }}
+          VITE_ADMOB_ODULLU: ${{ vars.ADMOB_ODULLU }}
+      - run: npx cap sync android
+        working-directory: packages/mobil
+      - name: AAB (Play'e yüklenen) ve APK derle
+        working-directory: packages/mobil/android
+        run: ./gradlew bundleRelease assembleRelease --no-daemon -PsurumAdi=${{ inputs.surum }} -PsurumKodu=${{ inputs.surumKodu || github.run_number }} -PadmobUygulamaId=${{ vars.ADMOB_UYGULAMA_ID }}
+      - run: |
+          mv packages/mobil/android/app/build/outputs/bundle/release/app-release.aab okey-${{ inputs.surum }}.aab
+          mv packages/mobil/android/app/build/outputs/apk/release/app-release.apk okey-${{ inputs.surum }}.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: okey-play-aab, path: "okey-${{ inputs.surum }}.aab" }
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ inputs.surum }}
+          target_commitish: ${{ github.sha }}
+          name: Okey Salonu ${{ inputs.surum }}
+          files: okey-${{ inputs.surum }}.apk
+          generate_release_notes: true

@@ -89,7 +89,7 @@ export function seviyeOdulu(yeniSeviye: number): number {
 
 // --- Günlük görevler ---
 // Sunucu her oyuncuya günde 3 görev seçer. Sayaçlar el sonunda güncellenir.
-export type GorevSayaci = "oynanan" | "kazanilan" | "cift" | "okeyAtarak" | "gosterge" | "yandanKazanma";
+export type GorevSayaci = "oynanan" | "kazanilan" | "cift" | "okeyAtarak" | "gosterge";
 
 export interface GorevTanimi {
   id: string;

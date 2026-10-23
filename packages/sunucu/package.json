@@ -1,0 +1,21 @@
+{
+  "name": "@okey/sunucu",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Okey oyun sunucusu: WebSocket, hesaplar, odalar, çip ekonomisi, mağaza ve reklam doğrulama.",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@okey/kurallar": "*",
+    "tsx": "^4.19.2",
+    "ws": "^8.18.0",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/ws": "^8.5.13"
+  }
+}
