@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Okey Salonu – Uygulama simgesi (512x512)</title>
+<link rel="stylesheet" href="ortak.css">
+<style>
+  /* Köşeler yuvarlatılmaz: Google Play maskeyi kendisi uygular. */
+  html, body { width: 512px; height: 512px; overflow: hidden; }
+  .sahne { position: relative; width: 512px; height: 512px; overflow: hidden; }
+  .cuha { background:
+    radial-gradient(circle at 50% 40%, rgba(52,140,102,.75), rgba(15,61,46,0) 62%),
+    radial-gradient(circle at 50% 50%, var(--cuha) 40%, var(--cuha-koyu) 100%); }
+  .tas { --g: 244px; left: calc(256px - var(--g)/2); top: calc(262px - var(--g)*.71);
+    transform: rotate(-6deg); }
+  /* Yıldız büyük ve net: taş genişliğinin ~%84'ü, kalın koyu altın kontur */
+  .tas.okey svg { width: 84%; margin-bottom: calc(var(--g) * .03);
+    filter: drop-shadow(0 calc(var(--g)*.012) 0 rgba(255,255,255,.7)); }
+</style>
+</head>
+<body>
+<div class="sahne">
+  <div class="cuha"></div>
+  <div class="tas okey">
+    <svg viewBox="0 0 100 100" aria-label="okey"><defs><linearGradient id="y" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3d27e"/><stop offset="1" stop-color="#d79a1c"/></linearGradient></defs>
+      <path d="M50 6 L62.5 36.5 L95 38.8 L70 59.8 L78 92 L50 74.5 L22 92 L30 59.8 L5 38.8 L37.5 36.5 Z" fill="url(#y)" stroke="#9c6a12" stroke-width="4" stroke-linejoin="round"/></svg>
+  </div>
+</div>
+</body>
+</html>

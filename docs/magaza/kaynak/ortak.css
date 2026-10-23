@@ -22,7 +22,8 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { background: var(--cuha-koyu); }
+/* Sayfa arka planı saydam: PNG RGBA (32-bit) çıksın; sahneyi .cuha tamamen kaplar */
+html, body { background: transparent; }
 body { font-family: 'Nunito', system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
 
 /* Çuha: koyu zümrüt + yumuşak spot ışığı */

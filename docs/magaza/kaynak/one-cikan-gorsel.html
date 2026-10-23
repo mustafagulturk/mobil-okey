@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Okey Salonu – Öne çıkan görsel (1024x500)</title>
+<link rel="stylesheet" href="ortak.css">
+<style>
+  html, body { width: 1024px; height: 500px; overflow: hidden; }
+  .sahne { position: relative; width: 1024px; height: 500px; overflow: hidden; }
+
+  /* Ahşap masa kenarı: üst ve alt (dekoratif, kırpılabilir) */
+  .ahsap { position: absolute; left: 0; right: 0; height: 26px; z-index: 2;
+    background:
+      repeating-linear-gradient(90deg, rgba(0,0,0,.0) 0 37px, rgba(0,0,0,.10) 37px 39px, rgba(255,255,255,.04) 39px 61px, rgba(0,0,0,.08) 61px 62px),
+      linear-gradient(180deg, #9a5d2e 0%, #7a4522 45%, #5a3118 100%); }
+  .ahsap.ust { top: 0; box-shadow: 0 6px 14px rgba(0,0,0,.45); }
+  .ahsap.alt { bottom: 0; transform: scaleY(-1); box-shadow: 0 6px 14px rgba(0,0,0,.45); }
+  .ahsap::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: linear-gradient(90deg, transparent, var(--altin) 20%, var(--altin) 80%, transparent); opacity: .55; }
+
+  /* Başlık bloğu (güvenli alan içinde) */
+  .yazi { position: absolute; left: 76px; top: 0; bottom: 0; width: 470px; z-index: 3;
+    display: flex; flex-direction: column; justify-content: center; }
+  .rozet { align-self: flex-start; font-weight: 800; font-size: 17px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--altin); border: 2px solid rgba(232,194,106,.55); border-radius: 999px; padding: 5px 16px 5px; margin-bottom: 14px; }
+  h1 { font-weight: 900; font-size: 88px; line-height: .98; color: var(--krem); letter-spacing: -.01em;
+    text-shadow: 0 3px 0 rgba(0,0,0,.25), 0 10px 26px rgba(0,0,0,.45); }
+  h1 span { color: var(--altin); }
+  .cizgi { width: 120px; height: 5px; border-radius: 3px; margin: 20px 0 18px;
+    background: linear-gradient(90deg, var(--altin), var(--altin-koyu)); }
+  .slogan { font-weight: 800; font-size: 31px; line-height: 1.2; color: #e9f2ec; text-shadow: 0 2px 10px rgba(0,0,0,.4); }
+
+  /* Taş yelpazesi */
+  .yelpaze { position: absolute; left: 734px; top: 318px; width: 0; height: 0; z-index: 3; }
+  .yelpaze .tas { --g: 100px; left: calc(var(--g) / -2); top: calc(var(--g) * -1.42);
+    transform-origin: 50% 400%; }
+  .golge { position: absolute; left: 525px; top: 290px; width: 420px; height: 90px; z-index: 2;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,.35), rgba(0,0,0,0) 70%); }
+  .isik { position: absolute; left: 560px; top: 30px; width: 420px; height: 420px; border-radius: 50%; z-index: 1;
+    background: radial-gradient(circle, rgba(232,194,106,.16), rgba(232,194,106,0) 65%); }
+</style>
+</head>
+<body>
+<div class="sahne">
+  <div class="cuha"></div>
+  <div class="ahsap ust"></div>
+  <div class="ahsap alt"></div>
+  <div class="isik"></div>
+  <div class="golge"></div>
+
+  <div class="yazi">
+    <div class="rozet">Online · Çok oyunculu</div>
+    <h1>Okey<br><span>Salonu</span></h1>
+    <div class="cizgi"></div>
+    <div class="slogan">Gerçek rakiplerle canlı Okey</div>
+  </div>
+
+  <div class="yelpaze">
+    <div class="tas kirmizi" style="transform: rotate(-16.5deg)"><div class="rakam">11</div><div class="nokta"></div></div>
+    <div class="tas kirmizi" style="transform: rotate(-5.5deg)"><div class="rakam">12</div><div class="nokta"></div></div>
+    <div class="tas kirmizi" style="transform: rotate(5.5deg)"><div class="rakam">13</div><div class="nokta"></div></div>
+    <div class="tas okey"   style="transform: rotate(16.5deg)">
+      <svg viewBox="0 0 100 100" aria-label="okey"><defs><linearGradient id="y" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f3d27e"/><stop offset="1" stop-color="#d79a1c"/></linearGradient></defs>
+        <path d="M50 6 L62.5 36.5 L95 38.8 L70 59.8 L78 92 L50 74.5 L22 92 L30 59.8 L5 38.8 L37.5 36.5 Z" fill="url(#y)" stroke="#9c6a12" stroke-width="4" stroke-linejoin="round"/></svg>
+    </div>
+  </div>
+</div>
+</body>
+</html>
