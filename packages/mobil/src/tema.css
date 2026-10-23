@@ -1,0 +1,124 @@
+/* =====================================================================
+   TEMA — Uygulamanın bütün görünümü buradan yönetilir.
+
+   Temayı değiştirmek için burayı düzenle:
+     - Renkleri, yazı tipini, köşe yuvarlaklıklarını, gölgeleri ve
+       taş/masa ölçülerini aşağıdaki değişkenlerden değiştirebilirsin.
+     - Bileşenler (src/stil.css) kendi rengini yazmaz, sadece bu
+       değişkenleri kullanır. Burada yaptığın değişiklik her yere yansır.
+     - Yazı tipini değiştirmek için: @fontsource/<yazi-tipi> paketini kur,
+       src/main.tsx içindeki import satırlarını değiştir ve --yazi-tipi'ni güncelle.
+
+   Hava: sıcak, modern bir kahvehane. Koyu zümrüt çuha, ahşap kenar,
+   krem taşlar, altın vurgular.
+   ===================================================================== */
+
+:root {
+  /* ---------- Yazı ---------- */
+  --yazi-tipi: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --yazi-kucuk: 12px;
+  --yazi-normal: 14px;
+  --yazi-buyuk: 17px;
+  --yazi-baslik: 22px;
+  --yazi-dev: 30px;
+
+  /* ---------- Ana renkler ---------- */
+  --renk-zemin: #0b2a20;            /* uygulamanın en arka zemini */
+  --renk-zemin-desen: #0f3427;      /* zemindeki hafif ışık */
+  --renk-yuzey: #143b2e;            /* kartlar, paneller */
+  --renk-yuzey-acik: #1c4a3a;       /* kart üstündeki ikinci katman */
+  --renk-yuzey-kenar: rgba(255, 233, 180, 0.14);
+  --renk-yazi: #f6efe0;             /* ana yazı (krem) */
+  --renk-yazi-soluk: #b9c7bd;       /* ikincil yazı */
+  --renk-yazi-koyu: #2b2118;        /* açık zemin üstündeki yazı */
+
+  --renk-cizgi: rgba(255, 255, 255, 0.08);      /* ayraçlar, ince kenarlar */
+  --renk-hafif: rgba(255, 255, 255, 0.06);      /* düğme/girdi zemini */
+  --renk-karartma: rgba(4, 16, 12, 0.66);       /* pencere açıkken arka plan */
+  --renk-yazi-golge: rgba(0, 0, 0, 0.45);
+
+  /* ---------- Vurgu (altın) ---------- */
+  --renk-altin: #e9b949;
+  --renk-altin-acik: #ffe08a;
+  --renk-altin-koyu: #a8761c;
+  --renk-altin-hafif: rgba(233, 185, 73, 0.16); /* seçili kart zemini */
+  --gradyan-altin: linear-gradient(180deg, #ffe08a 0%, #e9b949 55%, #c48d25 100%);
+
+  /* ---------- Durum renkleri ---------- */
+  --renk-basari: #4fd18b;
+  --renk-hata: #ff6b6b;
+  --renk-uyari: #ffb547;
+  --renk-bilgi: #7cc4ff;
+  --renk-pasif: #6b7a72;            /* uygun olmayan salon vb. */
+
+  /* ---------- Düğmeler ---------- */
+  --dugme-birincil-zemin: var(--gradyan-altin);
+  --dugme-birincil-yazi: #3a2a0c;
+  --dugme-ikincil-zemin: rgba(255, 255, 255, 0.08);
+  --dugme-ikincil-yazi: var(--renk-yazi);
+  --dugme-tehlike-zemin: linear-gradient(180deg, #ff8a7a, #d9473a);
+  --dugme-yesil-zemin: linear-gradient(180deg, #5fe0a8, #1f9c66);
+
+  /* ---------- Salon kartlarının vurgu renkleri (sırayla) ---------- */
+  --salon-renk-0: #4fa3d9;   /* Çaylak */
+  --salon-renk-1: #e08b3a;   /* Kahvehane */
+  --salon-renk-2: #b56be0;   /* Ustalar */
+  --salon-renk-3: #e9b949;   /* Ağalar */
+
+  /* ---------- Masa ---------- */
+  --masa-cuha: #0d5a3d;                         /* çuhanın orta rengi */
+  --masa-cuha-koyu: #063526;                    /* çuhanın kenar rengi */
+  --masa-cuha-gradyan: radial-gradient(ellipse at 50% 42%, #137450 0%, var(--masa-cuha) 45%, var(--masa-cuha-koyu) 100%);
+  --masa-ahsap: linear-gradient(180deg, #8a5a33 0%, #6b4226 50%, #4f2f1a 100%);
+  --masa-ahsap-kenar: 7px;                      /* ahşap çerçevenin kalınlığı */
+  --masa-cizgi: rgba(255, 255, 255, 0.07);      /* çuha üstündeki ince çizgiler */
+
+  /* ---------- İstaka (taşların durduğu ahşap raf) ---------- */
+  --istaka-zemin: linear-gradient(180deg, #a87445 0%, #8a5a33 60%, #6b4226 100%);
+  --istaka-raf: rgba(0, 0, 0, 0.22);            /* her sıranın altındaki gölge çizgisi */
+  --istaka-yuva-vurgu: rgba(255, 224, 138, 0.35); /* sürüklerken üstüne gelinen yuva */
+
+  /* ---------- Taşlar ---------- */
+  --tas-zemin: linear-gradient(180deg, #fffaf0 0%, #f6ecd6 70%, #e8d9b8 100%);
+  --tas-kenar: #d6c49c;
+  --tas-alt-golge: #b9a57c;                     /* taşın kalınlığını veren alt kenar */
+  --tas-secili: #ffcf4d;                        /* seçili taşın çerçevesi */
+  --tas-kirmizi: #d7263d;
+  --tas-sari: #e88a00;
+  --tas-mavi: #1f5fbf;
+  --tas-siyah: #1d1d1f;
+  --tas-sahte: #0e7a52;                         /* sahte okey simgesinin rengi */
+  --tas-okey-yildiz: #e9b949;                   /* okey taşının köşesindeki yıldız */
+  --tas-arka: linear-gradient(135deg, #e7d6ae, #cdb88a);  /* kapalı taş (deste) */
+
+  /* Taş ölçüleri. İstakadaki taş ekranın genişliğine göre küçülür, en fazla bu değerde olur. */
+  --tas-en: min(42px, calc((100vw - env(safe-area-inset-left) - env(safe-area-inset-right) - 230px) / 15));
+  --tas-boy: calc(var(--tas-en) * 1.36);
+  --tas-orta-en: 30px;   /* atılan taşlar, gösterge */
+  --tas-kucuk-en: 22px;  /* sonuç penceresindeki perler */
+  --tas-kose: 6px;
+
+  /* ---------- Biçim ---------- */
+  --kose-kucuk: 8px;
+  --kose: 14px;
+  --kose-buyuk: 22px;
+  --kose-hap: 999px;
+  --golge-kucuk: 0 2px 6px rgba(0, 0, 0, 0.25);
+  --golge: 0 8px 22px rgba(0, 0, 0, 0.35);
+  --golge-buyuk: 0 18px 50px rgba(0, 0, 0, 0.5);
+  --golge-tas: 0 2px 0 var(--tas-alt-golge), 0 4px 8px rgba(0, 0, 0, 0.3);
+  --parlama-sira: 0 0 0 3px var(--renk-altin), 0 0 18px 4px rgba(233, 185, 73, 0.65);
+  --bosluk: 12px;
+
+  /* ---------- Hareket ---------- */
+  --sure-hizli: 120ms;
+  --sure: 220ms;
+  --sure-yavas: 420ms;
+  --egri: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* ---------- Güvenli alan (çentik, sistem çubukları) ---------- */
+  --guvenli-ust: env(safe-area-inset-top, 0px);
+  --guvenli-alt: env(safe-area-inset-bottom, 0px);
+  --guvenli-sol: env(safe-area-inset-left, 0px);
+  --guvenli-sag: env(safe-area-inset-right, 0px);
+}
