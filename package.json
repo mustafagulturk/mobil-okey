@@ -1,0 +1,18 @@
+{
+  "name": "okey",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @okey/mobil",
+    "dev:sunucu": "npm run dev -w @okey/sunucu",
+    "build": "npm run build -w @okey/mobil",
+    "test": "vitest run",
+    "typecheck": "tsc -p packages/kurallar --noEmit && tsc -p packages/sunucu --noEmit && tsc -p packages/mobil --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "vitest": "^3.2.4"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "@okey/kurallar",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Okey kuralları, masa ve oda motoru, bot. Hem sunucuda hem telefonda aynı kod çalışır; TypeScript kaynağı olarak kullanılır.",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "zod": "^3.25.76"
+  }
+}
