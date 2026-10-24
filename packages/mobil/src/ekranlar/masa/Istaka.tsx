@@ -1,37 +1,26 @@
 // İstaka ve sürükle-bırak.
 //
-// Kütüphane kullanmadan, Pointer Events ile sürükle-bırak:
-//  1) Taşa basılınca (pointerdown) başlangıç noktası kaydedilir.
+// Kütüphane kullanmadan, Pointer Events ile sürükle-bırak (ortak kısım surukleme.ts'te):
+//  1) Taşa basılınca (pointerdown, istaka üzerinde tek dinleyici) izleme başlar.
 //  2) Parmak 6 pikselden fazla kayarsa sürükleme başlar: taşın bir kopyası ("hayalet")
 //     parmağın altında kalkık ve gölgeli gezer, asıl taş yerinde soluk görünür.
-//     Hayalet her karede React'e uğramadan, doğrudan transform ile taşınır.
-//  3) Bırakılınca (pointerup) parmağın altındaki öğeye bakılır (elementFromPoint):
-//     bir yuva ise taş oraya taşınır, atma alanı ise taş atılır.
+//     Hayalet karede bir kez (rAF), React'e uğramadan, transform ile taşınır.
+//  3) Bırakılınca parmağın altındaki öğeye bakılır (elementFromPoint): bir yuva ise
+//     taş oraya taşınır, atma alanı ise atılır, gösterge/deste alanı ise el bitirilir.
 //  4) Hiç kaymadan bırakılırsa bu bir dokunuştur: taş seçilir/seçim kalkar.
+//
+// İstaka ve taşlar memo'ludur: masa ekranının saniyede birkaç kez yenilenen
+// geri sayımı istakayı yeniden çizdirmez.
 //
 // Yuva düzeni değişince (bırakma, Seri/Çift Diz) taşlar eski yerlerinden yenisine
 // kayarak gider (FLIP): eski konumlar render sırasında (DOM henüz eskiyken) ölçülür,
 // yeni konumlar useLayoutEffect'te; aradaki fark yaylı bir transform animasyonudur.
 import type { Deger } from "@okey/kurallar";
-import { type CSSProperties, type PointerEvent as ReactPointerEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { type CSSProperties, memo, type PointerEvent as ReactPointerEvent, useLayoutEffect, useRef, useState } from "react";
 import { Tas } from "../../bilesenler/Tas.tsx";
 import { efektlerAcik } from "../../efektler/ayar.ts";
 import { SIRA_UZUNLUGU, tasiTasi, type Yuvalar } from "../../yardimci/istaka.ts";
-
-const KAYMA_ESIGI = 6;
-
-interface Basis {
-  tas: number;
-  kaynak: number;
-  /** Parmağın taşın sol üst köşesine göre konumu (hayalet kaymasın diye). */
-  ofsetX: number;
-  ofsetY: number;
-  x: number;
-  y: number;
-  baslangicX: number;
-  baslangicY: number;
-  basladi: boolean;
-}
+import { birakmaAlani, hayaletiKoy, suruklemeyiIzle, yuvaVurgula, yuvaVurgusunuKaldir } from "./surukleme.ts";
 
 interface Ozellikler {
   yuvalar: Yuvalar;
@@ -42,17 +31,32 @@ interface Ozellikler {
   dagitim: boolean;
   degistir: (y: Yuvalar) => void;
   sec: (tas: number | null) => void;
-  /** Taş atma alanına bırakıldı; kutu hayaletin bırakıldığı yer (uçuş oradan başlar). */
-  birakildi: (tas: number, kutu: DOMRect | null) => void;
-  /** Sürükleme başladı/bitti ve parmak atma alanının üstünde mi. */
-  suruklemeDurumu: (durum: "yok" | "var" | "atUstunde") => void;
+  /** Taş atma ya da bitirme alanına bırakıldı; kutu hayaletin bırakıldığı yer (uçuş oradan başlar). */
+  birakildi: (tas: number, kutu: DOMRect | null, hedef: "at" | "bitir") => void;
+  /** Sürükleme başladı/bitti ve parmak bir bırakma alanının üstünde mi. */
+  suruklemeDurumu: (durum: SuruklemeDurumu) => void;
+  /** Bu taş istakada gizli durur (ör. bitirmek için ortaya konmuşken). */
+  gizliTas?: number | null;
 }
 
-export function Istaka({ yuvalar, okey, secili, sirada, dagitim, degistir, sec, birakildi, suruklemeDurumu }: Ozellikler) {
+export type SuruklemeDurumu = "yok" | "var" | "atUstunde" | "bitirUstunde";
+
+export const Istaka = memo(IstakaIc, (a, b) =>
+  a.yuvalar === b.yuvalar &&
+  a.okey.renk === b.okey.renk &&
+  a.okey.sayi === b.okey.sayi &&
+  a.secili === b.secili &&
+  a.sirada === b.sirada &&
+  a.dagitim === b.dagitim &&
+  a.gizliTas === b.gizliTas &&
+  a.degistir === b.degistir &&
+  a.sec === b.sec &&
+  a.birakildi === b.birakildi &&
+  a.suruklemeDurumu === b.suruklemeDurumu,
+);
+
+function IstakaIc({ yuvalar, okey, secili, sirada, dagitim, degistir, sec, birakildi, suruklemeDurumu, gizliTas = null }: Ozellikler) {
   const [surukle, setSurukle] = useState<{ tas: number; kaynak: number } | null>(null);
-  const [basili, setBasili] = useState(false);
-  const [hedefYuva, setHedefYuva] = useState<number | null>(null);
-  const basis = useRef<Basis | null>(null);
   const hayalet = useRef<HTMLDivElement>(null);
   const kok = useRef<HTMLDivElement>(null);
   // Pencere olay dinleyicileri en güncel değerleri görsün diye ref.
@@ -100,89 +104,64 @@ export function Istaka({ yuvalar, okey, secili, sirada, dagitim, degistir, sec, 
     });
   }, [yuvalar]);
 
-  const basla = (e: ReactPointerEvent<HTMLDivElement>, tas: number, kaynak: number) => {
-    if (e.button !== 0) return;
-    const kutu = e.currentTarget.getBoundingClientRect();
-    basis.current = {
-      tas,
-      kaynak,
-      ofsetX: e.clientX - kutu.left,
-      ofsetY: e.clientY - kutu.top,
-      x: e.clientX,
-      y: e.clientY,
-      baslangicX: e.clientX,
-      baslangicY: e.clientY,
-      basladi: false,
-    };
-    setBasili(true);
-  };
-
-  // Hayaleti parmağın altına taşı (React render'ı olmadan).
-  const hayaletiTasi = () => {
-    const m = basis.current;
-    if (m && hayalet.current) hayalet.current.style.transform = `translate3d(${m.x - m.ofsetX}px, ${m.y - m.ofsetY}px, 0)`;
-  };
-  useLayoutEffect(hayaletiTasi, [surukle]);
-
-  useEffect(() => {
-    if (!basili) return;
-    let atUstunde = false;
-
-    const hareket = (e: PointerEvent) => {
-      const m = basis.current;
-      if (!m) return;
-      m.x = e.clientX;
-      m.y = e.clientY;
-      if (!m.basladi && Math.hypot(e.clientX - m.baslangicX, e.clientY - m.baslangicY) > KAYMA_ESIGI) {
-        m.basladi = true;
-        setSurukle({ tas: m.tas, kaynak: m.kaynak });
+  // ---------- Sürükleme (bkz. surukleme.ts: hareket React'e uğramaz) ----------
+  const basla = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const tasEl = (e.target as HTMLElement).closest<HTMLElement>("[data-tas]");
+    const yuvaEl = tasEl?.closest<HTMLElement>("[data-yuva]");
+    if (!tasEl || !yuvaEl || !kok.current?.contains(yuvaEl)) return;
+    const tas = Number(tasEl.dataset.tas);
+    const kaynak = Number(yuvaEl.dataset.yuva);
+    const kutu = tasEl.getBoundingClientRect();
+    const ofsetX = e.clientX - kutu.left;
+    const ofsetY = e.clientY - kutu.top;
+    let alan: "at" | "bitir" | null = null;
+    let sonX = e.clientX;
+    let sonY = e.clientY;
+    suruklemeyiIzle(e, {
+      basla: () => {
+        hayaletKonum.current = { x: e.clientX, y: e.clientY, ofsetX, ofsetY };
+        setSurukle({ tas, kaynak });
         ref.current.suruklemeDurumu("var");
-      }
-      if (!m.basladi) return;
-      hayaletiTasi();
-      const alt = altindaki(e.clientX, e.clientY);
-      const yuva = alt?.closest<HTMLElement>("[data-yuva]");
-      setHedefYuva(yuva ? Number(yuva.dataset.yuva) : null);
-      const ustunde = !!alt?.closest("[data-birak='at']");
-      if (ustunde !== atUstunde) {
-        atUstunde = ustunde;
-        ref.current.suruklemeDurumu(ustunde ? "atUstunde" : "var");
-      }
-    };
+      },
+      hareket: (x, y, alt) => {
+        sonX = x;
+        sonY = y;
+        hayaletKonum.current = { x, y, ofsetX, ofsetY };
+        hayaletiKoy(hayalet.current, x, y, ofsetX, ofsetY);
+        yuvaVurgula(alt);
+        const yeni = birakmaAlani(alt);
+        if (yeni !== alan) {
+          alan = yeni;
+          ref.current.suruklemeDurumu(yeni === "at" ? "atUstunde" : yeni === "bitir" ? "bitirUstunde" : "var");
+        }
+      },
+      bitir: (x, y, alt, iptal) => {
+        // Hayalet son karede kalmış olabilir: bırakma kutusunu parmağın son konumuna göre hesapla.
+        hayaletiKoy(hayalet.current, iptal ? sonX : x, iptal ? sonY : y, ofsetX, ofsetY);
+        const kutu = hayalet.current?.firstElementChild?.getBoundingClientRect() ?? null;
+        yuvaVurgusunuKaldir();
+        setSurukle(null);
+        ref.current.suruklemeDurumu("yok");
+        if (iptal) return;
+        const yuva = alt?.closest<HTMLElement>(".istaka [data-yuva]");
+        if (yuva) {
+          if (kutu) birakmaKutusu.current = { tas, kutu };
+          ref.current.degistir(tasiTasi(ref.current.yuvalar, kaynak, Number(yuva.dataset.yuva)));
+          return;
+        }
+        const hedef = birakmaAlani(alt);
+        if (hedef) ref.current.birakildi(tas, kutu, hedef);
+      },
+      dokunus: () => ref.current.sec(ref.current.secili === tas ? null : tas),
+    });
+  };
 
-    const birak = (e: PointerEvent) => {
-      const m = basis.current;
-      const kutu = hayalet.current?.firstElementChild?.getBoundingClientRect() ?? null;
-      basis.current = null;
-      setBasili(false);
-      setSurukle(null);
-      setHedefYuva(null);
-      if (!m) return;
-      if (!m.basladi) {
-        // Dokunuş: seç ya da seçimi kaldır.
-        ref.current.sec(ref.current.secili === m.tas ? null : m.tas);
-        return;
-      }
-      ref.current.suruklemeDurumu("yok");
-      const alt = altindaki(e.clientX, e.clientY);
-      const yuva = alt?.closest<HTMLElement>("[data-yuva]");
-      if (yuva) {
-        if (kutu) birakmaKutusu.current = { tas: m.tas, kutu };
-        ref.current.degistir(tasiTasi(ref.current.yuvalar, m.kaynak, Number(yuva.dataset.yuva)));
-        return;
-      }
-      if (alt?.closest("[data-birak='at']")) ref.current.birakildi(m.tas, kutu);
-    };
-
-    window.addEventListener("pointermove", hareket);
-    window.addEventListener("pointerup", birak);
-    window.addEventListener("pointercancel", birak);
-    return () => {
-      window.removeEventListener("pointermove", hareket);
-      window.removeEventListener("pointerup", birak);
-      window.removeEventListener("pointercancel", birak);
-    };
-  }, [basili]);
+  // Hayalet ilk çizildiğinde parmağın altına konur (sonrası surukleme.ts'te).
+  const hayaletKonum = useRef<{ x: number; y: number; ofsetX: number; ofsetY: number } | null>(null);
+  useLayoutEffect(() => {
+    const k = hayaletKonum.current;
+    if (surukle && k) hayaletiKoy(hayalet.current, k.x, k.y, k.ofsetX, k.ofsetY);
+  }, [surukle]);
 
   const sira = (bas: number) => (
     <div className="istaka__sira">
@@ -192,12 +171,12 @@ export function Istaka({ yuvalar, okey, secili, sirada, dagitim, degistir, sec, 
         return (
           <div
             key={yuva}
-            className={`yuva ${hedefYuva === yuva && surukle ? "yuva--hedef" : ""}`}
+            className="yuva"
             data-yuva={yuva}
             style={dagitim ? ({ "--i": i + bas } as CSSProperties) : undefined}
           >
             {tas !== null && (
-              <Tas id={tas} okey={okey} secili={secili === tas} soluk={kaynakBu} onPointerDown={(e) => basla(e, tas, yuva)} />
+              <Tas id={tas} okey={okey} secili={secili === tas} soluk={kaynakBu} gizli={gizliTas === tas} />
             )}
           </div>
         );
@@ -207,7 +186,7 @@ export function Istaka({ yuvalar, okey, secili, sirada, dagitim, degistir, sec, 
 
   return (
     <>
-      <div ref={kok} className={`istaka ${sirada ? "istaka--sirada" : ""} ${dagitim ? "istaka--dagitim" : ""} ${surukle ? "istaka--surukleniyor" : ""}`}>
+      <div ref={kok} onPointerDown={basla} className={`istaka ${sirada ? "istaka--sirada" : ""} ${dagitim ? "istaka--dagitim" : ""} ${surukle ? "istaka--surukleniyor" : ""}`}>
         <div className="istaka__raf istaka__raf--ust">{sira(0)}</div>
         <div className="istaka__raf istaka__raf--alt">{sira(SIRA_UZUNLUGU)}</div>
       </div>
@@ -220,7 +199,3 @@ export function Istaka({ yuvalar, okey, secili, sirada, dagitim, degistir, sec, 
   );
 }
 
-/** Parmağın altındaki öğe. Hayalet "pointer-events: none" olduğu için onu atlar. */
-function altindaki(x: number, y: number): HTMLElement | null {
-  return document.elementFromPoint(x, y) as HTMLElement | null;
-}

@@ -13,7 +13,7 @@
 //
 // Online oyun ve antrenman aynı ekranı kullanır; fark sadece mesajların nereye gittiğidir.
 import { type Deger, diz, type IstemciMesaji, RENKLER, TAS_SAYISI, VARSAYILAN_ETIKET, yuzDegeri } from "@okey/kurallar";
-import { type CSSProperties, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, type PointerEvent as ReactPointerEvent, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { IsimEtiketi } from "../../bilesenler/IsimEtiketi.tsx";
@@ -30,16 +30,17 @@ import { useGeriTusu } from "../../platform/geriTusu.ts";
 import { tamEkranAc } from "../../platform/tamEkran.ts";
 import { sesCek, sesKazandin, sesSira, sesTas } from "../../platform/ses.ts";
 import { RENK_ADLARI } from "../../yardimci/bicim.ts";
-import { bosIstaka, dizilisiYerlestir, eliYerlestir, istakaEsitle, YUVA_SAYISI, type Yuvalar } from "../../yardimci/istaka.ts";
+import { bosIstaka, dizilisiYerlestir, eliYerlestir, istakaEsitle, tasiTasi, YUVA_SAYISI, type Yuvalar } from "../../yardimci/istaka.ts";
 import { useSimdi } from "../../yardimci/kancalar.ts";
 import { koltukAdi } from "../../yardimci/oda.ts";
 import type { SahteSonuc } from "./gelistirme.ts";
-import { Istaka } from "./Istaka.tsx";
+import { Istaka, type SuruklemeDurumu } from "./Istaka.tsx";
 import { Madalyon, tonu } from "./Madalyon.tsx";
 import { type MasaOlayi, olaylariCikar } from "./masaOlaylari.ts";
 import { OyuncuYeri } from "./OyuncuYeri.tsx";
 import { SohbetPaneli } from "./SohbetPaneli.tsx";
 import { SonucPenceresi } from "./SonucPenceresi.tsx";
+import { hayaletiKoy, suruklemeYeniBitti, suruklemeyiIzle, yuvaVurgula, yuvaVurgusunuKaldir } from "./surukleme.ts";
 
 /** Son kaç saniye "acil" sayılır (halka nabız atar, plaka titrer). */
 const ACIL_SN = 5;
@@ -58,6 +59,7 @@ export function MasaEkrani() {
       void import("./gelistirme.ts").then((m) => !iptal && setSahteModul(m));
       const w = window as unknown as { __okeySonucDene?: (s?: SahteSonuc | null) => void };
       w.__okeySonucDene = (s = {}) => setSahte(s);
+      void import("./gelistirme.ts").then((m) => !iptal && m.bitirKancasiniKur());
       return () => {
         iptal = true;
         delete w.__okeySonucDene;
@@ -74,10 +76,18 @@ export function MasaEkrani() {
 
   // ---------- İstaka (yuva düzeni sadece bu telefonda tutulur) ----------
   const [istaka, setIstaka] = useState<{ elNo: number; yuvalar: Yuvalar }>({ elNo: -1, yuvalar: bosIstaka() });
-  const yuvalar = useMemo(
-    () => (istaka.elNo === oda.elNo ? istakaEsitle(istaka.yuvalar, masa.el) : eliYerlestir(masa.el)),
-    [istaka, oda.elNo, masa.el],
-  );
+  // Desteden/yandan sürüklenip bir yuvaya bırakılan çekiş: gelen taş o yuvaya konur.
+  const [cekisHedefi, setCekisHedefi] = useState<CekisHedefi | null>(null);
+  const cekilenTas = cekisHedefi && istaka.elNo === oda.elNo ? (masa.el.find((t) => !cekisHedefi.oncekiEl.includes(t)) ?? null) : null;
+  const yuvalar = useMemo(() => {
+    if (istaka.elNo !== oda.elNo) return eliYerlestir(masa.el);
+    const y = istakaEsitle(istaka.yuvalar, masa.el);
+    if (cekisHedefi && cekilenTas !== null) {
+      const i = y.indexOf(cekilenTas);
+      if (i !== -1 && i !== cekisHedefi.yuva) return tasiTasi(y, i, cekisHedefi.yuva);
+    }
+    return y;
+  }, [istaka, oda.elNo, masa.el, cekisHedefi, cekilenTas]);
   useEffect(() => {
     if (istaka.elNo !== oda.elNo) setIstaka({ elNo: oda.elNo, yuvalar: eliYerlestir(masa.el) });
   }, [oda.elNo, istaka.elNo, masa.el]);
@@ -91,6 +101,20 @@ export function MasaEkrani() {
   const benimSiram = !bitti && masa.sira === ben;
   const cekebilir = benimSiram && masa.asama === "cek";
   const atabilir = benimSiram && masa.asama === "at";
+  const bitirebilir = atabilir && masa.el.length === 15;
+  const sonHataId = useMemo(() => durum.bildirimler.reduce((n, b) => (b.tur === "hata" ? Math.max(n, b.id) : n), 0), [durum.bildirimler]);
+
+  // Sürükleyerek çekilen taş geldi: yerleşimi kalıcı yap. Çekiş reddedildiyse ya da el
+  // değiştiyse bekleyen hedefi unut.
+  useEffect(() => {
+    if (!cekisHedefi) return;
+    if (cekilenTas !== null) {
+      setIstaka({ elNo: oda.elNo, yuvalar });
+      setCekisHedefi(null);
+    } else if (sonHataId > cekisHedefi.hataId || oda.elNo !== cekisHedefi.elNo || bitti) {
+      setCekisHedefi(null);
+    }
+  }, [cekisHedefi, cekilenTas, sonHataId, oda.elNo, bitti]);
 
   // Geri sayım telefonun kendi saatiyle: oda mesajı geldiğinde "şimdi + turKalanMs"
   // olarak hesaplanan bitiş anı (durum.turYerelBitis) ve sunucunun verdiği toplam süre.
@@ -144,7 +168,7 @@ export function MasaEkrani() {
     oncekiMasa.current = { elNo: oda.elNo, masa };
     if (o.masa === masa || o.elNo !== oda.elNo || !kok.current || sahteMi) return;
     const olaylar = olaylariCikar(o.masa, masa);
-    olaylar.forEach((olay, i) => ucusHazirla(kok.current!, olay, ben, masa.okey, sonAtis.current, i * 60));
+    olaylar.forEach((olay, i) => ucusHazirla(kok.current!, olay, ben, masa.okey, sonAtis.current, cekisHedefi?.kutu ?? null, i * 60));
     if (olaylar.some((ol) => ol.tur === "cek" && ol.koltuk === ben) && durum.ayarlar.ses) sesCek();
     sonAtis.current = null;
   }, [masa]);
@@ -180,8 +204,119 @@ export function MasaEkrani() {
   };
   const atRef = useRef(at);
   atRef.current = at;
-  const birakildi = useCallback((tas: number, kutu: DOMRect | null) => atRef.current(tas, kutu), []);
-  const [surukleme, setSurukleme] = useState<"yok" | "var" | "atUstunde">("yok");
+  const [surukleme, setSurukleme] = useState<SuruklemeDurumu>("yok");
+
+  // ---------- Bitirme: son taşı göstergenin üstüne sürükleyip bırakmak ----------
+  // Taş istakada gizlenir, bir kopyası bırakıldığı yerden göstergenin üstüne uçar ve
+  // cevap beklenir. El biterse sonuç penceresi gelir; motor/sunucu reddederse (hata
+  // bildirimi) ya da cevap gelmezse kopya istakadaki yerine geri uçar.
+  const [bitirBekleyen, setBitirBekleyen] = useState<{ tas: number; hataId: number } | null>(null);
+  const bitirUcusu = useRef<Promise<HTMLElement | null> | null>(null);
+  const geriDonuyor = useRef(false);
+  const suruklemeBitir = (tas: number, kutu: DOMRect | null) => {
+    if (!bitirebilir || bitirBekleyen) return;
+    const hedef = kok.current?.querySelector(".gosterge__kart")?.getBoundingClientRect();
+    const kaynakEl = kok.current?.querySelector<HTMLElement>(`.istaka [data-tas="${tas}"]`);
+    setSecili(null);
+    setBitirBekleyen({ tas, hataId: sonHataId });
+    bitirUcusu.current =
+      hedef && kutu && kaynakEl
+        ? ucur(kutu, merkezKutu(hedef, kutu.width * 0.86, kutu.height * 0.86), tasKopyasi(kaynakEl), { sure: 220, yay: 18, donus: 4, kalsin: true }).catch(() => null)
+        : Promise.resolve(null);
+    hamle({ t: "hamle", eylem: { tur: "bitir", tas } });
+  };
+  useEffect(() => {
+    if (!bitirBekleyen) return;
+    const ucus = bitirUcusu.current;
+    if (bitti) {
+      // El bitti: sonuç penceresi açılıyor; ortadaki kopya kısa süre sonra kalkar.
+      void ucus?.then((el) => setTimeout(() => el?.remove(), 400));
+      setBitirBekleyen(null);
+      return;
+    }
+    const geriDon = () => {
+      if (geriDonuyor.current) return;
+      geriDonuyor.current = true;
+      void (ucus ?? Promise.resolve(null)).then((el) => {
+        const tasEl = kok.current?.querySelector<HTMLElement>(`.istaka [data-tas="${bitirBekleyen.tas}"]`);
+        const bas = el?.getBoundingClientRect();
+        el?.remove();
+        if (!tasEl || !bas) {
+          geriDonuyor.current = false;
+          setBitirBekleyen(null);
+          return;
+        }
+        void ucur(bas, tasEl.getBoundingClientRect(), tasKopyasi(tasEl), { sure: 300, yay: 30, donus: -5 })
+          .catch(() => {})
+          .finally(() => {
+            geriDonuyor.current = false;
+            setBitirBekleyen(null);
+          });
+      });
+    };
+    if (sonHataId > bitirBekleyen.hataId || !atabilir) {
+      geriDon();
+      return;
+    }
+    // Cevap hiç gelmezse (bağlantı koptu vb.) taş yine yerine döner.
+    const z = setTimeout(geriDon, 4000);
+    return () => clearTimeout(z);
+  }, [bitirBekleyen, bitti, sonHataId, atabilir]);
+
+  const suruklemeBitirRef = useRef(suruklemeBitir);
+  suruklemeBitirRef.current = suruklemeBitir;
+  const birakildi = useCallback((tas: number, kutu: DOMRect | null, hedef: "at" | "bitir") => {
+    if (hedef === "at") atRef.current(tas, kutu);
+    else suruklemeBitirRef.current(tas, kutu);
+  }, []);
+
+  // ---------- Desteden / yandan sürükleyerek çekme ----------
+  // Dokunuş eskisi gibi çeker (taş ilk boş yuvaya gelir). Sürükleyip bir yuvaya
+  // bırakınca çekilen taş o yuvaya konur; istaka dışında bırakılırsa hiçbir şey olmaz.
+  const [disSurukle, setDisSurukle] = useState<{ kaynak: "orta" | "yan"; tas: number | null } | null>(null);
+  const disHayalet = useRef<HTMLDivElement>(null);
+  const disKonum = useRef({ x: 0, y: 0, ofsetX: 0, ofsetY: 0 });
+  useLayoutEffect(() => {
+    const k = disKonum.current;
+    if (disSurukle) hayaletiKoy(disHayalet.current, k.x, k.y, k.ofsetX, k.ofsetY);
+  }, [disSurukle]);
+  const cekmeSurukle = (e: ReactPointerEvent<HTMLElement>, kaynak: "orta" | "yan") => {
+    if (!cekebilir || cekisHedefi || (kaynak === "yan" && yanTaslar.length === 0)) return;
+    const ornek = kok.current?.querySelector<HTMLElement>(".istaka .tas");
+    const en = ornek?.offsetWidth || 40;
+    const boy = ornek?.offsetHeight || 56;
+    // Taş parmağın biraz üstünde durur ki parmak altında kalmasın.
+    const ofsetX = en / 2;
+    const ofsetY = boy * 0.75;
+    suruklemeyiIzle(e, {
+      basla: () => {
+        if (!cekebilirRef.current) return false;
+        disKonum.current = { x: e.clientX, y: e.clientY, ofsetX, ofsetY };
+        setDisSurukle({ kaynak, tas: kaynak === "yan" ? (yanTaslar.at(-1) ?? null) : null });
+        setSurukleme("var");
+      },
+      hareket: (x, y, alt) => {
+        disKonum.current = { x, y, ofsetX, ofsetY };
+        hayaletiKoy(disHayalet.current, x, y, ofsetX, ofsetY);
+        yuvaVurgula(alt);
+      },
+      bitir: (x, y, alt, iptal) => {
+        hayaletiKoy(disHayalet.current, x, y, ofsetX, ofsetY);
+        const kutu = disHayalet.current?.firstElementChild?.getBoundingClientRect() ?? null;
+        const yuva = iptal ? null : yuvaVurgula(alt);
+        yuvaVurgusunuKaldir();
+        setDisSurukle(null);
+        setSurukleme("yok");
+        if (yuva === null || !cekebilirRef.current) return;
+        setCekisHedefi({ yuva, oncekiEl: masaRef.current.el, kutu, hataId: sonHataId, elNo: oda.elNo });
+        cek(kaynak);
+      },
+    });
+  };
+  const cekebilirRef = useRef(cekebilir);
+  cekebilirRef.current = cekebilir;
+  const masaRef = useRef(masa);
+  masaRef.current = masa;
 
   // ---------- Konuşma balonları ----------
   const [balonlar, setBalonlar] = useState<Record<number, string>>({});
@@ -251,6 +386,7 @@ export function MasaEkrani() {
   );
 
   const yanTaslar = masa.atilanlar[goreli(3)];
+  const bitirVurgu = bitirebilir && !bitirBekleyen && (surukleme === "var" || surukleme === "bitirUstunde");
   const benimAttiklarim = masa.atilanlar[ben];
 
   return (
@@ -280,8 +416,9 @@ export function MasaEkrani() {
           <Yigin taslar={masa.atilanlar[goreli(2)]} okey={masa.okey} koltuk={goreli(2)} ton={tonu(koltukAdi(oda, goreli(2)))} yon="sag" />
           {rakip(3, "sol")}
           <button
-            className={`yan-tas ${cekebilir && yanTaslar.length > 0 ? "yan-tas--cekilebilir" : ""}`}
-            onClick={() => cek("yan")}
+            className={`yan-tas ${cekebilir && yanTaslar.length > 0 ? "yan-tas--cekilebilir" : ""} ${disSurukle?.kaynak === "yan" ? "yan-tas--suruklenen" : ""}`}
+            onClick={() => !suruklemeYeniBitti() && cek("yan")}
+            onPointerDown={(e) => cekmeSurukle(e, "yan")}
             disabled={!cekebilir || yanTaslar.length === 0}
             aria-label="Yandan çek"
           >
@@ -303,10 +440,14 @@ export function MasaEkrani() {
 
       {/* ---------- Merkez: deste, gösterge, okey ---------- */}
       <div className="masa__merkez">
-        <div className="deste-alani">
+        <div
+          className={`deste-alani ${bitirVurgu ? "deste-alani--bitir" : ""} ${bitirVurgu && surukleme === "bitirUstunde" ? "deste-alani--ustunde" : ""}`}
+          data-birak={bitirebilir ? "bitir" : undefined}
+        >
           <button
             className={`deste ${cekebilir ? "deste--cekilebilir" : ""}`}
-            onClick={() => cek("orta")}
+            onClick={() => !suruklemeYeniBitti() && cek("orta")}
+            onPointerDown={(e) => cekmeSurukle(e, "orta")}
             disabled={!cekebilir}
             aria-label="Ortadan çek"
             data-deste
@@ -375,6 +516,7 @@ export function MasaEkrani() {
           sec={setSecili}
           birakildi={birakildi}
           suruklemeDurumu={setSurukleme}
+          gizliTas={bitirBekleyen?.tas ?? null}
         />
       </div>
 
@@ -414,6 +556,12 @@ export function MasaEkrani() {
           </button>
         </div>
       </aside>
+
+      {disSurukle && (
+        <div className="hayalet" ref={disHayalet}>
+          {disSurukle.tas !== null ? <Tas id={disSurukle.tas} okey={masa.okey} suruklenen /> : <KapaliTas boyut="buyuk" />}
+        </div>
+      )}
 
       {/* ---------- Pencereler ---------- */}
       {bitti && oda.sonEl && !sonucKucuk && (
@@ -471,6 +619,25 @@ export function MasaEkrani() {
 
 type Yon = "ust" | "sag" | "alt" | "sol";
 
+interface CekisHedefi {
+  /** Taşın konacağı yuva. */
+  yuva: number;
+  /** Çekmeden önceki el: yeni gelen taş bundan ayırt edilir. */
+  oncekiEl: number[];
+  /** Hayaletin bırakıldığı yer (taş oradan yuvasına kayar). */
+  kutu: DOMRect | null;
+  /** Çekiş anındaki son hata bildirimi: daha yenisi gelirse çekiş reddedilmiştir. */
+  hataId: number;
+  elNo: number;
+}
+
+/** Uçuş için bir taş öğesinin temiz kopyası (seçili/soluk/gizli hâlleri olmadan). */
+function tasKopyasi(el: HTMLElement): HTMLElement {
+  const k = el.cloneNode(true) as HTMLElement;
+  k.classList.remove("tas--secili", "tas--soluk", "tas--gizli", "tas--yeni");
+  return k;
+}
+
 function Yigin({ taslar, okey, koltuk, ton, yon }: { taslar: number[]; okey: Deger; koltuk: number; ton: number; yon: Yon }) {
   const son = taslar.slice(-3);
   return (
@@ -506,6 +673,7 @@ function ucusHazirla(
   ben: number,
   okey: Deger,
   sonAtis: { tas: number; kutu: DOMRect } | null,
+  cekKutu: DOMRect | null,
   gecikme: number,
 ) {
   const q = <T extends HTMLElement = HTMLElement>(s: string) => kok.querySelector<T>(s);
@@ -553,8 +721,13 @@ function ucusHazirla(
       if (!t) return;
       gizlenen = t;
       hedef = t.getBoundingClientRect();
-      icerik = () => ({ el: t.cloneNode(true) as HTMLElement });
+      icerik = () => ({ el: tasKopyasi(t) });
       secenek = { donus: donus() * 0.4, yay: 40, sure: 250 };
+      // Sürükleyip yuvaya bıraktıysa taş bırakıldığı yerden yuvasına kısa bir kayışla oturur.
+      if (cekKutu) {
+        baslangic = cekKutu;
+        secenek = { donus: 0, yay: 6, sure: 170 };
+      }
     } else {
       const m = madalyon(olay.koltuk);
       if (!m) return;
