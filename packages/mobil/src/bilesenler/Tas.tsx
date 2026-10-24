@@ -60,24 +60,21 @@ export function Tas({ id, okey, boyut = "buyuk", secili, yeni, soluk, suruklenen
   );
 }
 
-/** Sahte okey: sekiz köşeli yıldız (iki kare) içinde fildişi halka ve altın göbek. */
+/** Sahte okey: ince hatlı sekiz köşeli yıldız (iki kare), içinde dört yapraklı gül motifi ve altın göbek. */
 function SahteOkeySimgesi() {
   return (
     <svg className="tas__sahte" viewBox="0 0 40 40" aria-label="sahte okey">
-      <g fill="currentColor">
-        <rect x="9" y="9" width="22" height="22" rx="2.5" />
-        <rect x="9" y="9" width="22" height="22" rx="2.5" transform="rotate(45 20 20)" />
+      <g fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round">
+        <rect x="8.5" y="8.5" width="23" height="23" rx="1.5" />
+        <rect x="8.5" y="8.5" width="23" height="23" rx="1.5" transform="rotate(45 20 20)" />
       </g>
-      <circle cx="20" cy="20" r="8.2" fill="none" stroke="#fbf3e1" strokeWidth="1.6" opacity="0.9" />
-      <circle cx="20" cy="20" r="5" fill="url(#sahte-altin)" />
-      <circle cx="18.6" cy="18.4" r="1.5" fill="#fff6d6" opacity="0.85" />
-      <defs>
-        <linearGradient id="sahte-altin" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#fff0b8" />
-          <stop offset="0.55" stopColor="#e3ae45" />
-          <stop offset="1" stopColor="#a3701c" />
-        </linearGradient>
-      </defs>
+      <g fill="currentColor">
+        <ellipse cx="20" cy="14.6" rx="2.6" ry="4" />
+        <ellipse cx="20" cy="25.4" rx="2.6" ry="4" />
+        <ellipse cx="14.6" cy="20" rx="4" ry="2.6" />
+        <ellipse cx="25.4" cy="20" rx="4" ry="2.6" />
+      </g>
+      <circle cx="20" cy="20" r="3" fill="#c9973a" stroke="#fbf3e1" strokeWidth="0.9" />
     </svg>
   );
 }
