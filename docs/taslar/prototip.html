@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Premium Taşlar</title>
+<style>
+@font-face {
+  font-family: "Oswald";
+  font-weight: 700;
+  src: url("file:///home/user/okey/node_modules/@fontsource/oswald/files/oswald-latin-700-normal.woff2") format("woff2");
+}
+:root {
+  --masa-cuha-gradyan: radial-gradient(ellipse 75% 70% at 50% 40%, #9c2b40 0%, #7a1a2e 42%, #561021 72%, #2c0510 100%);
+  --cuha-vinyet: radial-gradient(ellipse 85% 80% at 50% 45%, transparent 45%, rgba(20, 0, 6, 0.62) 100%);
+  --cuha-lamba: radial-gradient(ellipse 60% 62% at 50% 8%, rgba(255, 215, 150, 0.26), rgba(255, 200, 140, 0.06) 55%, transparent 75%);
+  --ceviz-damar: repeating-linear-gradient(179.4deg, rgba(0,0,0,.13) 0 1px, transparent 1px 4px, rgba(255,220,170,.05) 4px 5px, transparent 5px 9px);
+  --istaka-ceviz: linear-gradient(180deg, #7e4228 0%, #5c2c18 38%, #42200f 70%, #2c1408 100%);
+  --istaka-raf-on: linear-gradient(180deg, #a8653e 0%, #7a3e20 30%, #4a220e 100%);
+  --yazi-tipi-tas: "Oswald", "Arial Narrow", sans-serif;
+  --tas-oran: 1.44;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #12050a; color: #f8ecd6; font-family: system-ui, sans-serif; }
+body { width: 900px; }
+
+/* ---------- Bölüm / masa ---------- */
+.bolum { padding: 0 0 0; }
+.baslik {
+  padding: 22px 34px 16px;
+  background: linear-gradient(180deg, #2a0c16, #170609);
+  border-top: 1px solid rgba(240,200,120,.35);
+  border-bottom: 1px solid rgba(240,200,120,.35);
+  display: flex; align-items: baseline; gap: 18px;
+}
+.baslik h1 {
+  margin: 0; font-family: "Oswald", sans-serif; font-weight: 700; font-size: 46px; letter-spacing: .01em;
+  background: linear-gradient(180deg, #fff1c6 0%, #f2d07a 30%, #d9a03a 55%, #a46c18 78%, #edc874 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.baslik h1 { white-space: nowrap; }
+.baslik p { margin: 0; font-size: 15px; color: #d9bfae; }
+.masa {
+  position: relative; padding: 30px 34px 34px;
+  background: var(--cuha-lamba), var(--cuha-vinyet), var(--masa-cuha-gradyan);
+  overflow: hidden;
+}
+.masa::before { /* kadife hav dokusu */
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+  background: repeating-linear-gradient(45deg, rgba(255,255,255,.018) 0 1px, transparent 1px 3px), repeating-linear-gradient(-45deg, rgba(0,0,0,.05) 0 1px, transparent 1px 3px);
+}
+.ust-sira { position: relative; display: flex; align-items: flex-start; gap: 26px; margin-bottom: 30px; }
+.ust-sira .etk, .alt-sira .etk { font-size: 13px; color: rgba(255,225,200,.6); letter-spacing: .08em; text-transform: uppercase; }
+.yakin { display: flex; gap: 22px; align-items: flex-start; padding-bottom: 18px; }
+.yakin .tas { --en: 84px; }
+
+.istaka {
+  position: relative; display: inline-flex; flex-direction: column; padding: 10px 12px 0;
+  border-radius: 12px 12px 8px 8px;
+  background: linear-gradient(180deg, rgba(255,220,170,.22), transparent 6px), var(--ceviz-damar), var(--istaka-ceviz);
+  box-shadow: inset 0 1px 0 rgba(255,230,190,.45), inset 0 -2px 0 rgba(0,0,0,.35), 0 0 0 1px rgba(40,18,4,.8), 0 14px 26px rgba(0,0,0,.6), 0 2px 0 rgba(30,12,2,.9);
+}
+.istaka__raf { position: relative; padding-bottom: 16px; }
+.istaka__raf::before { content: ""; position: absolute; left: -12px; right: -12px; bottom: 14px; height: 26px; background: linear-gradient(180deg, transparent, rgba(30,10,0,.4)); }
+.istaka__raf::after {
+  content: ""; position: absolute; left: -12px; right: -12px; bottom: 0; height: 18px; z-index: 3;
+  border-radius: 0 0 8px 8px;
+  background: linear-gradient(180deg, rgba(255,228,185,.55) 0, rgba(255,228,185,.12) 2px, transparent 4px), var(--ceviz-damar), var(--istaka-raf-on);
+  box-shadow: 0 -1px 0 rgba(40,14,0,.6), 0 4px 6px rgba(0,0,0,.5);
+}
+.istaka__sira { position: relative; display: flex; gap: 3px; }
+.istaka .tas { --en: 52px; }
+
+.alt-sira { position: relative; display: flex; align-items: flex-end; gap: 40px; margin-top: 26px; }
+.yigin { display: flex; gap: 6px; align-items: flex-start; flex-wrap: wrap; }
+.yigin .tas { --en: 30px; }
+.deste { display: flex; gap: 6px; }
+.deste .tas { --en: 30px; }
+.grup { display: flex; flex-direction: column; gap: 10px; }
+
+/* ---------- Taş: ortak iskelet (temel.css ile aynı) ---------- */
+.tas {
+  --en: 52px;
+  --k: calc(var(--en) * 0.028);
+  --kose-tas: calc(var(--en) * 0.12);
+  position: relative; flex-shrink: 0;
+  width: var(--en); height: calc(var(--en) * var(--tas-oran));
+  border-radius: var(--kose-tas);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: calc(var(--en) * 0.06);
+  font-family: var(--yazi-tipi-tas); font-size: calc(var(--en) * 0.68); font-weight: 700; line-height: 1;
+}
+.tas::before, .tas::after { content: ""; position: absolute; pointer-events: none; border-radius: inherit; }
+.tas__sayi { position: relative; z-index: 1; margin-top: calc(var(--en) * 0.08); font-variant-numeric: lining-nums; }
+.tas__nokta { position: relative; z-index: 1; }
+.tas__sahte { position: relative; z-index: 1; width: 72%; }
+.tas__yildiz { position: absolute; z-index: 2; top: calc(var(--en) * 0.09); right: calc(var(--en) * 0.09); width: calc(var(--en) * 0.22); }
+.tas__parilti { position: absolute; inset: 0; z-index: 2; border-radius: inherit; overflow: hidden; pointer-events: none; }
+
+/* =====================================================================
+   YÖN 1 — KALIN BAKALİT 3D
+   ===================================================================== */
+.y1 .tas {
+  --tas-kirmizi: #b5122c; --tas-sari: #cf7400; --tas-mavi: #1446b8; --tas-siyah: #1a1a20; --tas-sahte: #7a1a2e;
+  --t: calc(var(--en) * 0.17);            /* görünür yan yüz = boyun ~%12'si */
+  background:
+    radial-gradient(130% 55% at 28% 0%, rgba(255,255,255,.95) 0%, rgba(255,255,255,0) 60%),
+    linear-gradient(168deg, #fffbf2 0%, #f8eedb 40%, #efe0c2 78%, #e6d2ad 100%);
+  box-shadow:
+    0 calc(var(--t) * .12) 0 #f6ecd6,
+    0 calc(var(--t) * .25) 0 #efe1c1,
+    0 calc(var(--t) * .37) 0 #e8d6b0,
+    0 calc(var(--t) * .5) 0 #e0caa0,
+    0 calc(var(--t) * .62) 0 #d6bd8f,
+    0 calc(var(--t) * .75) 0 #cab07f,
+    0 calc(var(--t) * .87) 0 #b99c69,
+    0 var(--t) 0 #a3864f,
+    0 calc(var(--t) + 1px) 0 #6a5430,
+    0 calc(var(--t) + 2px) calc(var(--t) * .5) rgba(10,0,4,.65),
+    0 calc(var(--t) * 2.2) calc(var(--t) * 2.6) rgba(20,0,6,.5);
+  margin-bottom: var(--t);
+}
+/* Eğimli kenar (bevel): üstte parlak, altta koyu ince bant + yüze doğru içbükey */
+.y1 .tas::before {
+  inset: 0;
+  box-shadow:
+    inset 0 calc(var(--en) * .028) 0 rgba(255,255,255,1),
+    inset calc(var(--en) * .03) 0 calc(var(--en) * .03) rgba(255,255,255,.75),
+    inset calc(var(--en) * -.035) 0 calc(var(--en) * .045) rgba(150,110,50,.28),
+    inset 0 calc(var(--en) * -.06) calc(var(--en) * .06) rgba(140,98,38,.42),
+    inset 0 0 0 calc(var(--en) * .012) rgba(150,115,60,.35);
+}
+/* Lake parlaklık: üstte keskin kenarlı cila bandı + çapraz ışık */
+.y1 .tas::after {
+  inset: calc(var(--en) * .04) calc(var(--en) * .05) 46% calc(var(--en) * .05);
+  border-radius: calc(var(--kose-tas) * .8) calc(var(--kose-tas) * .8) 50% 50% / calc(var(--kose-tas) * .8) calc(var(--kose-tas) * .8) 18% 18%;
+  background: linear-gradient(180deg, rgba(255,255,255,.75) 0%, rgba(255,255,255,.18) 70%, rgba(255,255,255,0) 100%);
+  z-index: 2; opacity: .55;
+}
+.y1 .tas--kirmizi { color: var(--tas-kirmizi); }
+.y1 .tas--sari { color: var(--tas-sari); }
+.y1 .tas--mavi { color: var(--tas-mavi); }
+.y1 .tas--siyah { color: var(--tas-siyah); }
+.y1 .tas--sahte { color: var(--tas-sahte); }
+/* Oyulmuş (gömme) rakam: oluğun üst duvarı gölgede, alt dudağı ışıkta */
+.y1 .tas__sayi {
+  background: linear-gradient(180deg, color-mix(in srgb, currentColor 45%, black) 0%, currentColor 30%, currentColor 75%, color-mix(in srgb, currentColor 80%, white) 100%);
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 calc(var(--en) * .02) 0 rgba(255,255,255,1)) drop-shadow(0 calc(var(--en) * -.014) 0 rgba(70,40,5,.55));
+}
+.y1 .tas__nokta {
+  width: calc(var(--en) * .15); height: calc(var(--en) * .15); min-width: 4px; min-height: 4px; border-radius: 50%;
+  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, currentColor 45%, black) 0 40%, currentColor 80%);
+  box-shadow: inset 0 calc(var(--en) * .02) calc(var(--en) * .02) rgba(0,0,0,.65), 0 calc(var(--en) * .018) 0 #fff;
+}
+.y1 .tas__sahte { filter: drop-shadow(0 calc(var(--en) * .02) 0 #fff) drop-shadow(0 calc(var(--en) * -.012) 0 rgba(60,20,10,.5)); }
+.y1 .tas__yildiz { fill: #c9973a; filter: drop-shadow(0 1px 0 #fff) drop-shadow(0 -0.5px 0 rgba(80,50,0,.6)); }
+.y1 .tas--okey::before {
+  box-shadow:
+    inset 0 0 0 calc(var(--en) * .035) #d6a447,
+    inset 0 0 0 calc(var(--en) * .05) rgba(255,240,190,.9),
+    inset 0 calc(var(--en) * -.06) calc(var(--en) * .06) rgba(140,98,38,.42);
+}
+.y1 .tas--kapali {
+  background:
+    radial-gradient(130% 55% at 28% 0%, rgba(255,255,255,.9) 0%, rgba(255,255,255,0) 60%),
+    var(--sirt-y1) center / 46% no-repeat,
+    linear-gradient(168deg, #fffbf2 0%, #f8eedb 40%, #efe0c2 78%, #e6d2ad 100%);
+}
+.y1 .tas--kapali::after {
+  inset: 14%; opacity: 1; background: none; border-radius: calc(var(--kose-tas) * .6);
+  box-shadow: inset 0 calc(var(--en) * .015) calc(var(--en) * .02) rgba(110,75,25,.45), 0 calc(var(--en) * .015) 0 rgba(255,255,255,.95);
+}
+
+/* =====================================================================
+   YÖN 2 — ALTIN YALDIZLI FİLDİŞİ (inci-sedef)
+   ===================================================================== */
+.y2 .tas {
+  --tas-kirmizi: #a50d27; --tas-sari: #c26a00; --tas-mavi: #0f3c9e; --tas-siyah: #141418; --tas-sahte: #7a1a2e;
+  --altin: linear-gradient(160deg, #fff4cf 0%, #f3d27c 18%, #c99130 38%, #fbe7a6 52%, #b17a1f 70%, #e8bf62 86%, #fff0bf 100%);
+  --t: calc(var(--en) * .11);
+  border: calc(var(--en) * .055) solid transparent;
+  background:
+    radial-gradient(120% 50% at 25% 0%, rgba(255,255,255,.9), rgba(255,255,255,0) 60%) padding-box,
+    linear-gradient(125deg, rgba(255,214,232,.45) 0%, rgba(255,255,255,0) 28%, rgba(206,234,255,.5) 48%, rgba(255,255,255,0) 64%, rgba(214,255,232,.4) 82%, rgba(255,236,200,.5) 100%) padding-box,
+    radial-gradient(140% 100% at 40% 30%, #fffefb 0%, #faf3e6 55%, #efe3ce 100%) padding-box,
+    var(--altin) border-box;
+  box-shadow:
+    0 calc(var(--t) * .3) 0 #e3c27a,
+    0 calc(var(--t) * .6) 0 #b98a32,
+    0 var(--t) 0 #7c561a,
+    0 calc(var(--t) + 2px) calc(var(--t) * .7) rgba(10,0,4,.6),
+    0 calc(var(--t) * 2.4) calc(var(--t) * 3) rgba(20,0,6,.45);
+  margin-bottom: var(--t);
+}
+/* İç ince altın tel */
+.y2 .tas::before {
+  inset: calc(var(--en) * .045);
+  border-radius: calc(var(--kose-tas) * .5);
+  box-shadow: inset 0 0 0 max(0.6px, calc(var(--en) * .012)) rgba(190,140,50,.8), 0 0 0 max(0.5px, calc(var(--en) * .01)) rgba(255,250,230,.9);
+}
+/* Sedef parıltısı */
+.y2 .tas::after {
+  inset: 0; z-index: 2;
+  background: linear-gradient(115deg, transparent 32%, rgba(255,255,255,.55) 44%, rgba(255,240,250,.15) 50%, transparent 58%);
+}
+.y2 .tas--kirmizi { color: var(--tas-kirmizi); }
+.y2 .tas--sari { color: var(--tas-sari); }
+.y2 .tas--mavi { color: var(--tas-mavi); }
+.y2 .tas--siyah { color: var(--tas-siyah); }
+.y2 .tas--sahte { color: var(--tas-sahte); }
+/* Derin renk + ince altın kontur */
+.y2 .tas__sayi {
+  margin-top: calc(var(--en) * .02);
+  --c: max(0.7px, calc(var(--en) * .022));
+  text-shadow:
+    var(--c) 0 0 #d4a043, calc(var(--c) * -1) 0 0 #d4a043, 0 var(--c) 0 #b7832a, 0 calc(var(--c) * -1) 0 #f3d688,
+    var(--c) var(--c) 0 #b7832a, calc(var(--c) * -1) var(--c) 0 #b7832a, var(--c) calc(var(--c) * -1) 0 #f3d688, calc(var(--c) * -1) calc(var(--c) * -1) 0 #f3d688,
+    0 calc(var(--c) * 2.2) calc(var(--c) * 1.5) rgba(90,55,0,.35);
+}
+/* Nokta yerine altın lale */
+.y2 .tas__nokta {
+  width: calc(var(--en) * .22); height: calc(var(--en) * .26); min-width: 6px; min-height: 7px;
+  background: var(--lale) center / contain no-repeat;
+  filter: drop-shadow(0 calc(var(--en) * .01) 0 rgba(255,255,255,.9));
+}
+.y2 .tas__sahte { filter: drop-shadow(0.6px 0 0 #d4a043) drop-shadow(-0.6px 0 0 #d4a043) drop-shadow(0 0.6px 0 #b7832a) drop-shadow(0 -0.6px 0 #f3d688); }
+.y2 .tas__yildiz { fill: #d4a043; filter: drop-shadow(0 0 1px rgba(150,100,10,.7)); }
+.y2 .tas--okey {
+  border-width: calc(var(--en) * .075);
+  box-shadow:
+    0 0 calc(var(--en) * .28) rgba(255,205,100,.75),
+    0 calc(var(--t) * .3) 0 #e3c27a, 0 calc(var(--t) * .6) 0 #b98a32, 0 var(--t) 0 #7c561a,
+    0 calc(var(--t) + 2px) calc(var(--t) * .7) rgba(10,0,4,.6);
+}
+.y2 .tas--kapali {
+  background:
+    radial-gradient(120% 50% at 25% 0%, rgba(255,255,255,.85), rgba(255,255,255,0) 60%) padding-box,
+    var(--sirt-y2) center / 58% no-repeat padding-box,
+    repeating-linear-gradient(45deg, rgba(196,146,52,.28) 0 1px, transparent 1px calc(var(--en) * .14)) padding-box,
+    repeating-linear-gradient(-45deg, rgba(196,146,52,.28) 0 1px, transparent 1px calc(var(--en) * .14)) padding-box,
+    radial-gradient(140% 100% at 40% 30%, #fffefb 0%, #faf3e6 55%, #efe3ce 100%) padding-box,
+    var(--altin) border-box;
+}
+
+/* =====================================================================
+   YÖN 3 — SİYAH LÜKS (ONYX)
+   ===================================================================== */
+.y3 .tas {
+  --t: calc(var(--en) * .13);
+  border: max(1px, calc(var(--en) * .03)) solid transparent;
+  background:
+    linear-gradient(162deg, rgba(255,255,255,.26) 0%, rgba(255,255,255,.07) 24%, rgba(255,255,255,0) 25%) padding-box,
+    var(--damar-koyu) var(--dx, 0) var(--dy, 0) / calc(var(--en) * 3) auto padding-box,
+    radial-gradient(130% 80% at 30% 10%, #2b3550 0%, #121828 42%, #070910 100%) padding-box,
+    linear-gradient(160deg, #fff1c6 0%, #e6b24a 30%, #8a5a12 55%, #f4d488 78%, #a46c18 100%) border-box;
+  box-shadow:
+    0 calc(var(--t) * .33) 0 #1b2030,
+    0 calc(var(--t) * .66) 0 #0d1019,
+    0 var(--t) 0 #04050a,
+    0 calc(var(--t) + 1px) 0 rgba(212,160,67,.7),
+    0 calc(var(--t) + 3px) calc(var(--t) * .8) rgba(0,0,0,.75),
+    0 calc(var(--t) * 2.4) calc(var(--t) * 3) rgba(10,0,4,.55);
+  margin-bottom: var(--t);
+}
+.y3 .tas::before {
+  inset: 0;
+  box-shadow: inset 0 calc(var(--en) * .02) 0 rgba(255,255,255,.18), inset 0 calc(var(--en) * -.05) calc(var(--en) * .06) rgba(0,0,0,.6);
+}
+.y3 .tas::after {
+  inset: 0; z-index: 2;
+  background: linear-gradient(120deg, transparent 38%, rgba(255,255,255,.12) 46%, transparent 54%);
+}
+/* Metalik folyo rakamlar */
+.y3 .tas__sayi {
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 calc(var(--en) * .05) var(--parilti)) drop-shadow(0 calc(var(--en) * .015) 0 rgba(0,0,0,.9));
+  background-image: var(--folyo);
+}
+.y3 .tas__nokta {
+  width: calc(var(--en) * .15); height: calc(var(--en) * .15); min-width: 4px; min-height: 4px; border-radius: 50%;
+  background: var(--folyo-nokta);
+  box-shadow: 0 0 calc(var(--en) * .06) var(--parilti);
+}
+.y3 .tas--kirmizi {
+  --folyo: linear-gradient(180deg, #ffd5db 0%, #ff6a7f 22%, #e8203f 48%, #9a0a22 70%, #ff5a72 88%, #ffc2cc 100%);
+  --folyo-nokta: radial-gradient(circle at 38% 32%, #ffd5db, #e8203f 55%, #7a0618);
+  --parilti: rgba(255,60,90,.45);
+}
+.y3 .tas--sari {
+  --folyo: linear-gradient(180deg, #fff8d6 0%, #ffe07a 22%, #f2b01e 48%, #a8690a 70%, #ffd25a 88%, #fff2b8 100%);
+  --folyo-nokta: radial-gradient(circle at 38% 32%, #fff8d6, #f2b01e 55%, #8a5506);
+  --parilti: rgba(255,200,60,.45);
+}
+.y3 .tas--mavi {
+  --folyo: linear-gradient(180deg, #e0ecff 0%, #7fb4ff 22%, #2f78ff 48%, #1442b8 70%, #69a4ff 88%, #d4e4ff 100%);
+  --folyo-nokta: radial-gradient(circle at 38% 32%, #e0ecff, #2f78ff 55%, #0f337f);
+  --parilti: rgba(80,150,255,.5);
+}
+.y3 .tas--siyah {
+  --folyo: linear-gradient(180deg, #ffffff 0%, #f2f4f7 24%, #b9c0ca 48%, #7d8692 68%, #e6e9ee 86%, #ffffff 100%);
+  --folyo-nokta: radial-gradient(circle at 38% 32%, #fff, #c3c9d2 55%, #6b737e);
+  --parilti: rgba(220,230,255,.35);
+}
+.y3 .tas--sahte { color: #2fd497; }
+.y3 .tas__sahte { filter: drop-shadow(0 0 calc(var(--en) * .05) rgba(60,230,160,.5)); }
+.y3 .tas__yildiz { fill: #f2c661; filter: drop-shadow(0 0 2px rgba(255,200,80,.9)); }
+.y3 .tas--okey {
+  border-width: max(1.5px, calc(var(--en) * .05));
+  box-shadow:
+    0 0 calc(var(--en) * .3) rgba(255,200,90,.6),
+    0 calc(var(--t) * .33) 0 #1b2030, 0 calc(var(--t) * .66) 0 #0d1019, 0 var(--t) 0 #04050a,
+    0 calc(var(--t) + 1px) 0 rgba(212,160,67,.7), 0 calc(var(--t) + 3px) calc(var(--t) * .8) rgba(0,0,0,.75);
+}
+.y3 .tas--kapali {
+  background:
+    linear-gradient(162deg, rgba(255,255,255,.22) 0%, rgba(255,255,255,.06) 24%, rgba(255,255,255,0) 25%) padding-box,
+    var(--sirt-y3) center / 62% no-repeat padding-box,
+    var(--damar-koyu) var(--dx, 0) var(--dy, 0) / calc(var(--en) * 3) auto padding-box,
+    radial-gradient(130% 80% at 30% 10%, #2b3550 0%, #121828 42%, #070910 100%) padding-box,
+    linear-gradient(160deg, #fff1c6 0%, #e6b24a 30%, #8a5a12 55%, #f4d488 78%, #a46c18 100%) border-box;
+}
+
+/* =====================================================================
+   YÖN 4 — MERMER + ÇİNİ
+   ===================================================================== */
+.y4 .tas {
+  --tas-kirmizi: #b00d26; --tas-sari: #c25f00; --tas-mavi: #0b3c9f; --tas-siyah: #121216; --tas-sahte: #0d4fa3;
+  --t: calc(var(--en) * .15);
+  background:
+    radial-gradient(120% 50% at 25% 0%, rgba(255,255,255,.85), rgba(255,255,255,0) 55%),
+    var(--damar-acik) var(--dx, 0) var(--dy, 0) / calc(var(--en) * 3) auto,
+    radial-gradient(60% 40% at 80% 75%, rgba(170,170,180,.18), transparent 70%),
+    radial-gradient(50% 35% at 15% 55%, rgba(190,185,175,.16), transparent 70%),
+    linear-gradient(170deg, #ffffff 0%, #f6f5f2 50%, #e9e7e2 100%);
+  box-shadow:
+    inset 0 0 0 max(0.5px, calc(var(--en) * .01)) rgba(120,120,130,.35),
+    inset 0 calc(var(--en) * .025) 0 #fff,
+    inset 0 calc(var(--en) * -.05) calc(var(--en) * .05) rgba(90,90,105,.3),
+    0 calc(var(--t) * .25) 0 #ecebe8,
+    0 calc(var(--t) * .5) 0 #d9d8d4,
+    0 calc(var(--t) * .75) 0 #c2c0bb,
+    0 var(--t) 0 #9d9a94,
+    0 calc(var(--t) + 1px) 0 #6d6a64,
+    0 calc(var(--t) + 2px) calc(var(--t) * .6) rgba(10,0,4,.6),
+    0 calc(var(--t) * 2.2) calc(var(--t) * 2.8) rgba(20,0,6,.45);
+  margin-bottom: var(--t);
+}
+/* Köşelerde İznik süsleri + ince kobalt tel çerçeve */
+.y4 .tas::before {
+  inset: calc(var(--en) * .05);
+  border-radius: calc(var(--kose-tas) * .55);
+  border: max(0.6px, calc(var(--en) * .014)) solid rgba(13,79,163,.55);
+  background:
+    var(--kose-sol-ust) left top / calc(var(--en) * .3) no-repeat,
+    var(--kose-sag-ust) right top / calc(var(--en) * .3) no-repeat,
+    var(--kose-sol-alt) left bottom / calc(var(--en) * .3) no-repeat,
+    var(--kose-sag-alt) right bottom / calc(var(--en) * .3) no-repeat;
+}
+.y4 .tas::after {
+  inset: 0; z-index: 2;
+  background: linear-gradient(118deg, transparent 34%, rgba(255,255,255,.5) 44%, transparent 54%);
+}
+.y4 .tas--kirmizi { color: var(--tas-kirmizi); }
+.y4 .tas--sari { color: var(--tas-sari); }
+.y4 .tas--mavi { color: var(--tas-mavi); }
+.y4 .tas--siyah { color: var(--tas-siyah); }
+.y4 .tas--sahte { color: var(--tas-sahte); }
+.y4 .tas__sayi { text-shadow: 0 calc(var(--en) * .015) 0 #fff, 0 calc(var(--en) * -.01) 0 rgba(0,0,0,.35); }
+.y4 .tas__nokta {
+  width: calc(var(--en) * .17); height: calc(var(--en) * .17); min-width: 4px; min-height: 4px;
+  background: currentColor;
+  clip-path: polygon(50% 0, 64% 36%, 100% 50%, 64% 64%, 50% 100%, 36% 64%, 0 50%, 36% 36%);
+}
+.y4 .tas__yildiz { fill: #c9973a; filter: drop-shadow(0 0.6px 0 #fff) drop-shadow(0 0 1px rgba(120,80,0,.6)); }
+.y4 .tas--okey {
+  box-shadow:
+    inset 0 0 0 calc(var(--en) * .04) #d4a043, inset 0 0 0 calc(var(--en) * .055) rgba(255,240,190,.9),
+    0 0 calc(var(--en) * .25) rgba(255,205,100,.6),
+    0 calc(var(--t) * .25) 0 #ecebe8, 0 calc(var(--t) * .5) 0 #d9d8d4, 0 calc(var(--t) * .75) 0 #c2c0bb, 0 var(--t) 0 #9d9a94,
+    0 calc(var(--t) + 1px) 0 #6d6a64, 0 calc(var(--t) + 2px) calc(var(--t) * .6) rgba(10,0,4,.6);
+}
+.y4 .tas--kapali {
+  background:
+    radial-gradient(120% 50% at 25% 0%, rgba(255,255,255,.85), rgba(255,255,255,0) 55%),
+    var(--sirt-y4) center / 66% no-repeat,
+    var(--damar-acik) var(--dx, 0) var(--dy, 0) / calc(var(--en) * 3) auto,
+    linear-gradient(170deg, #ffffff 0%, #f6f5f2 50%, #e9e7e2 100%);
+}
+.yigin .y4 .tas::before, .y4 .yigin .tas::before { background-size: calc(var(--en) * .26); }
+</style>
+</head>
+<body>
+<div id="kok"></div>
+<script>
+const enc = s => `url("data:image/svg+xml,${encodeURIComponent(s)}")`;
+const SVG = {};
+SVG.lale = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 24'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#fff3cc'/><stop offset='.4' stop-color='#e8b44c'/><stop offset='1' stop-color='#8a5810'/></linearGradient></defs><g fill='url(#g)' stroke='#7a4c0c' stroke-width='.7' stroke-linejoin='round'><path d='M3 4.5C2.6 10.5 5.6 14.5 10 14.5C8 11.5 7 8 3 4.5Z'/><path d='M17 4.5C17.4 10.5 14.4 14.5 10 14.5C12 11.5 13 8 17 4.5Z'/><path d='M10 1C6.8 5 6.8 10.5 10 14.5C13.2 10.5 13.2 5 10 1Z'/><path d='M9.3 14.3h1.4v8.2h-1.4z'/><path d='M10 21.5C7.6 19.3 5.2 19.4 3.2 17.4C6.2 16.9 8.6 18.4 10 21.5Z'/><path d='M10 21.5C12.4 19.3 14.8 19.4 16.8 17.4C13.8 16.9 11.4 18.4 10 21.5Z'/></g></svg>`;
+// Mermer damarı (feTurbulence): açık zemin için gri damar, koyu zemin için beyaz damar
+const mermer = (renk, op, seed, tab) => `<svg xmlns='http://www.w3.org/2000/svg' width='300' height='440' viewBox='0 0 300 440'><filter id='f' x='0' y='0' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='0.006 0.016' numOctaves='5' seed='${seed}'/><feColorMatrix type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0'/><feComponentTransfer><feFuncA type='table' tableValues='${tab}'/></feComponentTransfer><feComposite in='SourceGraphic' operator='in'/></filter><rect width='300' height='440' fill='${renk}' fill-opacity='${op}' filter='url(#f)'/></svg>`;
+SVG.damarAcik = mermer('#8a8994', .5, 11, '0 0 0 0 0 0 .9 0 0 0 0 0 .35 0 0 0 0 0 0 0');
+SVG.damarKoyu = mermer('#e8edff', .4, 4, '0 0 0 0 0 .08 .95 .08 0 0 0 0 .4 0 0 0 0 0 0 0');
+// İznik köşe süsü (sol üst için çizilir, diğerleri döndürülür)
+const kose = r => `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><g transform='rotate(${r} 12 12)'><path d='M2.5 15V6.5Q2.5 2.5 6.5 2.5H15' fill='none' stroke='#0d4fa3' stroke-width='1.8' stroke-linecap='round'/><circle cx='2.5' cy='17.2' r='1.3' fill='#0d4fa3'/><circle cx='17.2' cy='2.5' r='1.3' fill='#0d4fa3'/><path d='M7 7C9 6.2 12 7.8 12.8 12.8C7.8 12 6.2 9 7 7Z' fill='#1aa39a'/><path d='M7 7C8.6 9 10.4 10.8 12.8 12.8' stroke='#0d4fa3' stroke-width='.6' fill='none'/><circle cx='6.3' cy='6.3' r='2' fill='#c8322b' stroke='#fff' stroke-width='.6'/></g></svg>`;
+// Kapalı taş sırt motifleri
+const yildiz8 = (dolgu, kontur, ic) => `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><g fill='${dolgu}' stroke='${kontur}' stroke-width='1.2' stroke-linejoin='round'><rect x='9' y='9' width='22' height='22' rx='1'/><rect x='9' y='9' width='22' height='22' rx='1' transform='rotate(45 20 20)'/></g><circle cx='20' cy='20' r='5.2' fill='${ic}' stroke='${kontur}' stroke-width='1'/></svg>`;
+SVG.sirtY1 = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><g fill='none' stroke='#fff' stroke-width='1.6' stroke-linejoin='round' transform='translate(0 .9)'><rect x='9' y='9' width='22' height='22' rx='1'/><rect x='9' y='9' width='22' height='22' rx='1' transform='rotate(45 20 20)'/><circle cx='20' cy='20' r='5'/></g><g fill='none' stroke='#b08a4e' stroke-width='1.6' stroke-linejoin='round'><rect x='9' y='9' width='22' height='22' rx='1'/><rect x='9' y='9' width='22' height='22' rx='1' transform='rotate(45 20 20)'/><circle cx='20' cy='20' r='5'/></g><circle cx='20' cy='20' r='3' fill='#c9973a'/></svg>`;
+SVG.sirtY2 = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><defs><radialGradient id='a' cx='.4' cy='.35'><stop offset='0' stop-color='#fff4cf'/><stop offset='.55' stop-color='#d9a948'/><stop offset='1' stop-color='#8a5a12'/></radialGradient></defs><circle cx='20' cy='20' r='15' fill='#fbf5ea' stroke='#c99130' stroke-width='1.4'/><g transform='translate(10 6) scale(1)'><path d='M3 4.5C2.6 10.5 5.6 14.5 10 14.5C8 11.5 7 8 3 4.5Z M17 4.5C17.4 10.5 14.4 14.5 10 14.5C12 11.5 13 8 17 4.5Z M10 1C6.8 5 6.8 10.5 10 14.5C13.2 10.5 13.2 5 10 1Z M9.3 14.3h1.4v8.2h-1.4z' fill='url(#a)' stroke='#7a4c0c' stroke-width='.6'/></g></svg>`;
+SVG.sirtY3 = yildiz8('none', '#e6b24a', '#e6b24a');
+SVG.sirtY4 = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><circle cx='20' cy='20' r='16' fill='#0d4fa3'/><circle cx='20' cy='20' r='14.6' fill='none' stroke='#fff' stroke-width='.8'/><g fill='#1aa39a' stroke='#fff' stroke-width='.6'>${[0,45,90,135,180,225,270,315].map(a=>`<path transform='rotate(${a} 20 20)' d='M20 7C22.4 10 22.4 13 20 16C17.6 13 17.6 10 20 7Z'/>`).join('')}</g><circle cx='20' cy='20' r='4' fill='#c8322b' stroke='#fff' stroke-width='.8'/></svg>`;
+
+const r = document.documentElement.style;
+r.setProperty('--lale', enc(SVG.lale));
+r.setProperty('--damar-acik', enc(SVG.damarAcik));
+r.setProperty('--damar-koyu', enc(SVG.damarKoyu));
+r.setProperty('--kose-sol-ust', enc(kose(0)));
+r.setProperty('--kose-sag-ust', enc(kose(90)));
+r.setProperty('--kose-sag-alt', enc(kose(180)));
+r.setProperty('--kose-sol-alt', enc(kose(270)));
+['Y1','Y2','Y3','Y4'].forEach(k => r.setProperty('--sirt-' + k.toLowerCase(), enc(SVG['sirt' + k])));
+
+// --- Taş DOM'u: Tas.tsx'in ürettiğiyle birebir ---
+const SAHTE = `<svg class="tas__sahte" viewBox="0 0 40 40" aria-label="sahte okey"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="8.5" y="8.5" width="23" height="23" rx="1.5"/><rect x="8.5" y="8.5" width="23" height="23" rx="1.5" transform="rotate(45 20 20)"/></g><g fill="currentColor"><ellipse cx="20" cy="14.6" rx="2.6" ry="4"/><ellipse cx="20" cy="25.4" rx="2.6" ry="4"/><ellipse cx="14.6" cy="20" rx="4" ry="2.6"/><ellipse cx="25.4" cy="20" rx="4" ry="2.6"/></g><circle cx="20" cy="20" r="3" fill="#c9973a" stroke="#fbf3e1" stroke-width="0.9"/></svg>`;
+const YILDIZ = `<span class="tas__parilti" aria-hidden></span><svg class="tas__yildiz" viewBox="0 0 24 24"><path d="M12 2l2.9 6.9 7.1.6-5.4 4.7 1.6 7-6.2-3.8-6.2 3.8 1.6-7L2 9.5l7.1-.6z"/></svg>`;
+let sira = 0;
+function tas(t, boyut = 'buyuk') {
+  sira++;
+  const st = `--dx:${(sira * 37) % 100}%;--dy:${(sira * 53) % 100}%`;
+  if (t === 'k') return `<div class="tas tas--${boyut} tas--kapali" style="${st}"></div>`;
+  if (t === 's') return `<div class="tas tas--${boyut} tas--sahte" style="${st}">${SAHTE}</div>`;
+  const [renk, sayi, okey] = t;
+  return `<div class="tas tas--${boyut} tas--${renk}${okey ? ' tas--okey' : ''}" style="${st}"><span class="tas__sayi">${sayi}</span><span class="tas__nokta"></span>${okey ? YILDIZ : ''}</div>`;
+}
+const R = 'kirmizi', S = 'sari', M = 'mavi', K = 'siyah';
+const yakin = [[R,13],[S,7],[M,1],[K,10],[S,5,1],'s','k'];
+const istaka = [[R,1],[R,2],[R,3],[R,4],[S,11],[M,11],[K,11],[M,8],[M,9],[M,10],[K,6],[S,12],[S,5,1],'s'];
+const kucuk = [[R,7],[S,7],[M,7],[K,7],[R,12],[S,3],[M,13],[K,9],[S,5,1],'s'];
+const BOLUMLER = [
+  ['y1','premium-1-bakalit','1 Kalın bakalit','Derin yan yüz, eğimli kenar, lake parlaklık, oyulmuş rakam'],
+  ['y2','premium-2-altin-fildisi','2 Altın yaldızlı fildişi','İnci-sedef yüz, altın çerçeve, altın konturlu rakam, lale'],
+  ['y3','premium-3-onyx','3 Siyah lüks (onyx)','Damarlı siyah onyx, metalik folyo rakamlar, altın kenar'],
+  ['y4','premium-4-mermer','4 Mermer + çini','Beyaz damarlı mermer, köşelerde İznik süsleri, keskin koyu rakam'],
+];
+document.getElementById('kok').innerHTML = BOLUMLER.map(([y, id, b, a]) => `
+<section class="bolum ${y}" id="${id}">
+  <div class="baslik"><h1>${b}</h1><p>${a}</p></div>
+  <div class="masa">
+    <div class="ust-sira"><div class="grup"><div class="etk">Yakın plan</div><div class="yakin">${yakin.map(t => tas(t)).join('')}</div></div></div>
+    <div class="istaka"><div class="istaka__raf istaka__raf--alt"><div class="istaka__sira">${istaka.map(t => tas(t)).join('')}</div></div></div>
+    <div class="alt-sira">
+      <div class="grup"><div class="etk">Masa yığını boyu (30 px)</div><div class="yigin">${kucuk.map(t => tas(t, 'kucuk')).join('')}</div></div>
+      <div class="grup"><div class="etk">Deste</div><div class="deste">${['k','k','k'].map(t => tas(t, 'kucuk')).join('')}</div></div>
+    </div>
+  </div>
+</section>`).join('');
+</script>
+</body>
+</html>
