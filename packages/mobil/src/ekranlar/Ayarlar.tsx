@@ -2,7 +2,8 @@
 import { type ReactNode, useEffect, useState } from "react";
 import { Pencere } from "../bilesenler/Pencere.tsx";
 import { Simge } from "../bilesenler/Simge.tsx";
-import { ONIZLEME, sunucuAdresi } from "../durum/ayar.ts";
+import { adresiDuzelt, ONIZLEME, ORNEK_ADRES, sunucuAdresi } from "../durum/ayar.ts";
+import type { Durum } from "../durum/durum.ts";
 import { useOyun } from "../durum/OyunSaglayici.tsx";
 import { efektAyari, efektAyariniDegistir, efektAyariniDinle, efektlerAcik } from "../efektler/ayar.ts";
 import { kopyala, SURUM } from "../platform/cihaz.ts";
@@ -31,6 +32,21 @@ function AyarAnahtari(o: { simge: ReactNode; etiket: string; aciklama?: string; 
       </span>
     </button>
   );
+}
+
+function sunucuDurumu(b: Durum["baglanti"]): string {
+  switch (b) {
+    case "bagli":
+      return "Sunucuya bağlısın.";
+    case "baglaniyor":
+      return "Bağlanılıyor…";
+    case "koptu":
+      return "Sunucuya ulaşılamadı; tekrar deneniyor.";
+    case "ayarsiz":
+      return "Sunucu adresi yok, online oyun kapalı.";
+    default:
+      return "";
+  }
 }
 
 export function Ayarlar() {
@@ -86,18 +102,30 @@ export function Ayarlar() {
               <input
                 className="ayar-girdi"
                 value={adres}
-                placeholder={sunucuAdresi({ ...a, sunucuUrl: "" })}
+                placeholder={sunucuAdresi({ ...a, sunucuUrl: "" }) ?? ORNEK_ADRES}
                 onChange={(e) => setAdres(e.target.value)}
                 aria-label="Sunucu adresi"
+                autoComplete="off"
+                autoCapitalize="off"
+                spellCheck={false}
               />
               <button
                 className="ayar-kucuk-dugme"
-                disabled={adres === a.sunucuUrl}
-                onClick={() => ayarlariKaydet({ ...a, sunucuUrl: adres.trim() })}
+                disabled={adres.trim() === a.sunucuUrl}
+                onClick={() => {
+                  // "https://x.onrender.com" gibi yazılanı "wss://x.onrender.com/ws"e çevir.
+                  const yeni = adres.trim() ? adresiDuzelt(adres) : "";
+                  setAdres(yeni);
+                  ayarlariKaydet({ ...a, sunucuUrl: yeni });
+                  bildir(yeni ? "Sunucu adresi kaydedildi, bağlanılıyor" : "Varsayılan sunucu adresine dönüldü", "basari");
+                }}
               >
                 Kaydet
               </button>
             </div>
+            <p className="ayar-aciklama">
+              {sunucuDurumu(durum.baglanti)} Boş bırakırsan uygulamanın varsayılan adresi kullanılır.
+            </p>
           </section>
         </div>
 

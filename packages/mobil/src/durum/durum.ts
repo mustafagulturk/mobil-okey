@@ -35,8 +35,11 @@ export interface Durum {
   yuklendi: boolean;
   hesap: Hesap | null;
   ayarlar: Ayarlar;
-  /** Online sunucu bağlantısının durumu; hiç bağlanılmadıysa "yok". */
-  baglanti: BaglantiDurumu | "yok";
+  /**
+   * Online sunucu bağlantısının durumu; hiç bağlanılmadıysa "yok". "ayarsiz": telefonda
+   * sunucu adresi yapılandırılmamış (online oyun henüz açık değil).
+   */
+  baglanti: BaglantiDurumu | "yok" | "ayarsiz";
   profil: Profil | null;
   salonlar: SalonBilgisi[];
   /** Antrenman modunda mıyız? (Masa yerel Oda'dan gelir.) */
@@ -79,7 +82,7 @@ export type Islem =
   | { tur: "yuklendi"; hesap: Hesap | null; ayarlar: Ayarlar }
   /** alinma: mesajın telefona ulaştığı an (Date.now); geri sayım için. */
   | { tur: "sunucu"; kaynak: Kaynak; mesaj: SunucuMesaji; alinma: number }
-  | { tur: "baglanti"; durum: BaglantiDurumu | "yok" }
+  | { tur: "baglanti"; durum: Durum["baglanti"] }
   | { tur: "ekran"; ekran: Ekran }
   | { tur: "hesap"; hesap: Hesap | null }
   | { tur: "ayarlar"; ayarlar: Ayarlar }

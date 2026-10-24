@@ -244,6 +244,57 @@
   font-weight: 700;
 }
 
+/* Sunucuya ulaşılamadı: uyarı renginde ince çerçeveli cam şerit */
+.giris__ulasilamadi {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--renk-uyari) 45%, transparent);
+  border-radius: var(--kose);
+  background: color-mix(in srgb, var(--renk-uyari) 10%, transparent);
+  animation: kart-gir 500ms var(--egri-yumusak) both;
+}
+
+.giris__ulasilamadi-simge {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: var(--renk-uyari);
+  background: color-mix(in srgb, var(--renk-uyari) 16%, transparent);
+}
+
+.giris__ulasilamadi-metin b {
+  display: block;
+  color: var(--renk-uyari);
+  font-size: var(--yazi-normal);
+}
+
+.giris__ulasilamadi-metin small,
+.giris__not {
+  display: block;
+  color: var(--renk-yazi-soluk);
+  font-size: var(--yazi-kucuk);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.giris__ulasilamadi .dugme {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+}
+
+.giris__not {
+  text-align: center;
+}
+
+.giris__durum .giris__not {
+  margin-top: 4px;
+}
+
 .giris__baglantilar {
   display: flex;
   justify-content: space-between;

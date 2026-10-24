@@ -31,6 +31,9 @@ interface OyunBaglami {
   ayarlariKaydet: (a: Ayarlar) => void;
 }
 
+/** Sunucunun, tanımadığı ya da anahtarı tutmayan hesap için verdiği hata (hesap.ts). */
+const GIRIS_HATALI = "Giriş bilgileri hatalı";
+
 const Baglam = createContext<OyunBaglami | null>(null);
 
 export function useOyun(): OyunBaglami {
@@ -43,6 +46,9 @@ export function OyunSaglayici({ children }: { children: ReactNode }) {
   const [durum, dagit] = useReducer(indirgeyici, ilkDurum);
   const online = useRef<Baglanti | null>(null);
   const yerel = useRef<YerelBaglanti | null>(null);
+  /** Son giriş bilgisi: sunucu adresi değişince aynı bilgiyle yeniden bağlanmak için. */
+  const sonGiris = useRef<{ ad: string; oyuncuId?: string; anahtar?: string } | null>(null);
+
   // Geri çağrılarda her zaman en güncel durumu okumak için.
   const durumRef = useRef(durum);
   durumRef.current = durum;
@@ -77,6 +83,22 @@ export function OyunSaglayici({ children }: { children: ReactNode }) {
     if (m.t === "bildirim" && m.tur === "basari" && yenidenGonderilen.current.length > 0 && m.metin.includes("çip hesabına eklendi")) {
       void magaza.tuketildiSay(yenidenGonderilen.current.shift()!);
     }
+    // Kayıtlı hesapla giriş reddedildi: sunucu hesabı tanımıyor. Ücretsiz test sunucusunda
+    // (Render) veritabanı her yeniden başlatmada sıfırlanır; oyuncu "bağlanılıyor"da takılı
+    // kalmasın diye aynı adla yeni hesap açılır. (Kurtarma koduyla girişte hesap henüz
+    // kaydedilmediği için bu yola girilmez; hata kullanıcıya gösterilir.)
+    if (m.t === "hata" && m.mesaj === GIRIS_HATALI && !ONIZLEME) {
+      const d = durumRef.current;
+      if (d.hesap && !d.profil) {
+        const ad = d.hesap.ad;
+        void sil(DEPO.hesap);
+        dagit({ tur: "hesap", hesap: null });
+        dagit({ tur: "bildir", bildirimTuru: "bilgi", metin: "Sunucuda eski hesabın bulunamadı, yeni bir hesap açılıyor" });
+        // Bu mesajı işleyen bağlantıyı mesaj dağıtımı sırasında kapatmamak için bir sonraki turda.
+        setTimeout(() => onlineBaglan({ ad }, durumRef.current.ayarlar), 0);
+        return true;
+      }
+    }
     if (m.t === "hosgeldin" && !ONIZLEME) {
       const hesap: Hesap = { oyuncuId: m.oyuncuId, anahtar: m.anahtar, ad: m.profil.ad };
       void yaz(DEPO.hesap, hesap);
@@ -94,6 +116,7 @@ export function OyunSaglayici({ children }: { children: ReactNode }) {
       void sil(DEPO.hesap);
       online.current?.kapat();
       online.current = null;
+      sonGiris.current = null;
     }
     return false;
   };
@@ -101,9 +124,21 @@ export function OyunSaglayici({ children }: { children: ReactNode }) {
   const onlineBaglan = useCallback(
     (giris: { ad: string; oyuncuId?: string; anahtar?: string }, ayarlar: Ayarlar) => {
       online.current?.kapat();
-      const b = ONIZLEME ? new OnizlemeBaglanti() : new OnlineBaglanti(sunucuAdresi(ayarlar), giris);
+      online.current = null;
+      sonGiris.current = giris;
+      if (ONIZLEME) {
+        const b = new OnizlemeBaglanti();
+        online.current = b;
+        bagla(b, "online");
+        return;
+      }
+      const adres = sunucuAdresi(ayarlar);
+      // Adres yoksa (telefonda yapılandırılmamış) boşuna denemeyiz; giriş ekranı antrenmanı önerir.
+      if (!adres) return dagit({ tur: "baglanti", durum: "ayarsiz" });
+      const b = new OnlineBaglanti(adres, giris);
       online.current = b;
       bagla(b, "online");
+      dagit({ tur: "baglanti", durum: "baglaniyor" });
     },
     [bagla],
   );
@@ -119,6 +154,7 @@ export function OyunSaglayici({ children }: { children: ReactNode }) {
       dagit({ tur: "yuklendi", hesap, ayarlar: a });
       if (ONIZLEME) onlineBaglan({ ad: "Mustafa" }, a);
       else if (hesap) onlineBaglan(hesap, a);
+      else if (!sunucuAdresi(a)) dagit({ tur: "baglanti", durum: "ayarsiz" });
     })();
     // Reklam SDK'sı ve AB izin formu (telefonda). Hata uygulamayı durdurmasın.
     reklam.hazirla().catch((e) => console.warn("Reklam hazırlanamadı", e));
@@ -164,9 +200,11 @@ export function OyunSaglayici({ children }: { children: ReactNode }) {
       sesAcik(a.ses);
       dagit({ tur: "ayarlar", ayarlar: a });
       void yaz(DEPO.ayarlar, a);
-      // Sunucu adresi değiştiyse yeni adrese bağlan.
-      const h = durumRef.current.hesap;
-      if (a.sunucuUrl !== eski.sunucuUrl && h && !ONIZLEME) onlineBaglan(h, a);
+      // Sunucu adresi değiştiyse yeni adrese bağlan (hesap ya da önceki bir giriş denemesi varsa).
+      if (a.sunucuUrl === eski.sunucuUrl || ONIZLEME) return;
+      const g = durumRef.current.hesap ?? sonGiris.current;
+      if (g) onlineBaglan(g, a);
+      else dagit({ tur: "baglanti", durum: sunucuAdresi(a) ? "yok" : "ayarsiz" });
     },
     [onlineBaglan],
   );

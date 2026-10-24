@@ -11,7 +11,7 @@ import { OyuncuPaneli } from "./lobi/OyuncuPaneli.tsx";
 import { SalonCizimTanimlari, SalonKarti } from "./lobi/SalonKarti.tsx";
 
 export function Lobi() {
-  const { durum, gonder, antrenmanBaslat } = useOyun();
+  const { durum, gonder, antrenmanBaslat, tekrarDene } = useOyun();
   const profil = durum.profil!;
   const [secili, setSecili] = useState<SalonId | null>(null);
   const [kodPenceresi, setKodPenceresi] = useState(false);
@@ -55,7 +55,14 @@ export function Lobi() {
                 <i className="salon__nokta" /> {toplamOyuncu > 0 ? `${toplamOyuncu} oyuncu masada` : "Çevrimiçi"}
               </span>
             ) : (
-              <span className="rozet-uyari">Bağlantı yok</span>
+              <button
+                type="button"
+                className="rozet-uyari"
+                onClick={tekrarDene}
+                title="Sunucuya ulaşılamadı; arka planda tekrar deneniyor. Dokun: şimdi dene."
+              >
+                {durum.baglanti === "baglaniyor" ? "Bağlanıyor…" : "Bağlantı yok · tekrar dene"}
+              </button>
             )}
           </div>
           <nav className="lobi__menu">

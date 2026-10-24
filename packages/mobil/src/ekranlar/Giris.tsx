@@ -1,13 +1,16 @@
 // Giriş ekranı.
 //  - İlk açılışta takma ad sorulur; "Oyna" sunucuya bağlanır, sunucu hesap açar.
 //  - Kayıtlı hesap varsa otomatik bağlanılır, bu ekranda sadece durum görünür.
-//  - Sunucuya ulaşılamazsa çevrim dışı antrenman önerilir.
+//  - Sunucuya ulaşılamazsa (birkaç saniye içinde bağlanılamazsa) "ulaşılamadı" + "Tekrar dene"
+//    gösterilir, antrenman öne çıkar; arka planda denemeler sürer.
+//  - Telefonda sunucu adresi hiç yapılandırılmamışsa bağlanmaya çalışılmaz; "online yakında"
+//    denir ve antrenman önerilir.
 //  - Başka cihazdaki hesaba kurtarma koduyla girilebilir.
 //  - Gelişmiş: sunucu adresi.
 import { type CSSProperties, useState } from "react";
 import { Simge } from "../bilesenler/Simge.tsx";
 import { Tas } from "../bilesenler/Tas.tsx";
-import { sunucuAdresi } from "../durum/ayar.ts";
+import { adresiDuzelt, ONIZLEME, ORNEK_ADRES, sunucuAdresi } from "../durum/ayar.ts";
 import { useOyun } from "../durum/OyunSaglayici.tsx";
 import { kurtarmaKodunuCoz } from "../platform/depo.ts";
 
@@ -21,9 +24,13 @@ export function Giris() {
   const [denendi, setDenendi] = useState(false);
 
   const adGecerli = /^[\p{L}\p{N} _.-]{2,16}$/u.test(ad.trim());
-  const baglaniyor = durum.baglanti === "baglaniyor" || (durum.baglanti === "yok" && denendi);
-  const ulasilamadi = durum.baglanti === "koptu";
-  const otomatik = durum.hesap !== null;
+  // Telefonda sunucu adresi yapılandırılmamışsa online oyun yok: antrenman öne çıkar.
+  const ayarsiz = !ONIZLEME && sunucuAdresi(durum.ayarlar) === null;
+  const baglaniyor = !ayarsiz && (durum.baglanti === "baglaniyor" || (durum.baglanti === "yok" && denendi));
+  const ulasilamadi = !ayarsiz && durum.baglanti === "koptu";
+  const otomatik = durum.hesap !== null && !ayarsiz;
+  // Antrenman, online oyun mümkün değilken birincil seçenek olur.
+  const antrenmanOnde = ayarsiz || ulasilamadi;
 
   const oyna = () => {
     if (!adGecerli) return bildir("Ad 2-16 harf olmalı (harf, rakam, boşluk, . _ -)", "hata");
@@ -37,6 +44,12 @@ export function Giris() {
     setDenendi(true);
   };
 
+  const antrenmanDugmesi = (
+    <button className={`dugme ${antrenmanOnde ? "dugme--birincil dugme--buyuk" : "dugme--ikincil"}`} onClick={antrenmanBaslat}>
+      <Simge ad="robot" /> {antrenmanOnde ? "Antrenman oyna" : "Çevrim dışı antrenman"}
+    </button>
+  );
+
   return (
     <div className="ekran giris">
       <div className="giris__sahne">
@@ -47,89 +60,109 @@ export function Giris() {
       </div>
 
       <div className="kart cam giris__kart">
-        {otomatik && !ulasilamadi ? (
-          <div className="giris__durum">
+        {ayarsiz ? (
+          <div className="giris__bilgi" role="status">
+            <h2 className="giris__baslik">
+              Online salon yakında
+              <small>Online oyun henüz açık değil. Bu arada antrenman modunda botlara karşı oynayabilirsin.</small>
+            </h2>
+          </div>
+        ) : ulasilamadi ? (
+          <div className="giris__ulasilamadi" role="alert">
+            <span className="giris__ulasilamadi-simge">
+              <Simge ad="wifiYok" boyut={22} />
+            </span>
+            <div className="giris__ulasilamadi-metin">
+              <b>Sunucuya ulaşılamadı</b>
+              <small>
+                Sunucu uyanıyor olabilir ya da internetin kesik. Arka planda denemeye devam ediyoruz; bağlanınca kendiliğinden
+                açılır.
+              </small>
+            </div>
+            <button className="dugme dugme--ikincil dugme--kucuk" onClick={tekrarDene}>
+              Tekrar dene
+            </button>
+          </div>
+        ) : otomatik ? (
+          <div className="giris__durum" role="status">
             <div className="donen" />
             <p>
               Hoş geldin <b>{durum.hesap!.ad}</b>, masaya bağlanılıyor…
             </p>
+            <small className="giris__not">Sunucu uyanıyor olabilir, bekleniyor…</small>
           </div>
-        ) : (
+        ) : null}
+
+        {!otomatik && !ayarsiz && !ulasilamadi && (
           <>
-            {!otomatik && (
-              <>
-                <h2 className="giris__baslik">
-                  Masaya otur
-                  <small>Bir takma ad seç, hemen oyuna katıl.</small>
-                </h2>
-                <label className="alan-etiketi" htmlFor="ad">
-                  Takma adın
-                </label>
-                <input
-                  id="ad"
-                  className="girdi"
-                  value={ad}
-                  maxLength={16}
-                  placeholder="ör. Kahveci Mustafa"
-                  onChange={(e) => setAd(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && oyna()}
-                  autoComplete="off"
-                />
-                {kurtarmaAcik && (
-                  <input
-                    className="girdi"
-                    value={kod}
-                    placeholder="Kurtarma kodunu yapıştır"
-                    onChange={(e) => setKod(e.target.value)}
-                    autoComplete="off"
-                  />
-                )}
-                <button className="dugme dugme--birincil dugme--buyuk" disabled={baglaniyor && !ulasilamadi} onClick={oyna}>
-                  {baglaniyor && !ulasilamadi ? "Bağlanıyor…" : "Oyna"}
-                </button>
-              </>
+            <h2 className="giris__baslik">
+              Masaya otur
+              <small>Bir takma ad seç, hemen oyuna katıl.</small>
+            </h2>
+            <label className="alan-etiketi" htmlFor="ad">
+              Takma adın
+            </label>
+            <input
+              id="ad"
+              className="girdi"
+              value={ad}
+              maxLength={16}
+              placeholder="ör. Kahveci Mustafa"
+              onChange={(e) => setAd(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && oyna()}
+              autoComplete="off"
+            />
+            {kurtarmaAcik && (
+              <input
+                className="girdi"
+                value={kod}
+                placeholder="Kurtarma kodunu yapıştır"
+                onChange={(e) => setKod(e.target.value)}
+                autoComplete="off"
+              />
             )}
-            {ulasilamadi && (
-              <div className="giris__hata">
-                <Simge ad="wifiYok" />
-                <span>Sunucuya ulaşılamadı. Tekrar deneniyor…</span>
-                <button className="dugme dugme--ikincil dugme--kucuk" onClick={tekrarDene}>
-                  Şimdi dene
-                </button>
-              </div>
-            )}
+            <button className="dugme dugme--birincil dugme--buyuk" disabled={baglaniyor} onClick={oyna}>
+              {baglaniyor ? "Bağlanıyor…" : "Oyna"}
+            </button>
+            {baglaniyor && <small className="giris__not">Sunucu uyanıyor olabilir, bekleniyor…</small>}
           </>
         )}
 
-        <button className="dugme dugme--ikincil" onClick={antrenmanBaslat}>
-          <Simge ad="robot" /> Çevrim dışı antrenman
-        </button>
+        {antrenmanDugmesi}
 
         <div className="giris__baglantilar">
-          {!otomatik && (
+          {!otomatik && !ayarsiz && !ulasilamadi && (
             <button className="metin-dugme" onClick={() => setKurtarmaAcik(!kurtarmaAcik)}>
               {kurtarmaAcik ? "Yeni hesap aç" : "Kurtarma kodum var"}
             </button>
           )}
           <button className="metin-dugme" onClick={() => setGelismis(!gelismis)}>
-            Gelişmiş
+            {ayarsiz ? "Sunucu adresim var" : "Gelişmiş"}
           </button>
         </div>
 
         {gelismis && (
           <div className="giris__gelismis">
-            <label className="alan-etiketi">Sunucu adresi</label>
+            <label className="alan-etiketi" htmlFor="sunucu-adresi">
+              Sunucu adresi
+            </label>
             <input
+              id="sunucu-adresi"
               className="girdi girdi--kucuk"
               value={adres}
-              placeholder={sunucuAdresi({ ...durum.ayarlar, sunucuUrl: "" })}
+              placeholder={sunucuAdresi({ ...durum.ayarlar, sunucuUrl: "" }) ?? ORNEK_ADRES}
               onChange={(e) => setAdres(e.target.value)}
+              autoComplete="off"
+              autoCapitalize="off"
+              spellCheck={false}
             />
             <button
               className="dugme dugme--ikincil dugme--kucuk"
               onClick={() => {
-                ayarlariKaydet({ ...durum.ayarlar, sunucuUrl: adres });
-                bildir("Sunucu adresi kaydedildi", "basari");
+                const yeni = adres.trim() ? adresiDuzelt(adres) : "";
+                setAdres(yeni);
+                ayarlariKaydet({ ...durum.ayarlar, sunucuUrl: yeni });
+                bildir(yeni ? "Sunucu adresi kaydedildi" : "Varsayılan sunucu adresine dönüldü", "basari");
               }}
             >
               Kaydet
