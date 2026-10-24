@@ -1,5 +1,7 @@
 # Tasarım Yönü: "Gece Salonu"
 
+> Güncel durum: tasarım sistemi bu belgeyle kuruldu. Sonrasında varsayılan renk paleti **Osmanlı Konağı** oldu (bordo kadife çuha, antika altın; diğer paletler `packages/mobil/src/temalar/`), taşlar **kalın bakalit** oldu (bkz. `docs/taslar/`). Atılan taşlar klasik düzende masanın dört köşesinde durur; yığının kime ait olduğu madalyon rengi ve okla gösterilir.
+
 Hedef: ilk bakışta "bu pahalı bir oyun" dedirten, sıcak ve lüks bir gece kahvehanesi/salon havası. Koyu, derin zemin; üstten vuran sıcak lamba ışığı; zümrüt çuha; cilalı ceviz ahşap; metalik altın; fildişi 3D taşlar. Her etkileşimde küçük ama tatmin edici bir hareket.
 
 ## Kurallar

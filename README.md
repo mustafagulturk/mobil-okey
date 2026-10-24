@@ -28,7 +28,8 @@ Android için gerçek zamanlı, çok oyunculu **Okey** oyunu. Telefonda React + 
 - Her elde herkes ortaya çip koyar, eli bitiren hepsini alır.
 - Çip paketleri Google Play'den satın alınır; günlük hediye, ödüllü reklam, günlük görevler ve seviye ödülleriyle de kazanılır. Çip aktarılamaz ve paraya çevrilemez.
 - Seviye sistemi, günlük görevler, seviye ve çip sıralamaları.
-- Masa ve taşlar herkeste aynı; oyuncular sadece **isim etiketlerini** (çerçeve, rozet, unvan) süsler. Süsler satılmaz, seviye ve başarımlarla açılır.
+- Masa herkeste aynı; oyuncular **isim etiketlerini** (çerçeve, rozet, unvan) süsler. Süsler satılmaz, seviye ve başarımlarla açılır.
+- Taşlar varsayılan olarak kalın bakalit. Sonraki güncellemede görevle ya da satın alarak açılacak üç taş seti daha hazır: altın yaldızlı fildişi, siyah onyx, mermer + çini ([docs/taslar](docs/taslar/README.md)).
 
 ## Mimari
 
@@ -75,7 +76,8 @@ Android derlemesi, imza ve Play'e yükleme adımları: [docs/GOOGLE_PLAY.md](doc
 
 | Ne | Nerede |
 | --- | --- |
-| Renkler, yazı tipi, taş ve masa görünümü | `packages/mobil/src/tema.css` (tek dosya) |
+| Renk paleti (6 hazır tema, varsayılan Osmanlı Konağı) | `packages/mobil/src/temalar/` (seçim: `packages/mobil/index.html` içindeki `data-tema`) |
+| Yazı tipi, ölçüler, efektler, taş görünümü | `packages/mobil/src/tema.css` |
 | Salonlar, giriş çipleri, çip paketleri, XP, görevler | `packages/kurallar/src/ekonomi.ts` |
 | İsim etiketi çerçeveleri, rozetler, unvanlar | `packages/kurallar/src/kozmetik.ts` |
 | Hamle süresi, bot hızı, eşleştirme bekleme süresi | `packages/sunucu/src/ayarlar.ts` |
