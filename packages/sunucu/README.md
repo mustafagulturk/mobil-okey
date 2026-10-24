@@ -27,6 +27,11 @@ docker build -f packages/sunucu/Dockerfile -t okey-sunucu .
 docker run -p 8080:8080 -v okey-veri:/veri okey-sunucu
 ```
 
+Ücretsiz kurulum (Render.com, kart gerekmez) için depo kökündeki `render.yaml` ve adım adım
+rehber: [`docs/SUNUCU_KURULUM.md`](../../docs/SUNUCU_KURULUM.md). Sunucu düz HTTP dinler,
+portu `PORT` ortam değişkeninden alır; TLS'yi (https/wss) barındırma servisi sonlandırır.
+WebSocket bağlantısı her yolda kabul edilir; uygulama `/ws` kullanır.
+
 ## Ortam değişkenleri
 
 | Değişken | Varsayılan | Açıklama |

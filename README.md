@@ -72,6 +72,8 @@ npm run yuk-testi -w @okey/sunucu
 
 Android derlemesi, imza ve Play'e yükleme adımları: [docs/GOOGLE_PLAY.md](docs/GOOGLE_PLAY.md). GitHub Actions her push'ta testleri çalıştırır ve test APK'sı üretir; "Run workflow" ile imzalı Play sürümü (AAB) çıkarılır.
 
+Oyun sunucusunu ücretsiz kurup telefondaki uygulamayı ona bağlamak (Render.com, `render.yaml`): [docs/SUNUCU_KURULUM.md](docs/SUNUCU_KURULUM.md). Sunucu adresi yoksa uygulama online yerine antrenmanı önerir.
+
 ## Kendin nasıl değiştirirsin?
 
 | Ne | Nerede |

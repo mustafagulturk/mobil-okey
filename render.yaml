@@ -1,0 +1,39 @@
+# Render.com Blueprint: oyun sunucusunu ücretsiz planda kurar.
+# Adım adım anlatım: docs/SUNUCU_KURULUM.md
+#
+# ÜCRETSİZ PLANIN SINIRLARI (bilerek seçildi, kart gerekmez):
+#  - 15 dakika kimse bağlanmazsa sunucu uyur; ilk bağlantıda 30-50 sn'de uyanır.
+#    Uygulama bu sırada "Sunucu uyanıyor olabilir" der ve kendiliğinden yeniden dener.
+#  - Disk KALICI DEĞİL: SQLite veritabanı (/veri/okey.db) her yeniden başlatmada,
+#    uyuyup uyanmada ve her yeni deploy'da SIFIRLANIR. Hesaplar, çipler, seviyeler
+#    silinir. Test için uygundur; gerçek yayın için kalıcı diskli bir plan gerekir.
+#
+# Render, TLS'yi (https/wss) kendisi sonlandırır; sunucu içeride düz HTTP dinler.
+# Telefonun bağlanacağı adres: wss://<servis-adı>.onrender.com/ws
+services:
+  - type: web
+    name: okey-sunucu
+    runtime: docker
+    plan: free
+    # Türkiye'ye en yakın bölge.
+    region: frankfurt
+    branch: main
+    # Depo kökünden derlenir (kurallar paketi de gerekiyor).
+    dockerContext: .
+    dockerfilePath: ./packages/sunucu/Dockerfile
+    # Sunucu GET /saglik isteğine {"durum":"ok"} döner.
+    healthCheckPath: /saglik
+    # main dalına her push'ta yeniden kurulur.
+    autoDeployTrigger: commit
+    envVars:
+      # PORT'u Render verir (varsayılan 10000); sunucu process.env.PORT'u okur.
+      - key: ANDROID_PAKET_ADI
+        value: dev.mustafagulturk.okey
+      # "1" yapılırsa "test-" ile başlayan satın alma jetonları doğrulanmadan kabul edilir
+      # (bedava çip!). Gerçek kullanıcıların olduğu sunucuda "0" kalmalı.
+      - key: SATIN_ALMA_TEST
+        value: "0"
+      # Google Play satın alma doğrulaması için servis hesabı JSON'u (gizli).
+      # Şimdilik boş bırakılabilir; docs/GOOGLE_PLAY.md 6. adım.
+      - key: GOOGLE_SERVIS_HESABI_JSON
+        sync: false

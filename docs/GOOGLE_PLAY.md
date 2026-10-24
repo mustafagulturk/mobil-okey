@@ -53,7 +53,7 @@ Play Console'da ilk yüklemede "Play Uygulama İmzalama" açık kalsın; Google 
 
 ## 3. Oyun sunucusu
 
-Oyun online olduğu için sunucunun 7/24 çalışması gerekir. Sunucu Docker imajı olarak hazır (`packages/sunucu/Dockerfile`) ve veritabanı tek bir SQLite dosyası olduğu için **kalıcı disk** veren bir yer seçilmeli. Örnek: Fly.io (küçük bir makine + 1 GB volume), Railway, ya da herhangi bir VPS (Hetzner, DigitalOcean).
+Oyun online olduğu için sunucunun 7/24 çalışması gerekir. Test için kart vermeden ücretsiz kurulum (Render.com, veriler kalıcı değil): [`SUNUCU_KURULUM.md`](SUNUCU_KURULUM.md). Sunucu Docker imajı olarak hazır (`packages/sunucu/Dockerfile`) ve veritabanı tek bir SQLite dosyası olduğu için **kalıcı disk** veren bir yer seçilmeli. Örnek: Fly.io (küçük bir makine + 1 GB volume), Railway, ya da herhangi bir VPS (Hetzner, DigitalOcean).
 
 Sunucuda ayarlanacak ortam değişkenleri `packages/sunucu/README.md` dosyasında. En önemlileri:
 
