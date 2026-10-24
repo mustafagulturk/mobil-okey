@@ -1035,6 +1035,10 @@ a {
   opacity: 0.25;
 }
 
+.tas--gizli {
+  visibility: hidden;
+}
+
 .tas--yeni {
   animation: tas-dus var(--sure-yavas) var(--egri-yay);
 }

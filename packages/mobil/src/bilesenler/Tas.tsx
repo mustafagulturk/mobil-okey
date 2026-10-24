@@ -2,7 +2,7 @@
 // gölgeleridir, rakam yazıdır (kazınmış görünüm), sahte okey simgesi küçük bir SVG'dir.
 // Renkler ve ölçüler tema.css'teki değişkenlerden gelir (--tas-*).
 import { type Deger, okeyMi, RENKLER, sahteMi, yuzDegeri } from "@okey/kurallar";
-import type { CSSProperties, PointerEvent } from "react";
+import { type CSSProperties, memo, type PointerEvent } from "react";
 
 export type TasBoyutu = "buyuk" | "orta" | "kucuk";
 
@@ -15,6 +15,8 @@ interface Ozellikler {
   /** Yeni gelen taş: kısa bir "düşme" animasyonu oynar. */
   yeni?: boolean;
   soluk?: boolean;
+  /** Yerinde görünmez durur (yer kaplar). */
+  gizli?: boolean;
   /** Parmakla taşınan taş: kalkık ve büyük gölgeli görünür (isteğe bağlı). */
   suruklenen?: boolean;
   stil?: CSSProperties;
@@ -22,7 +24,18 @@ interface Ozellikler {
   onClick?: () => void;
 }
 
-export function Tas({ id, okey, boyut = "buyuk", secili, yeni, soluk, suruklenen, stil, onPointerDown, onClick }: Ozellikler) {
+/**
+ * memo'lu: aynı taş aynı hâldeyken yeniden çizilmez (okey değeri içerikçe karşılaştırılır,
+ * çünkü sunucudan her mesajda yeni bir nesne gelir).
+ */
+export const Tas = memo(TasIc, (a, b) => {
+  for (const k of ["id", "boyut", "secili", "yeni", "soluk", "gizli", "suruklenen", "stil", "onPointerDown", "onClick"] as const) {
+    if (a[k] !== b[k]) return false;
+  }
+  return a.okey === b.okey || (a.okey?.renk === b.okey?.renk && a.okey?.sayi === b.okey?.sayi);
+});
+
+function TasIc({ id, okey, boyut = "buyuk", secili, yeni, soluk, gizli, suruklenen, stil, onPointerDown, onClick }: Ozellikler) {
   const d = yuzDegeri(id);
   const okeyTasi = okey ? okeyMi(id, okey) && !sahteMi(id) : false;
   const sinif = [
@@ -34,6 +47,7 @@ export function Tas({ id, okey, boyut = "buyuk", secili, yeni, soluk, suruklenen
     suruklenen && "tas--suruklenen",
     yeni && "tas--yeni",
     soluk && "tas--soluk",
+    gizli && "tas--gizli",
   ]
     .filter(Boolean)
     .join(" ");

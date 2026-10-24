@@ -24,6 +24,8 @@ export interface UcusSecenegi {
   sonOpaklik?: number;
   /** Başlamadan önce bekleme, ms. */
   gecikme?: number;
+  /** true: iniş bitince öğe kaldırılmaz, hedefte durur; söz öğeyi verir, kaldırmak çağırana kalır. */
+  kalsin?: boolean;
 }
 
 let katman: HTMLDivElement | null = null;
@@ -55,8 +57,8 @@ export function ucur(
   hedef: DOMRect,
   icerik: HTMLElement | (() => HTMLElement),
   secenek: UcusSecenegi = {},
-): Promise<void> {
-  if (typeof document === "undefined" || !hedef.width || !hedef.height) return Promise.resolve();
+): Promise<HTMLElement | null> {
+  if (typeof document === "undefined" || !hedef.width || !hedef.height) return Promise.resolve(null);
   const el = typeof icerik === "function" ? icerik() : icerik;
   const acik = efektlerAcik();
 
@@ -133,12 +135,13 @@ export function ucur(
     const temizle = () => {
       if (tamam) return;
       tamam = true;
-      el.remove();
-      bitti();
+      if (!secenek.kalsin) el.remove();
+      bitti(secenek.kalsin ? el : null);
     };
     anim.onfinish = temizle;
     anim.oncancel = temizle;
     // Sekme gizliyken animasyon durabilir; güvenlik için zaman aşımı.
-    setTimeout(temizle, 6000 + (secenek.gecikme ?? 0));
+    if (!secenek.kalsin) setTimeout(temizle, 6000 + (secenek.gecikme ?? 0));
+    else setTimeout(temizle, 1500 + (secenek.gecikme ?? 0));
   });
 }

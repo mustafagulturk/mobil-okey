@@ -479,9 +479,44 @@
 }
 
 .deste-alani {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 26px;
+}
+
+/* Bitirme alanı: son taş sürüklenirken deste ve gösterge altın bir çerçeveyle nefes alır;
+   taş üstüne gelince çerçeve parlar ve gösterge hafifçe büyür. Yazı yok. */
+.deste-alani::before {
+  content: "";
+  position: absolute;
+  inset: -9px -24px -9px -10px;
+  border-radius: 16px;
+  border: 1.5px solid var(--renk-altin);
+  background: radial-gradient(ellipse at 60% 50%, rgba(255, 214, 120, 0.22), transparent 70%);
+  box-shadow: 0 0 22px rgba(255, 200, 90, 0.5), inset 0 0 16px rgba(255, 200, 90, 0.22);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--sure), transform var(--sure) var(--egri-yay);
+}
+
+.deste-alani--bitir::before {
+  animation: kenar-nefes 1.1s ease-in-out infinite;
+}
+
+.deste-alani--ustunde::before {
+  animation: none;
+  opacity: 1;
+  transform: scale(1.06);
+  box-shadow: 0 0 30px 6px rgba(255, 200, 90, 0.7), inset 0 0 22px rgba(255, 214, 120, 0.45);
+}
+
+.deste-alani .gosterge {
+  transition: transform var(--sure) var(--egri-yay);
+}
+
+.deste-alani--ustunde .gosterge {
+  transform: scale(1.1);
 }
 
 /* ---------- Köşe yığınları ----------
@@ -569,6 +604,7 @@
 
 .deste {
   position: relative;
+  touch-action: none;
   display: grid;
   place-items: center;
   padding: 5px;
@@ -891,6 +927,7 @@
 .yan-tas,
 .atma-alani {
   position: relative;
+  touch-action: none;
   display: grid;
   place-items: center;
   padding: 0;
@@ -919,6 +956,11 @@
 
 .yan-tas--cekilebilir:active {
   transform: scale(0.96);
+}
+
+/* Yandan sürüklenirken üstteki taş yerinde soluk kalır */
+.yan-tas--suruklenen .yigin__tas:last-child {
+  opacity: 0.3;
 }
 
 .atma-alani--aktif::after {
@@ -1131,15 +1173,45 @@
   will-change: transform;
 }
 
-/* Görünüm Tas'ın "suruklenen" hâlinden gelir; burada sadece kalkış animasyonu */
+/* Kalkık taş. Akıcılık için hayalette yan yüz 4 katman, tek yumuşak gölge ve rakamda
+   filtre yok (taşın masadaki görünümü aynen kalır; sadece sürüklenirken sadeleşir). */
 .hayalet .tas {
+  --tas-kalinlik: 0 calc(var(--kalin) * 0.34) 0 var(--tas-kenar), 0 calc(var(--kalin) * 0.67) 0 var(--tas-yan), 0 var(--kalin) 0 var(--tas-alt-golge),
+    0 calc(var(--kalin) + 1px) 0 var(--tas-alt-koyu);
+  transform: translateY(-6px) scale(1.12) rotate(-2deg);
+  box-shadow: var(--tas-kalinlik), 0 calc(var(--kalin) + 14px) 16px rgba(0, 0, 0, 0.42);
+  transition: none;
   animation: tas-kalk 0.18s var(--egri-yay) both;
+}
+
+.hayalet .tas__sayi,
+.hayalet .tas__sahte,
+.hayalet .tas__yildiz {
+  filter: none;
+}
+
+.hayalet .tas__parilti {
+  display: none;
 }
 
 @keyframes tas-kalk {
   from {
     transform: none;
   }
+}
+
+/* Sürüklerken her karede yeniden boyama isteyen süs animasyonları bekler (akıcılık).
+   Durdurulan kare ekranda kalır; parmak kalkınca kaldıkları yerden devam ederler. */
+.surukleniyor .etiket::after,
+.surukleniyor .etiket--parlak::before,
+.surukleniyor .arka-plan__lamba,
+.surukleniyor .tas__parilti::before,
+.surukleniyor .sira-seridi::after,
+.surukleniyor .istaka::after,
+.surukleniyor .madalyon::before,
+.surukleniyor .deste::after,
+.surukleniyor .yan-tas::after {
+  animation-play-state: paused;
 }
 
 /* =====================================================================
