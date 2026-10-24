@@ -12,6 +12,10 @@ on:
       surumKodu:
         description: "Play sürüm kodu (her yüklemede bir artmalı: 1, 2, 3...)"
         required: false
+      onizleme:
+        description: "Test APK'sını telefona indirmek için 'Önizleme' sürümü olarak yayınla (dal adıyla)"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -33,6 +37,8 @@ jobs:
     name: Android (test APK)
     needs: test
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -50,6 +56,16 @@ jobs:
       - run: mv packages/mobil/android/app/build/outputs/apk/debug/app-debug.apk okey-test.apk
       - uses: actions/upload-artifact@v4
         with: { name: okey-test-apk, path: okey-test.apk }
+      # Telefondan GitHub'a giriş yapmadan indirilebilsin diye test APK'sını ön sürüm olarak yayınlar.
+      - if: github.event_name == 'workflow_dispatch' && inputs.onizleme
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: onizleme-${{ github.ref_name }}
+          target_commitish: ${{ github.sha }}
+          name: "Önizleme: ${{ github.ref_name }}"
+          body: "Test APK'sı (debug imzalı, Play'e yüklenmez). Telefona kurmak için okey-test.apk dosyasını indir."
+          prerelease: true
+          files: okey-test.apk
 
   sunucu:
     name: Sunucu Docker imajı
