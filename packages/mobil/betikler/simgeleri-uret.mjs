@@ -13,6 +13,7 @@ const kok = join(dirname(fileURLToPath(import.meta.url)), "..");
 const res = join(kok, "android/app/src/main/res");
 const onSvg = readFileSync(join(kok, "kaynak/simge-on.svg"), "utf8");
 const acilisSvg = readFileSync(join(kok, "kaynak/acilis.svg"), "utf8");
+const tekRenkSvg = readFileSync(join(kok, "kaynak/simge-tek-renk.svg"), "utf8");
 const ZEMIN = "#0d5a3d"; // res/values/ic_launcher_background.xml ile aynı olmalı
 const yaziTipi = pathToFileURL(createRequire(import.meta.url).resolve("@fontsource/nunito/files/nunito-latin-900-normal.woff2"));
 const yogunluklar = { mdpi: 1, hdpi: 1.5, xhdpi: 2, xxhdpi: 3, xxxhdpi: 4 };
@@ -44,6 +45,8 @@ for (const [ad, k] of Object.entries(yogunluklar)) {
   // Adaptive icon ön katmanı: 108 dp, şeffaf.
   const on = Math.round(108 * k);
   await ciz(svgBoyutlu(onSvg, on), on, on, join(res, `mipmap-${ad}/ic_launcher_foreground.png`), true);
+  // Temalı simge (Android 13+): tek renkli şekil, şeffaf zemin.
+  await ciz(svgBoyutlu(tekRenkSvg, on), on, on, join(res, `mipmap-${ad}/ic_launcher_monochrome.png`), true);
 
   // Eski Android'ler için tek parça simge: 48 dp kare (yuvarlatılmış) ve daire.
   // Adaptive icon'da 108 dp'nin ortadaki 72 dp'si görünür; aynı kırpmayı burada yapıyoruz.

@@ -14,6 +14,9 @@ import "@fontsource/nunito/latin-ext-900.css";
 import "./tema.css";
 import "./stil.css";
 import { Uygulama } from "./Uygulama.tsx";
+import { geriTusunuDinle } from "./platform/geriTusu.ts";
+
+geriTusunuDinle();
 
 createRoot(document.getElementById("kok")!).render(
   <StrictMode>

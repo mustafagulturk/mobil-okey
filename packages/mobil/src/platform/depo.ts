@@ -37,7 +37,7 @@ export interface Ayarlar {
 
 export const VARSAYILAN_AYARLAR: Ayarlar = { ses: true, titresim: true, sunucuUrl: "" };
 
-export const DEPO = { hesap: "okey.hesap", ayarlar: "okey.ayarlar" } as const;
+export const DEPO = { hesap: "okey.hesap", ayarlar: "okey.ayarlar", tuketilenJetonlar: "okey.tuketilenJetonlar" } as const;
 
 /**
  * Kurtarma kodu: başka cihazda aynı hesaba girmek için oyuncuId ve anahtarın birleşimi.

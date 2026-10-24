@@ -137,6 +137,8 @@ function beklemeOdasi(p: Profil): OdaGorunumu {
     oyunda: false,
     masa: null,
     turBitis: null,
+    turKalanMs: null,
+    turSuresiMs: 25_000,
     sonEl: null,
     elNo: 0,
   };

@@ -12,6 +12,14 @@
 import { Capacitor } from "@capacitor/core";
 import { NativePurchases, PURCHASE_TYPE } from "@capgo/native-purchases";
 import { CIP_PAKETLERI } from "@okey/kurallar";
+import { DEPO, oku, yaz } from "./depo.ts";
+
+/**
+ * Sunucunun aynı jeton ikinci kez geldiğinde döndürdüğü hata metni
+ * (packages/sunucu/src/magaza.ts). Açılışta yeniden gönderilen satın almalarda bu
+ * hata beklenen bir durumdur; kullanıcıya gösterilmez.
+ */
+export const ZATEN_KULLANILDI = "Bu satın alma daha önce kullanıldı";
 
 export interface MagazaUrunu {
   urunId: string;
@@ -33,6 +41,18 @@ export interface Magaza {
   satinAl(urunId: string, oyuncuId: string): Promise<SatinAlmaSonucu | null>;
   /** Önceden ödenmiş ama sunucuya ulaşamamış (tüketilmemiş) satın almalar. */
   bekleyenler(): Promise<SatinAlmaSonucu[]>;
+  /** Sunucunun çipini verdiği jetonu bu telefonda "tüketildi" olarak işaretler (bir daha gönderilmez). */
+  tuketildiSay(jeton: string): Promise<void>;
+}
+
+/** Tüketildi sayılan jetonlar (en son 50 tane) Preferences'ta saklanır. */
+async function tuketilenler(): Promise<string[]> {
+  return (await oku<string[]>(DEPO.tuketilenJetonlar)) ?? [];
+}
+
+async function jetonuTuketildiSay(jeton: string) {
+  const liste = await tuketilenler();
+  if (!liste.includes(jeton)) await yaz(DEPO.tuketilenJetonlar, [...liste, jeton].slice(-50));
 }
 
 const URUN_IDLERI = CIP_PAKETLERI.map((p) => p.urunId);
@@ -78,13 +98,16 @@ class PlayMagazasi implements Magaza {
   async bekleyenler(): Promise<SatinAlmaSonucu[]> {
     try {
       const { purchases } = await NativePurchases.getPurchases({ productType: PURCHASE_TYPE.INAPP });
+      const tuketilen = await tuketilenler();
       return purchases
-        .filter((p) => p.purchaseToken && URUN_IDLERI.includes(p.productIdentifier))
+        .filter((p) => p.purchaseToken && URUN_IDLERI.includes(p.productIdentifier) && !tuketilen.includes(p.purchaseToken))
         .map((p) => ({ urunId: p.productIdentifier, jeton: p.purchaseToken! }));
     } catch {
       return [];
     }
   }
+
+  tuketildiSay = jetonuTuketildiSay;
 }
 
 function vazgectiMi(e: unknown): boolean {
@@ -119,6 +142,8 @@ class TestMagazasi implements Magaza {
   async bekleyenler() {
     return [];
   }
+
+  tuketildiSay = jetonuTuketildiSay;
 }
 
 export const magaza: Magaza = Capacitor.isPluginAvailable("NativePurchases") && Capacitor.isNativePlatform()

@@ -110,6 +110,12 @@ export interface OdaGorunumu {
   masa: MasaGorunumu | null;
   /** Sıradaki oyuncunun hamle süresinin bittiği an (ms). */
   turBitis: number | null;
+  /**
+   * Mesaj gönderildiği anda kalan hamle süresi (ms) ve toplam süre. Telefonun saati
+   * sunucununkinden farklı olabileceği için geri sayım turBitis yerine bununla yapılır.
+   */
+  turKalanMs: number | null;
+  turSuresiMs: number;
   sonEl: ElOzeti | null;
   /** Odada oynanan el sayısı. */
   elNo: number;

@@ -5,12 +5,14 @@ import { Cip } from "../bilesenler/Ortak.tsx";
 import { Simge } from "../bilesenler/Simge.tsx";
 import { useOyun } from "../durum/OyunSaglayici.tsx";
 import { paylas } from "../platform/cihaz.ts";
+import { useGeriTusu } from "../platform/geriTusu.ts";
 import { SALONLAR } from "@okey/kurallar";
 
 export function BeklemeOdasi() {
   const { durum, gonder, bildir } = useOyun();
   const oda = durum.oda!;
   const sahibim = oda.sahipId === durum.profil?.id;
+  useGeriTusu(() => gonder({ t: "odadanAyril" })); // el başlamadığı için çip riski yok
   const salonAdi = SALONLAR.find((s) => s.id === oda.salon)?.ad ?? "Antrenman";
 
   const kodPaylas = async () => {

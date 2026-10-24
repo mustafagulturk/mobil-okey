@@ -11,6 +11,7 @@ import { Magaza } from "./ekranlar/Magaza.tsx";
 import { MasaEkrani } from "./ekranlar/masa/MasaEkrani.tsx";
 import { Profil } from "./ekranlar/Profil.tsx";
 import { Siralama } from "./ekranlar/Siralama.tsx";
+import { uygulamayiKucult, varsayilanGeri } from "./platform/geriTusu.ts";
 
 export function Uygulama() {
   return (
@@ -22,7 +23,13 @@ export function Uygulama() {
 }
 
 function Ekran() {
-  const { durum } = useOyun();
+  const { durum, ekranaGit } = useOyun();
+  // Geri tuşunun varsayılanı (açık pencere/masa yokken): alt ekrandan lobiye, lobide küçült.
+  varsayilanGeri(() => {
+    const altEkran = durum.ekran !== "lobi" && durum.ekran !== "giris" && durum.ekran !== "oda";
+    if (altEkran) ekranaGit(durum.profil ? "lobi" : "giris");
+    else uygulamayiKucult();
+  });
   if (!durum.yuklendi)
     return (
       <div className="ekran acilis">

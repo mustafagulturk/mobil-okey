@@ -2,6 +2,7 @@
 import type { SohbetMesaji } from "@okey/kurallar";
 import { useEffect, useRef, useState } from "react";
 import { Simge } from "../../bilesenler/Simge.tsx";
+import { useGeriTusu } from "../../platform/geriTusu.ts";
 
 const HIZLI_MESAJLAR = ["Kolay gelsin", "Hadi bakalım", "Eyvallah", "Tebrikler", "Şansına küs", "Bir çay alır mısın?"];
 
@@ -14,6 +15,7 @@ interface Ozellikler {
 
 export function SohbetPaneli({ mesajlar, benimKoltugum, gonder, kapat }: Ozellikler) {
   const [metin, setMetin] = useState("");
+  useGeriTusu(kapat);
   const liste = useRef<HTMLDivElement>(null);
   useEffect(() => {
     liste.current?.scrollTo({ top: liste.current.scrollHeight });

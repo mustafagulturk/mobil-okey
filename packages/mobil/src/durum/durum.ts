@@ -42,6 +42,11 @@ export interface Durum {
   /** Antrenman modunda mıyız? (Masa yerel Oda'dan gelir.) */
   antrenman: boolean;
   oda: OdaGorunumu | null;
+  /**
+   * Sıradaki hamlenin süresinin bittiği an, TELEFONUN saatiyle. Sunucunun saati farklı
+   * olabileceği için oda mesajı geldiği anda "şimdi + turKalanMs" olarak hesaplanır.
+   */
+  turYerelBitis: number | null;
   sohbet: SohbetMesaji[];
   okunmamisSohbet: number;
   gorevler: GorevDurumu[] | null;
@@ -59,6 +64,7 @@ export const ilkDurum: Durum = {
   salonlar: [],
   antrenman: false,
   oda: null,
+  turYerelBitis: null,
   sohbet: [],
   okunmamisSohbet: 0,
   gorevler: null,
@@ -71,7 +77,8 @@ export type Kaynak = "online" | "yerel";
 
 export type Islem =
   | { tur: "yuklendi"; hesap: Hesap | null; ayarlar: Ayarlar }
-  | { tur: "sunucu"; kaynak: Kaynak; mesaj: SunucuMesaji }
+  /** alinma: mesajın telefona ulaştığı an (Date.now); geri sayım için. */
+  | { tur: "sunucu"; kaynak: Kaynak; mesaj: SunucuMesaji; alinma: number }
   | { tur: "baglanti"; durum: BaglantiDurumu | "yok" }
   | { tur: "ekran"; ekran: Ekran }
   | { tur: "hesap"; hesap: Hesap | null }
@@ -117,11 +124,11 @@ export function indirgeyici(d: Durum, i: Islem): Durum {
       return { ...ilkDurum, yuklendi: true, ayarlar: d.ayarlar };
     case "sunucu":
       if (i.kaynak === "online" && d.antrenman && MASA_MESAJLARI.has(i.mesaj.t)) return d;
-      return sunucuMesaji(d, i.mesaj);
+      return sunucuMesaji(d, i.mesaj, i.alinma);
   }
 }
 
-function sunucuMesaji(d: Durum, m: SunucuMesaji): Durum {
+function sunucuMesaji(d: Durum, m: SunucuMesaji, alinma: number): Durum {
   switch (m.t) {
     case "hosgeldin":
       return {
@@ -140,6 +147,7 @@ function sunucuMesaji(d: Durum, m: SunucuMesaji): Durum {
       return {
         ...d,
         oda: m.oda,
+        turYerelBitis: m.oda.turKalanMs === null ? null : alinma + m.oda.turKalanMs,
         ekran: "oda",
         sohbet: yeniOda ? [] : d.sohbet,
         okunmamisSohbet: yeniOda ? 0 : d.okunmamisSohbet,

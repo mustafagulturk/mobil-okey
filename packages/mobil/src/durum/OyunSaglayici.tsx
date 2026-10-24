@@ -12,7 +12,7 @@ import { OnlineBaglanti } from "../baglanti/OnlineBaglanti.ts";
 import { YerelBaglanti } from "../baglanti/YerelBaglanti.ts";
 import { type Ayarlar, DEPO, type Hesap, oku, sil, VARSAYILAN_AYARLAR, yaz } from "../platform/depo.ts";
 import { ONIZLEME, sunucuAdresi } from "./ayar.ts";
-import { magaza } from "../platform/magaza.ts";
+import { magaza, ZATEN_KULLANILDI } from "../platform/magaza.ts";
 import { reklam } from "../platform/reklam.ts";
 import { sesAcik } from "../platform/ses.ts";
 import { type BildirimTuru, type Durum, type Ekran, ilkDurum, indirgeyici, type Kaynak } from "./durum.ts";
@@ -50,15 +50,33 @@ export function OyunSaglayici({ children }: { children: ReactNode }) {
   /** Bir bağlantının mesajlarını reducer'a bağlar ve yan etkileri (kaydetme vb.) yapar. */
   const bagla = useCallback((b: Baglanti, kaynak: Kaynak) => {
     b.dinle((mesaj) => {
-      yanEtkiler(mesaj, kaynak);
-      dagit({ tur: "sunucu", kaynak, mesaj });
+      const yut = yanEtkiler(mesaj, kaynak);
+      if (!yut) dagit({ tur: "sunucu", kaynak, mesaj, alinma: Date.now() });
     });
     if (kaynak === "online") b.durumDinle((d) => dagit({ tur: "baglanti", durum: d }));
   }, []);
 
-  /** Mesajın durumu değiştirmekten başka gerektirdiği işler. */
-  const yanEtkiler = (m: SunucuMesaji, kaynak: Kaynak) => {
-    if (kaynak !== "online") return;
+  /**
+   * Açılışta yeniden gönderilen (tüketilmemiş) satın almaların jetonları, gönderildikleri sırayla.
+   * Sunucu her birine ya başarı bildirimi ya da "daha önce kullanıldı" hatası döner.
+   */
+  const yenidenGonderilen = useRef<string[]>([]);
+
+  /**
+   * Mesajın durumu değiştirmekten başka gerektirdiği işler.
+   * true dönerse mesaj "yutulur": kullanıcıya gösterilmez.
+   */
+  const yanEtkiler = (m: SunucuMesaji, kaynak: Kaynak): boolean => {
+    if (kaynak !== "online") return false;
+    // Yeniden gönderilen satın alma zaten çipe çevrilmişse bu bir hata değildir:
+    // sessizce "tüketildi" say ve bir daha gönderme.
+    if (m.t === "hata" && m.mesaj === ZATEN_KULLANILDI && yenidenGonderilen.current.length > 0) {
+      void magaza.tuketildiSay(yenidenGonderilen.current.shift()!);
+      return true;
+    }
+    if (m.t === "bildirim" && m.tur === "basari" && yenidenGonderilen.current.length > 0 && m.metin.includes("çip hesabına eklendi")) {
+      void magaza.tuketildiSay(yenidenGonderilen.current.shift()!);
+    }
     if (m.t === "hosgeldin" && !ONIZLEME) {
       const hesap: Hesap = { oyuncuId: m.oyuncuId, anahtar: m.anahtar, ad: m.profil.ad };
       void yaz(DEPO.hesap, hesap);
@@ -66,7 +84,10 @@ export function OyunSaglayici({ children }: { children: ReactNode }) {
       if (online.current instanceof OnlineBaglanti) online.current.girisGuncelle(hesap);
       // Ödemesi alınmış ama sunucuya ulaşmamış satın almalar varsa şimdi gönder.
       void magaza.bekleyenler().then((liste) => {
-        for (const s of liste) online.current?.gonder({ t: "satinAlma", urunId: s.urunId, satinAlmaJetonu: s.jeton });
+        for (const s of liste) {
+          yenidenGonderilen.current.push(s.jeton);
+          online.current?.gonder({ t: "satinAlma", urunId: s.urunId, satinAlmaJetonu: s.jeton });
+        }
       });
     }
     if (m.t === "hesapSilindi") {
@@ -74,6 +95,7 @@ export function OyunSaglayici({ children }: { children: ReactNode }) {
       online.current?.kapat();
       online.current = null;
     }
+    return false;
   };
 
   const onlineBaglan = useCallback(

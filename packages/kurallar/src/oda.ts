@@ -379,6 +379,8 @@ export class Oda {
       oyunda: this.oyunda,
       masa: this.masa && koltuk !== -1 ? this.masa.gorunum(koltuk) : null,
       turBitis: this.turBitis,
+      turKalanMs: this.turBitis === null ? null : Math.max(0, this.turBitis - this.b.simdi()),
+      turSuresiMs: this.turSuresi,
       sonEl: this.sonEl,
       elNo: this.elNo,
     };

@@ -16,6 +16,8 @@ import { Simge } from "../../bilesenler/Simge.tsx";
 import { KapaliTas, Tas } from "../../bilesenler/Tas.tsx";
 import { useOyun } from "../../durum/OyunSaglayici.tsx";
 import { titret } from "../../platform/cihaz.ts";
+import { useGeriTusu } from "../../platform/geriTusu.ts";
+import { tamEkranAc } from "../../platform/tamEkran.ts";
 import { sesCek, sesKazandin, sesSira, sesTas } from "../../platform/ses.ts";
 import { RENK_ADLARI } from "../../yardimci/bicim.ts";
 import {
@@ -34,7 +36,7 @@ import { SohbetPaneli } from "./SohbetPaneli.tsx";
 import { SonucPenceresi } from "./SonucPenceresi.tsx";
 
 export function MasaEkrani() {
-  const { durum, gonder, sohbetOkundu } = useOyun();
+  const { durum, gonder, sohbetOkundu, bildir } = useOyun();
   const oda = durum.oda!;
   const masa = oda.masa!;
   const ben = masa.koltuk;
@@ -74,14 +76,13 @@ export function MasaEkrani() {
   const cekebilir = benimSiram && masa.asama === "cek";
   const atabilir = benimSiram && masa.asama === "at";
 
+  // Geri sayım telefonun kendi saatiyle: oda mesajı geldiğinde "şimdi + turKalanMs"
+  // olarak hesaplanan bitiş anı (durum.turYerelBitis) ve sunucunun verdiği toplam süre.
   const simdi = useSimdi(200, !bitti);
-  // Sunucu toplam süreyi göndermez; turBitis ilk geldiğindeki kalan süreyi "tam" kabul ederiz.
-  const turToplam = useRef<{ bitis: number | null; toplam: number }>({ bitis: null, toplam: 1 });
-  if (oda.turBitis !== turToplam.current.bitis) {
-    turToplam.current = { bitis: oda.turBitis, toplam: Math.max(1, (oda.turBitis ?? 0) - Date.now()) };
-  }
-  const kalanOran = oda.turBitis ? Math.max(0, Math.min(1, (oda.turBitis - simdi) / turToplam.current.toplam)) : null;
-  const kalanSn = oda.turBitis ? Math.max(0, Math.ceil((oda.turBitis - simdi) / 1000)) : null;
+  const bitis = durum.turYerelBitis;
+  const kalanMs = bitis === null ? null : Math.max(0, bitis - simdi);
+  const kalanOran = kalanMs === null ? null : Math.min(1, kalanMs / Math.max(1, oda.turSuresiMs));
+  const kalanSn = kalanMs === null ? null : Math.ceil(kalanMs / 1000);
 
   useEffect(() => {
     if (!benimSiram) return;
@@ -109,8 +110,21 @@ export function MasaEkrani() {
   };
   const bitir = () => secili !== null && hamle({ t: "hamle", eylem: { tur: "bitir", tas: secili } });
   const otomatikDiz = (tur: "seri" | "cift") => {
+    // diz() çok nadir durumlarda (arama sınırı aşılırsa) sonuç üretemeyebilir; o zaman
+    // istakadaki mevcut düzen bozulmadan kalır.
+    let yeni: Yuvalar | null = null;
+    try {
+      yeni = dizilisiYerlestir(diz(masa.el, masa.okey, tur, YUVA_SAYISI));
+    } catch {
+      yeni = null;
+    }
+    const tamMi = yeni !== null && masa.el.every((t) => yeni!.includes(t));
+    if (!tamMi) {
+      bildir("Taşlar şu an otomatik dizilemedi", "bilgi");
+      return;
+    }
     setSecili(null);
-    yuvalariDegistir(dizilisiYerlestir(diz(masa.el, masa.okey, tur, YUVA_SAYISI)));
+    yuvalariDegistir(yeni!);
   };
   const birakildi = useCallback(
     (tas: number) => {
@@ -128,6 +142,10 @@ export function MasaEkrani() {
   const [sonucKucuk, setSonucKucuk] = useState(false);
   useEffect(() => setSonucKucuk(false), [oda.elNo]);
   const ayril = () => gonder({ t: "odadanAyril" });
+  // Android geri tuşu: önce "Masadan kalkmak istiyor musun?" (pencereler kendileri kapanır).
+  useGeriTusu(() => setCikisOnay(true));
+  // Masadayken sistem çubukları gizlenir.
+  useEffect(() => tamEkranAc(), []);
 
   const yanTas = masa.atilanlar[goreli(3)].at(-1);
   const okeyMetni = `${RENK_ADLARI[masa.okey.renk]} ${masa.okey.sayi}`;
@@ -326,7 +344,7 @@ export function MasaEkrani() {
         />
       )}
       {cikisOnay && (
-        <Pencere baslik="Masadan kalkılsın mı?" kapat={() => setCikisOnay(false)}>
+        <Pencere baslik="Masadan kalkmak istiyor musun?" kapat={() => setCikisOnay(false)}>
           <p>
             {durum.antrenman
               ? "Antrenman eli bitecek."
