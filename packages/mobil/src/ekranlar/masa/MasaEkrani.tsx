@@ -6,41 +6,71 @@
 //   - sağ alttaki yığın benim attıklarım (atma alanı),
 //   - sağ üst sağdakinin, sol üst üsttekinin attıkları.
 //
+// Efektler: ardışık oda görünümlerinin farkından hamleler çıkarılır (masaOlaylari.ts) ve
+// her hamle bir uçuş animasyonuyla gösterilir (efektler/ucus.ts): desteden/yandan çekilen
+// taş çekenin yerine, atılan taş atanın yığınına uçar. Uçuş sürerken hedefteki asıl taş
+// gizli tutulur, taş inince görünür.
+//
 // Online oyun ve antrenman aynı ekranı kullanır; fark sadece mesajların nereye gittiğidir.
 import { type Deger, diz, type IstemciMesaji, RENKLER, VARSAYILAN_ETIKET } from "@okey/kurallar";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createRoot } from "react-dom/client";
+import { flushSync } from "react-dom";
 import { IsimEtiketi } from "../../bilesenler/IsimEtiketi.tsx";
 import { Cip } from "../../bilesenler/Ortak.tsx";
 import { Pencere } from "../../bilesenler/Pencere.tsx";
 import { Simge } from "../../bilesenler/Simge.tsx";
 import { KapaliTas, Tas } from "../../bilesenler/Tas.tsx";
 import { useOyun } from "../../durum/OyunSaglayici.tsx";
+import { efektlerAcik } from "../../efektler/ayar.ts";
+import { Parcaciklar } from "../../efektler/Parcaciklar.tsx";
+import { ucur } from "../../efektler/ucus.ts";
 import { titret } from "../../platform/cihaz.ts";
 import { useGeriTusu } from "../../platform/geriTusu.ts";
 import { tamEkranAc } from "../../platform/tamEkran.ts";
 import { sesCek, sesKazandin, sesSira, sesTas } from "../../platform/ses.ts";
 import { RENK_ADLARI } from "../../yardimci/bicim.ts";
-import {
-  bosIstaka,
-  dizilisiYerlestir,
-  eliYerlestir,
-  istakaEsitle,
-  YUVA_SAYISI,
-  type Yuvalar,
-} from "../../yardimci/istaka.ts";
+import { bosIstaka, dizilisiYerlestir, eliYerlestir, istakaEsitle, YUVA_SAYISI, type Yuvalar } from "../../yardimci/istaka.ts";
 import { useSimdi } from "../../yardimci/kancalar.ts";
 import { koltukAdi } from "../../yardimci/oda.ts";
+import type { SahteSonuc } from "./gelistirme.ts";
 import { Istaka } from "./Istaka.tsx";
+import { Madalyon } from "./Madalyon.tsx";
+import { type MasaOlayi, olaylariCikar } from "./masaOlaylari.ts";
 import { OyuncuYeri } from "./OyuncuYeri.tsx";
 import { SohbetPaneli } from "./SohbetPaneli.tsx";
 import { SonucPenceresi } from "./SonucPenceresi.tsx";
 
+/** Son kaç saniye "acil" sayılır (halka nabız atar, plaka titrer). */
+const ACIL_SN = 5;
+/** Toplam taş: 4 x 14 + başlayanın fazladan taşı. */
+const DAGITILAN = 57;
+
 export function MasaEkrani() {
   const { durum, gonder, sohbetOkundu, bildir } = useOyun();
-  const oda = durum.oda!;
+
+  // Geliştirmede sonuç penceresini beklemeden görmek için (üretim paketine girmez).
+  const [sahte, setSahte] = useState<SahteSonuc | null>(null);
+  const [sahteModul, setSahteModul] = useState<typeof import("./gelistirme.ts") | null>(null);
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      let iptal = false;
+      void import("./gelistirme.ts").then((m) => !iptal && setSahteModul(m));
+      const w = window as unknown as { __okeySonucDene?: (s?: SahteSonuc | null) => void };
+      w.__okeySonucDene = (s = {}) => setSahte(s);
+      return () => {
+        iptal = true;
+        delete w.__okeySonucDene;
+      };
+    }
+  }, []);
+  const sahteMi = import.meta.env.DEV && sahte !== null && sahteModul !== null && durum.oda?.masa != null;
+  const oda = sahteMi ? sahteModul!.sahteSonucOdasi(durum.oda!, sahte!) : durum.oda!;
+
   const masa = oda.masa!;
   const ben = masa.koltuk;
   const goreli = (r: number) => (ben + r) % 4; // 1: sağ, 2: üst, 3: sol
+  const kok = useRef<HTMLDivElement>(null);
 
   // ---------- İstaka (yuva düzeni sadece bu telefonda tutulur) ----------
   const [istaka, setIstaka] = useState<{ elNo: number; yuvalar: Yuvalar }>({ elNo: -1, yuvalar: bosIstaka() });
@@ -56,20 +86,6 @@ export function MasaEkrani() {
   const [secili, setSecili] = useState<number | null>(null);
   if (secili !== null && !masa.el.includes(secili)) setSecili(null);
 
-  // Yeni gelen (çekilen) taşları kısa süre işaretle: düşme animasyonu için.
-  const [yeniler, setYeniler] = useState<Set<number>>(new Set());
-  const oncekiEl = useRef<number[]>(masa.el);
-  useEffect(() => {
-    const eski = new Set(oncekiEl.current);
-    const gelen = masa.el.filter((t) => !eski.has(t));
-    oncekiEl.current = masa.el;
-    if (gelen.length === 0 || gelen.length > 2) return; // yeni el dağıtımında animasyon yok
-    setYeniler(new Set(gelen));
-    if (durum.ayarlar.ses) sesCek();
-    const z = setTimeout(() => setYeniler(new Set()), 700);
-    return () => clearTimeout(z);
-  }, [masa.el, durum.ayarlar.ses]);
-
   // ---------- Sıra, süre, ses ve titreşim ----------
   const bitti = masa.sonuc !== null;
   const benimSiram = !bitti && masa.sira === ben;
@@ -83,12 +99,17 @@ export function MasaEkrani() {
   const kalanMs = bitis === null ? null : Math.max(0, bitis - simdi);
   const kalanOran = kalanMs === null ? null : Math.min(1, kalanMs / Math.max(1, oda.turSuresiMs));
   const kalanSn = kalanMs === null ? null : Math.ceil(kalanMs / 1000);
+  const acil = kalanSn !== null && kalanSn <= ACIL_SN && !bitti;
 
   useEffect(() => {
     if (!benimSiram) return;
     if (durum.ayarlar.titresim) void titret();
     if (durum.ayarlar.ses) sesSira();
   }, [benimSiram]);
+  // Benim sıramda son saniyelere girince bir kez daha titret.
+  useEffect(() => {
+    if (benimSiram && acil && durum.ayarlar.titresim) void titret();
+  }, [benimSiram && acil]);
 
   const atilanToplam = masa.atilanlar.reduce((n, a) => n + a.length, 0);
   useEffect(() => {
@@ -100,11 +121,42 @@ export function MasaEkrani() {
     if (kazandim && durum.ayarlar.ses) sesKazandin();
   }, [kazandim]);
 
+  // ---------- El başı: gösterge çevrilir, taşlar istakaya sırayla düşer ----------
+  const tasToplam = masa.tasSayilari.reduce((n, t) => n + t, 0);
+  const [elBasi, setElBasi] = useState(() => atilanToplam === 0 && tasToplam === DAGITILAN);
+  const ilkElNo = useRef(oda.elNo);
+  useEffect(() => {
+    if (oda.elNo === ilkElNo.current) {
+      if (!elBasi) return;
+    } else {
+      ilkElNo.current = oda.elNo;
+      setElBasi(true);
+    }
+    const z = setTimeout(() => setElBasi(false), 2600);
+    return () => clearTimeout(z);
+  }, [oda.elNo]);
+
+  // ---------- Uçuşlar: önceki görünümle farktan hamleleri çıkar ----------
+  const sonAtis = useRef<{ tas: number; kutu: DOMRect } | null>(null);
+  const oncekiMasa = useRef({ elNo: oda.elNo, masa });
+  useLayoutEffect(() => {
+    const o = oncekiMasa.current;
+    oncekiMasa.current = { elNo: oda.elNo, masa };
+    if (o.masa === masa || o.elNo !== oda.elNo || !kok.current || sahteMi) return;
+    const olaylar = olaylariCikar(o.masa, masa);
+    olaylar.forEach((olay, i) => ucusHazirla(kok.current!, olay, ben, masa.okey, sonAtis.current, i * 140));
+    if (olaylar.some((ol) => ol.tur === "cek" && ol.koltuk === ben) && durum.ayarlar.ses) sesCek();
+    sonAtis.current = null;
+  }, [masa]);
+
   // ---------- Hamleler ----------
   const hamle = (m: Extract<IstemciMesaji, { t: "hamle" }>) => gonder(m);
   const cek = (kaynak: "orta" | "yan") => cekebilir && hamle({ t: "hamle", eylem: { tur: "cek", kaynak } });
-  const at = (tas: number) => {
+  const at = (tas: number, kutu?: DOMRect | null) => {
     if (!atabilir) return;
+    const el = kok.current?.querySelector<HTMLElement>(`.istaka [data-tas="${tas}"]`);
+    const k = kutu ?? el?.getBoundingClientRect();
+    sonAtis.current = k ? { tas, kutu: k } : null;
     hamle({ t: "hamle", eylem: { tur: "at", tas } });
     setSecili(null);
   };
@@ -126,15 +178,34 @@ export function MasaEkrani() {
     setSecili(null);
     yuvalariDegistir(yeni!);
   };
-  const birakildi = useCallback(
-    (tas: number) => {
-      if (atabilir) {
-        hamle({ t: "hamle", eylem: { tur: "at", tas } });
-        setSecili(null);
-      }
-    },
-    [atabilir],
-  );
+  const atRef = useRef(at);
+  atRef.current = at;
+  const birakildi = useCallback((tas: number, kutu: DOMRect | null) => atRef.current(tas, kutu), []);
+  const [surukleme, setSurukleme] = useState<"yok" | "var" | "atUstunde">("yok");
+
+  // ---------- Konuşma balonları ----------
+  const [balonlar, setBalonlar] = useState<Record<number, string>>({});
+  const sonSohbet = durum.sohbet.at(-1);
+  const ilkSohbet = useRef(sonSohbet);
+  const balonSaatleri = useRef<ReturnType<typeof setTimeout>[]>([]);
+  useEffect(() => {
+    if (!sonSohbet || sonSohbet === ilkSohbet.current || sonSohbet.koltuk < 0) return;
+    const { koltuk, metin } = sonSohbet;
+    setBalonlar((b) => ({ ...b, [koltuk]: metin }));
+    balonSaatleri.current.push(
+      setTimeout(
+        () =>
+          setBalonlar((b) => {
+            if (b[koltuk] !== metin) return b;
+            const c = { ...b };
+            delete c[koltuk];
+            return c;
+          }),
+        3800,
+      ),
+    );
+  }, [sonSohbet]);
+  useEffect(() => () => balonSaatleri.current.forEach(clearTimeout), []);
 
   // ---------- Pencereler ----------
   const [sohbetAcik, setSohbetAcik] = useState(false);
@@ -147,7 +218,6 @@ export function MasaEkrani() {
   // Masadayken sistem çubukları gizlenir.
   useEffect(() => tamEkranAc(), []);
 
-  const yanTas = masa.atilanlar[goreli(3)].at(-1);
   const okeyMetni = `${RENK_ADLARI[masa.okey.renk]} ${masa.okey.sayi}`;
   const benimKoltugum = oda.koltuklar[ben];
   const benimKartim =
@@ -155,18 +225,40 @@ export function MasaEkrani() {
 
   let ipucu = "";
   if (bitti) ipucu = "El bitti";
-  else if (cekebilir) ipucu = "Sıra sende: ortadan ya da yandan taş çek";
+  else if (cekebilir) ipucu = "Ortadan ya da yandan taş çek";
   else if (atabilir) ipucu = masa.el.length === 15 ? "Bir taş at — ya da seçip bitir" : "Bir taş at";
   else ipucu = `${koltukAdi(oda, masa.sira)} oynuyor…`;
 
+  const rakip = (r: 1 | 2 | 3, konum: "sag" | "ust" | "sol") => (
+    <OyuncuYeri
+      konum={konum}
+      no={goreli(r)}
+      koltuk={oda.koltuklar[goreli(r)]}
+      tasSayisi={masa.tasSayilari[goreli(r)]}
+      siraBunda={!bitti && masa.sira === goreli(r)}
+      kalanOran={kalanOran}
+      acil={acil}
+      balon={balonlar[goreli(r)]}
+    />
+  );
+
+  const yanTaslar = masa.atilanlar[goreli(3)];
+  const benimAttiklarim = masa.atilanlar[ben];
+
   return (
-    <div className={`ekran masa masa--${RENKLER[masa.okey.renk]}`}>
-      <div className="masa__cuha" />
+    <div
+      ref={kok}
+      className={`ekran masa masa--${RENKLER[masa.okey.renk]} ${surukleme !== "yok" ? "masa--surukleniyor" : ""} ${elBasi ? "masa--el-basi" : ""}`}
+    >
+      <div className="masa__cuha">
+        <div className="masa__isik" />
+      </div>
+      <Parcaciklar yogunluk="az" />
 
       {/* ---------- Üst şerit ---------- */}
       <div className="masa__ust">
         <div className="masa__ust-sol">
-          <button className="simge-dugme simge-dugme--koyu" onClick={() => (bitti ? ayril() : setCikisOnay(true))} aria-label="Masadan kalk">
+          <button className="masa-simge" onClick={() => (bitti ? ayril() : setCikisOnay(true))} aria-label="Masadan kalk">
             <Simge ad="cikis" />
           </button>
           <div className="masa__bilgi">
@@ -176,17 +268,11 @@ export function MasaEkrani() {
             </small>
           </div>
         </div>
-        <OyuncuYeri
-          konum="ust"
-          koltuk={oda.koltuklar[goreli(2)]}
-          tasSayisi={masa.tasSayilari[goreli(2)]}
-          siraBunda={!bitti && masa.sira === goreli(2)}
-          kalanOran={kalanOran}
-        />
+        {rakip(2, "ust")}
         <div className="masa__ust-sag">
           {durum.profil && !durum.antrenman && <Cip miktar={durum.profil.cip} kisa />}
           <button
-            className="simge-dugme simge-dugme--koyu"
+            className="masa-simge"
             onClick={() => {
               setSohbetAcik(true);
               sohbetOkundu();
@@ -201,37 +287,42 @@ export function MasaEkrani() {
 
       {/* ---------- Orta: rakipler, yığınlar, deste ---------- */}
       <div className="masa__orta">
-        <OyuncuYeri
-          konum="sol"
-          koltuk={oda.koltuklar[goreli(3)]}
-          tasSayisi={masa.tasSayilari[goreli(3)]}
-          siraBunda={!bitti && masa.sira === goreli(3)}
-          kalanOran={kalanOran}
-        />
+        {rakip(3, "sol")}
 
         <div className="masa__merkez">
-          <Yigin taslar={masa.atilanlar[goreli(2)]} okey={masa.okey} konum="sol-ust" />
+          <Yigin taslar={masa.atilanlar[goreli(2)]} okey={masa.okey} koltuk={goreli(2)} sinif="yigin--sol-ust" />
           <div className="deste-alani">
-            <button
-              className={`deste ${cekebilir ? "deste--cekilebilir" : ""}`}
-              onClick={() => cek("orta")}
-              disabled={!cekebilir}
-              aria-label="Ortadan çek"
-            >
-              <KapaliTas />
-              <KapaliTas />
-              <KapaliTas />
-              <span className="deste__sayi">{masa.ortaSayisi}</span>
-            </button>
-            <div className="gosterge">
-              <Tas id={masa.gosterge} boyut="orta" />
-              <span>Gösterge</span>
+            <div className="deste-alani__ust">
+              <button
+                className={`deste ${cekebilir ? "deste--cekilebilir" : ""}`}
+                onClick={() => cek("orta")}
+                disabled={!cekebilir}
+                aria-label="Ortadan çek"
+                data-deste
+              >
+                <KapaliTas />
+                <KapaliTas />
+                <KapaliTas />
+                <span className="deste__sayi">{masa.ortaSayisi}</span>
+              </button>
+              <div className="gosterge">
+                <div key={oda.elNo} className={`gosterge__kart ${elBasi ? "gosterge__kart--cevir" : ""}`}>
+                  <div className="gosterge__yuz">
+                    <Tas id={masa.gosterge} boyut="orta" />
+                  </div>
+                  <div className="gosterge__arka">
+                    <KapaliTas />
+                  </div>
+                </div>
+                <span>Gösterge</span>
+              </div>
             </div>
             <div className="okey-bilgi">
-              Okey: <b className={`renk-${RENKLER[masa.okey.renk]}`}>{okeyMetni}</b>
+              <span>Okey</span>
+              <b className={`renk-${RENKLER[masa.okey.renk]}`}>{okeyMetni}</b>
             </div>
             {masa.gostergeGosterebilir && (
-              <button className="dugme dugme--yesil dugme--kucuk gosterge-dugmesi" onClick={() => hamle({ t: "hamle", eylem: { tur: "gostergeGoster" } })}>
+              <button className="metal-dugme metal-dugme--zumrut metal-dugme--kucuk gosterge-dugmesi" onClick={() => hamle({ t: "hamle", eylem: { tur: "gostergeGoster" } })}>
                 Gösterge göster
               </button>
             )}
@@ -239,51 +330,53 @@ export function MasaEkrani() {
               <span className="gosterge-not">{koltukAdi(oda, masa.gostergeGosteren)} göstergeyi gösterdi</span>
             )}
           </div>
-          <Yigin taslar={masa.atilanlar[goreli(1)]} okey={masa.okey} konum="sag-ust" />
+          <Yigin taslar={masa.atilanlar[goreli(1)]} okey={masa.okey} koltuk={goreli(1)} sinif="yigin--sag-ust" />
         </div>
 
-        <OyuncuYeri
-          konum="sag"
-          koltuk={oda.koltuklar[goreli(1)]}
-          tasSayisi={masa.tasSayilari[goreli(1)]}
-          siraBunda={!bitti && masa.sira === goreli(1)}
-          kalanOran={kalanOran}
-        />
+        {rakip(1, "sag")}
       </div>
 
-      <div className={`masa__ipucu ${benimSiram ? "masa__ipucu--ben" : ""}`}>
-        {ipucu}
-        {benimSiram && kalanSn !== null && <b> · {kalanSn} sn</b>}
+      <div className="masa__ipucu">
+        {benimSiram ? (
+          <div key={masa.asama} className={`sira-seridi ${acil ? "sira-seridi--acil" : ""}`}>
+            <b>Sıra sende</b>
+            <span>{ipucu}</span>
+            {kalanSn !== null && <i>{kalanSn}</i>}
+          </div>
+        ) : (
+          <span className="masa__ipucu-metin">{ipucu}</span>
+        )}
       </div>
 
       {/* ---------- Alt: yan taş, istaka, atma alanı ---------- */}
       <div className="masa__alt">
         <div className="masa__alt-sol">
           <button
-            className={`yan-tas ${cekebilir && yanTas !== undefined ? "yan-tas--cekilebilir" : ""}`}
+            className={`yan-tas ${cekebilir && yanTaslar.length > 0 ? "yan-tas--cekilebilir" : ""}`}
             onClick={() => cek("yan")}
-            disabled={!cekebilir || yanTas === undefined}
+            disabled={!cekebilir || yanTaslar.length === 0}
             aria-label="Yandan çek"
           >
-            {yanTas !== undefined ? <Tas key={yanTas} id={yanTas} okey={masa.okey} boyut="orta" /> : <span className="bos-yer" />}
+            <Yigin taslar={yanTaslar} okey={masa.okey} koltuk={goreli(3)} />
             <small>Yan</small>
           </button>
           <div className="dizme-dugmeleri">
-            <button className="dugme dugme--ikincil dugme--mini" onClick={() => otomatikDiz("seri")}>
+            <button className="masa-dugme" onClick={() => otomatikDiz("seri")}>
               Seri Diz
             </button>
-            <button className="dugme dugme--ikincil dugme--mini" onClick={() => otomatikDiz("cift")}>
+            <button className="masa-dugme" onClick={() => otomatikDiz("cift")}>
               Çift Diz
             </button>
           </div>
         </div>
 
         <div className="masa__istaka">
-          <div className="benim-etiketim">
+          <div className={`benim-etiketim ${benimSiram ? "benim-etiketim--sirada" : ""} ${benimSiram && acil ? "benim-etiketim--acil" : ""}`}>
+            <Madalyon ad={benimKartim.ad} oran={benimSiram ? (kalanOran ?? 1) : null} acil={benimSiram && acil} boyut="kucuk" />
             <IsimEtiketi ad={benimKartim.ad} seviye={benimKartim.seviye} etiket={benimKartim.etiket} boyut="kucuk" />
-            {benimSiram && kalanOran !== null && (
-              <div className="geri-sayim geri-sayim--ben">
-                <div className="geri-sayim__dolu" style={{ transform: `scaleX(${kalanOran})` }} />
+            {balonlar[ben] && (
+              <div key={balonlar[ben]} className="konusma-balonu konusma-balonu--ben">
+                {balonlar[ben]}
               </div>
             )}
           </div>
@@ -291,32 +384,28 @@ export function MasaEkrani() {
             yuvalar={yuvalar}
             okey={masa.okey}
             secili={secili}
-            yeniler={yeniler}
             sirada={benimSiram}
+            dagitim={elBasi}
             degistir={yuvalariDegistir}
             sec={setSecili}
             birakildi={birakildi}
+            suruklemeDurumu={setSurukleme}
           />
         </div>
 
         <div className="masa__alt-sag">
-          <div className={`atma-alani ${atabilir ? "atma-alani--aktif" : ""}`} data-birak="at">
-            {masa.atilanlar[ben].length > 0 ? (
-              <Tas key={masa.atilanlar[ben].at(-1)} id={masa.atilanlar[ben].at(-1)!} okey={masa.okey} boyut="orta" />
-            ) : (
-              <span className="bos-yer" />
-            )}
+          <div
+            className={`atma-alani ${atabilir ? "atma-alani--aktif" : ""} ${atabilir && surukleme === "atUstunde" ? "atma-alani--ustunde" : ""}`}
+            data-birak="at"
+          >
+            <Yigin taslar={benimAttiklarim} okey={masa.okey} koltuk={ben} />
             <small>{atabilir ? "Buraya at" : "Attığın"}</small>
           </div>
           <div className="dizme-dugmeleri">
-            <button className="dugme dugme--birincil dugme--mini" disabled={!atabilir || secili === null} onClick={() => secili !== null && at(secili)}>
+            <button className="metal-dugme metal-dugme--altin" disabled={!atabilir || secili === null} onClick={() => secili !== null && at(secili)}>
               At
             </button>
-            <button
-              className="dugme dugme--yesil dugme--mini"
-              disabled={!atabilir || secili === null || masa.el.length !== 15}
-              onClick={bitir}
-            >
+            <button className="metal-dugme metal-dugme--zumrut" disabled={!atabilir || secili === null || masa.el.length !== 15} onClick={bitir}>
               Bitir
             </button>
           </div>
@@ -325,10 +414,17 @@ export function MasaEkrani() {
 
       {/* ---------- Pencereler ---------- */}
       {bitti && oda.sonEl && !sonucKucuk && (
-        <SonucPenceresi oda={oda} okey={masa.okey} antrenman={durum.antrenman} kucult={() => setSonucKucuk(true)} ayril={ayril} />
+        <SonucPenceresi
+          key={oda.elNo}
+          oda={oda}
+          okey={masa.okey}
+          antrenman={durum.antrenman && !sahteMi}
+          kucult={() => setSonucKucuk(true)}
+          ayril={ayril}
+        />
       )}
       {bitti && sonucKucuk && (
-        <button className="dugme dugme--birincil sonuc-geri" onClick={() => setSonucKucuk(false)}>
+        <button className="metal-dugme metal-dugme--altin sonuc-geri" onClick={() => setSonucKucuk(false)}>
           Sonucu göster
         </button>
       )}
@@ -364,13 +460,151 @@ export function MasaEkrani() {
   );
 }
 
-/** Bir oyuncunun attığı taşlar: en üstteki görünür, altında birkaç taşın kenarı. */
-function Yigin({ taslar, okey, konum }: { taslar: number[]; okey: Deger; konum: string }) {
-  const ust = taslar.at(-1);
+// ---------------------------------------------------------------------------
+// Yığın: bir oyuncunun attığı taşlar. Son üç taş hafif rastgele açılarla üst üste
+// durur (açı taşın kimliğinden türetilir; her render'da aynı kalır).
+// ---------------------------------------------------------------------------
+
+function yiginDuzeni(tas: number) {
+  const h = Math.imul(tas + 17, 2654435761) >>> 0;
+  const r = (n: number) => ((h >>> n) & 0xff) / 255 - 0.5;
+  return {
+    "--a": `${(r(0) * 16).toFixed(1)}deg`,
+    "--x": `${(r(8) * 6).toFixed(1)}px`,
+    "--y": `${(r(16) * 4).toFixed(1)}px`,
+  } as CSSProperties;
+}
+
+function Yigin({ taslar, okey, koltuk, sinif = "" }: { taslar: number[]; okey: Deger; koltuk: number; sinif?: string }) {
+  const son = taslar.slice(-3);
   return (
-    <div className={`yigin yigin--${konum}`}>
-      {taslar.length > 1 && <div className="yigin__alt" />}
-      {ust !== undefined ? <Tas key={ust} id={ust} okey={okey} boyut="orta" /> : <span className="bos-yer" />}
+    <div className={`yigin ${sinif}`} data-yigin={koltuk}>
+      <div className="yigin__yuva">
+        {son.length === 0 && <span className="bos-yer" />}
+        {son.map((t) => (
+          <div key={t} className="yigin__tas" style={yiginDuzeni(t)}>
+            <Tas id={t} okey={okey} boyut="orta" />
+          </div>
+        ))}
+      </div>
+      {taslar.length > 1 && <span className="yigin__sayi">{taslar.length}</span>}
     </div>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Uçuş hazırlığı. useLayoutEffect içinde (boyamadan önce) çağrılır: hedefteki asıl
+// taş gizlenir, kutular ölçülür; uçuş bir mikro görevde başlar (taş kopyası React
+// ile çizilebilsin diye) ve iniş bitince hedef taş görünür.
+// ---------------------------------------------------------------------------
+
+/** Bir kutunun merkezinde, verilen boyutta yeni bir kutu. */
+function merkezKutu(k: DOMRect, en: number, boy: number) {
+  return new DOMRect(k.left + k.width / 2 - en / 2, k.top + k.height / 2 - boy / 2, en, boy);
+}
+
+/** Bir hamlenin uçuşunu hazırlar (bkz. yukarıdaki açıklama). */
+function ucusHazirla(
+  kok: HTMLElement,
+  olay: MasaOlayi,
+  ben: number,
+  okey: Deger,
+  sonAtis: { tas: number; kutu: DOMRect } | null,
+  gecikme: number,
+) {
+  const q = <T extends HTMLElement = HTMLElement>(s: string) => kok.querySelector<T>(s);
+  const madalyon = (k: number) => q(`[data-oyuncu="${k}"] [data-madalyon]`);
+  const yiginYuva = (k: number) => q(`[data-yigin="${k}"] .yigin__yuva`);
+  const desteUst = q(".deste .tas:last-of-type");
+  const ornekTas = q(".yigin .tas, .gosterge__yuz .tas");
+  const ortaEn = ornekTas?.offsetWidth || 30;
+  const ortaBoy = ornekTas?.offsetHeight || 41;
+  const acik = efektlerAcik();
+  const donus = () => (Math.random() < 0.5 ? -1 : 1) * (8 + Math.random() * 14);
+
+  let baslangic: DOMRect | null = null;
+  let hedef: DOMRect | null = null;
+  let gizlenen: HTMLElement | null = null;
+  let icerik: (() => { el: HTMLElement; birak?: () => void }) | null = null;
+  let secenek: Parameters<typeof ucur>[3] = {};
+
+  if (olay.tur === "at") {
+    const ust = q(`[data-yigin="${olay.koltuk}"] .yigin__tas:last-child`);
+    const yuva = yiginYuva(olay.koltuk);
+    if (!ust || !yuva) return;
+    gizlenen = ust;
+    hedef = merkezKutu(yuva.getBoundingClientRect(), ortaEn, ortaBoy);
+    if (olay.koltuk === ben) {
+      baslangic = sonAtis?.tas === olay.tas ? sonAtis.kutu : (q(".istaka")?.getBoundingClientRect() ?? null);
+      if (baslangic && sonAtis?.tas !== olay.tas) baslangic = merkezKutu(baslangic, ortaEn, ortaBoy);
+    } else {
+      const m = madalyon(olay.koltuk);
+      if (m) baslangic = merkezKutu(m.getBoundingClientRect(), ortaEn * 0.7, ortaBoy * 0.7);
+    }
+    const kaynakTas = ust.querySelector<HTMLElement>(".tas");
+    icerik = () => ({ el: kaynakTas!.cloneNode(true) as HTMLElement });
+    secenek = { donus: donus() };
+  } else {
+    const benim = olay.koltuk === ben;
+    if (olay.kaynak === "yan") {
+      const y = yiginYuva(olay.yigin);
+      if (y) baslangic = merkezKutu(y.getBoundingClientRect(), ortaEn, ortaBoy);
+    } else if (desteUst) {
+      baslangic = desteUst.getBoundingClientRect();
+    }
+    if (benim) {
+      const t = olay.tas === null ? null : q(`.istaka [data-tas="${olay.tas}"]`);
+      if (!t) return;
+      gizlenen = t;
+      hedef = t.getBoundingClientRect();
+      icerik = () => ({ el: t.cloneNode(true) as HTMLElement });
+      secenek = { donus: donus() * 0.6, yay: 60 };
+    } else {
+      const m = madalyon(olay.koltuk);
+      if (!m) return;
+      hedef = merkezKutu(m.getBoundingClientRect(), ortaEn * 0.6, ortaBoy * 0.6);
+      secenek = { inis: false, sonOpaklik: 0.15, donus: donus() };
+      if (olay.kaynak === "yan") {
+        const tas = olay.tas;
+        icerik = () => tasCiz(tas, okey);
+      } else if (desteUst) {
+        icerik = () => ({ el: desteUst.cloneNode(true) as HTMLElement });
+      }
+    }
+  }
+  if (!baslangic || !hedef || !icerik) return;
+
+  if (gizlenen) gizlenen.style.visibility = "hidden";
+  const goster = () => {
+    if (gizlenen) gizlenen.style.visibility = "";
+  };
+  const b = baslangic;
+  const h = hedef;
+  const ic = icerik;
+  queueMicrotask(() => {
+    let birak: (() => void) | undefined;
+    ucur(
+      b,
+      h,
+      () => {
+        const r = ic();
+        birak = r.birak;
+        return r.el;
+      },
+      { ...secenek, gecikme: acik ? gecikme : 0 },
+    )
+      .catch(() => {})
+      .finally(() => {
+        goster();
+        birak?.();
+      });
+  });
+}
+
+/** Ekranda olmayan bir taşın uçmak için çizilmiş kopyası (ör. rakibin yandan aldığı taş). */
+function tasCiz(id: number, okey: Deger): { el: HTMLElement; birak: () => void } {
+  const kap = document.createElement("div");
+  const kok = createRoot(kap);
+  flushSync(() => kok.render(<Tas id={id} okey={okey} boyut="orta" />));
+  return { el: kap, birak: () => setTimeout(() => kok.unmount(), 0) };
 }
