@@ -581,7 +581,7 @@
 
 .deste .tas:nth-child(1) {
   transform: translate(-4px, 4px);
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.45);
+  box-shadow: var(--tas-kalinlik), 0 calc(var(--kalin) + 4px) 10px rgba(0, 0, 0, 0.45);
 }
 
 .deste .tas:nth-child(2) {
@@ -659,7 +659,7 @@
 }
 
 .gosterge__yuz .tas {
-  box-shadow: var(--golge-tas), 0 0 14px rgba(255, 220, 140, 0.35);
+  box-shadow: var(--tas-kalinlik), var(--tas-dusen), 0 0 14px rgba(255, 220, 140, 0.35);
 }
 
 .gosterge__kart--cevir {
@@ -997,8 +997,8 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 7px 9px 0;
+  gap: 2px;
+  padding: 5px 9px 0;
   border-radius: 12px 12px 8px 8px;
   background: linear-gradient(180deg, rgba(255, 220, 170, 0.22), transparent 6px), var(--ceviz-damar), var(--istaka-ceviz);
   box-shadow: inset 0 1px 0 rgba(255, 230, 190, 0.45), inset 0 -2px 0 rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(40, 18, 4, 0.8),
@@ -1022,10 +1022,11 @@
   animation: parilti-nefes 2.2s ease-in-out infinite;
 }
 
-/* Her sıra: taşlar rafın ön dudağına oturur */
+/* Her sıra: taşlar rafın ön dudağına oturur. Taşın kalın yan yüzü (box-shadow, yer kaplamaz)
+   için altta --kalin kadar yer bırakılır; dudak yalnız en alttaki koyu çizgiyi örter. */
 .istaka__raf {
   position: relative;
-  padding-bottom: 9px;
+  padding-bottom: calc(var(--tas-en) * var(--tas-derinlik) + 9px);
 }
 
 /* Rafın arkasındaki oluk gölgesi */
@@ -1047,7 +1048,7 @@
   left: -9px;
   right: -9px;
   bottom: 0;
-  height: 14px;
+  height: 10px;
   z-index: 2;
   background: linear-gradient(180deg, rgba(255, 228, 185, 0.6) 0, rgba(255, 228, 185, 0.15) 2px, transparent 4px),
     var(--ceviz-damar), var(--istaka-raf-on);
@@ -1271,8 +1272,8 @@
   flex-wrap: wrap;
   justify-content: center;
   align-items: flex-end;
-  gap: 8px 12px;
-  padding: 10px 12px;
+  gap: 12px 12px;
+  padding: 10px 12px 14px;
   border-radius: var(--kose);
   background: var(--cuha-lamba), var(--doku-gurultu), var(--masa-cuha-gradyan);
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 0 4px rgba(110, 65, 34, 0.9);
@@ -1302,7 +1303,7 @@
 .per--atilan {
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: calc(var(--tas-kucuk-en) * var(--tas-derinlik) + 3px); /* taşın yan yüzü yazının üstüne binmesin */
   margin-left: 10px;
   font-size: 9px;
   font-weight: 900;

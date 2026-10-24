@@ -48,9 +48,10 @@
   --zemin-gece: radial-gradient(ellipse 120% 90% at 50% 0%, #3d1020 0%, #240913 38%, #12040a 70%, #070104 100%);
   --isik-lamba: radial-gradient(ellipse 62% 58% at 50% -12%, rgba(255, 205, 130, 0.26) 0%, rgba(255, 180, 100, 0.1) 45%, transparent 72%);
 
-  --tas-kirmizi: #c4122f;
-  --tas-sari: #c76f00;
-  --tas-mavi: #1450c8;
-  --tas-siyah: #17171c;
+  /* Taşlar: kalın bakalit rakam renkleri */
+  --tas-kirmizi: #b5122c;
+  --tas-sari: #cf7400;
+  --tas-mavi: #1446b8;
+  --tas-siyah: #1a1a20;
   --tas-sahte: #7a1a2e;
 }

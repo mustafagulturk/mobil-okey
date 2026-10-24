@@ -798,21 +798,24 @@ a {
   animation: none;
 }
 
-/* ---------- Taş (fildişi melamin, 3D) ---------- */
+/* ---------- Taş (kalın bakalit, 3D) ---------- */
 /* Katmanlar:
-   - zemin: üstten cila bandı (--tas-yansima) + fildişi yüz (--tas-zemin)
-   - iç gölgeler: ince dış hat, üst kenar ışığı, alt kenar eğimi
-   - kutu gölgeleri: sağ-alta doğru 4 katmanlı yan kalınlık (bakalit/melamin gövde) + masaya düşen gölge
-   - ::before yüzün kenarındaki hafif iç eğim (bevel), ::after çapraz cila yansıması
-   Kalınlık taşın eniyle ölçeklenir (--k), küçük taşlarda da orantılı kalır. */
+   - zemin: sol üstten vuran ışık (--tas-yansima) + fildişi yüz (--tas-zemin)
+   - kutu gölgeleri: yüzün altında dikine görünür kalın yan yüz (--tas-kalinlik, açıktan koyuya
+     dolu katmanlar + en altta koyu çizgi) ve masaya düşen gölge (--tas-dusen). Gölge yer kaplamaz:
+     taşın altında --kalin kadar boşluk bırakmak, taşı dizen yerin (istaka rafı, yığın) işidir.
+   - ::before eğimli kenar (bevel): üstte parlak, altta koyu ince bant
+   - ::after üstteki lake cila bandı
+   Kalınlık taşın eniyle ölçeklenir (--kalin); küçük boylarda ve efektler kapalıyken katman sayısı azalır. */
 .tas {
   --en: var(--tas-en);
-  --k: calc(var(--en) * 0.028);
-  --kose-tas: calc(var(--en) * 0.11);
-  --tas-yuz: inset 0 0 0 0.5px rgba(130, 105, 60, 0.45), inset 0 1px 0 var(--tas-ust-isik), inset 0 -1.5px 2px rgba(130, 105, 60, 0.22);
-  --tas-kalinlik: calc(var(--k) * 0.5) var(--k) 0 var(--tas-kenar), var(--k) calc(var(--k) * 2) 0 var(--tas-yan),
-    calc(var(--k) * 1.4) calc(var(--k) * 3) 0 var(--tas-alt-golge), calc(var(--k) * 1.6) calc(var(--k) * 3.6) 0 var(--tas-alt-koyu);
-  --tas-dusen: calc(var(--k) * 1.6) calc(var(--k) * 3.6 + 3px) 7px rgba(0, 0, 0, 0.42);
+  --kalin: calc(var(--en) * var(--tas-derinlik));
+  --kose-tas: calc(var(--en) * 0.12);
+  --tas-kalinlik: 0 calc(var(--kalin) * 0.17) 0 var(--tas-kenar), 0 calc(var(--kalin) * 0.34) 0 color-mix(in srgb, var(--tas-kenar), var(--tas-yan)),
+    0 calc(var(--kalin) * 0.5) 0 var(--tas-yan), 0 calc(var(--kalin) * 0.67) 0 color-mix(in srgb, var(--tas-yan) 60%, var(--tas-alt-golge)),
+    0 calc(var(--kalin) * 0.84) 0 color-mix(in srgb, var(--tas-yan) 25%, var(--tas-alt-golge)), 0 var(--kalin) 0 var(--tas-alt-golge),
+    0 calc(var(--kalin) + 1px) 0 var(--tas-alt-koyu);
+  --tas-dusen: 0 calc(var(--kalin) + 2px) calc(var(--kalin) * 0.5) rgba(10, 0, 4, 0.6), 0 calc(var(--kalin) * 2.2) calc(var(--kalin) * 2.4) rgba(20, 0, 6, 0.42);
   position: relative;
   flex-shrink: 0;
   width: var(--en);
@@ -820,12 +823,12 @@ a {
   border-radius: var(--kose-tas);
   background: var(--tas-yansima), var(--tas-zemin);
   border: 0;
-  box-shadow: var(--tas-yuz), var(--tas-kalinlik), var(--tas-dusen);
+  box-shadow: var(--tas-kalinlik), var(--tas-dusen);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: calc(var(--en) * 0.07);
+  gap: calc(var(--en) * 0.06);
   font-family: var(--yazi-tipi-tas);
   font-size: calc(var(--en) * 0.68);
   font-weight: 700;
@@ -834,24 +837,29 @@ a {
   transition: transform var(--sure) var(--egri-yay), box-shadow var(--sure) var(--egri), opacity var(--sure-hizli);
 }
 
-/* Yüz kenarında çok hafif iç eğim. */
-.tas::before {
-  content: "";
-  position: absolute;
-  inset: 5.5%;
-  border-radius: calc(var(--kose-tas) * 0.7);
-  box-shadow: inset 0 1px 1.5px rgba(110, 85, 40, 0.16), inset 0 -1px 0 rgba(255, 255, 255, 0.9), 0 0.5px 0 rgba(255, 255, 255, 0.6);
-  pointer-events: none;
-}
-
-/* Çapraz cila yansıması. */
+.tas::before,
 .tas::after {
   content: "";
   position: absolute;
-  inset: 0;
   border-radius: inherit;
-  background: linear-gradient(118deg, transparent 30%, rgba(255, 255, 255, 0.35) 42%, transparent 52%);
   pointer-events: none;
+}
+
+/* Eğimli kenar (bevel): üstte parlak, altta koyu ince bant; yüze doğru içbükey. */
+.tas::before {
+  inset: 0;
+  box-shadow: inset 0 calc(var(--en) * 0.028) 0 var(--tas-ust-isik), inset calc(var(--en) * 0.03) 0 calc(var(--en) * 0.03) rgba(255, 255, 255, 0.75),
+    inset calc(var(--en) * -0.035) 0 calc(var(--en) * 0.045) rgba(150, 110, 50, 0.28),
+    inset 0 calc(var(--en) * -0.06) calc(var(--en) * 0.06) rgba(140, 98, 38, 0.42), inset 0 0 0 calc(var(--en) * 0.012) rgba(150, 115, 60, 0.35);
+}
+
+/* Lake parlaklık: üstte yumuşak kenarlı cila bandı. */
+.tas::after {
+  inset: calc(var(--en) * 0.04) calc(var(--en) * 0.05) 46% calc(var(--en) * 0.05);
+  z-index: 2;
+  border-radius: calc(var(--kose-tas) * 0.8) calc(var(--kose-tas) * 0.8) 50% 50% / calc(var(--kose-tas) * 0.8) calc(var(--kose-tas) * 0.8) 18% 18%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.18) 70%, rgba(255, 255, 255, 0) 100%);
+  opacity: 0.55;
 }
 
 .tas--orta {
@@ -860,10 +868,26 @@ a {
 
 .tas--kucuk {
   --en: var(--tas-kucuk-en);
-  --k: 0.75px;
+}
+
+/* Küçük boylar (yığın, gösterge, sonuç): yan yüz 3 katman, tek düşen gölge. */
+.tas--orta,
+.tas--kucuk {
+  --tas-kalinlik: 0 calc(var(--kalin) * 0.34) 0 var(--tas-kenar), 0 calc(var(--kalin) * 0.67) 0 var(--tas-yan), 0 var(--kalin) 0 var(--tas-alt-golge),
+    0 calc(var(--kalin) + 1px) 0 var(--tas-alt-koyu);
+  --tas-dusen: 0 calc(var(--kalin) + 2px) calc(var(--kalin) * 0.8) rgba(10, 0, 4, 0.55);
+}
+
+.tas--orta::before {
+  box-shadow: inset 0 1px 0 var(--tas-ust-isik), inset 0 calc(var(--en) * -0.06) calc(var(--en) * 0.06) rgba(140, 98, 38, 0.4),
+    inset 0 0 0 0.5px rgba(150, 115, 60, 0.4);
 }
 
 .tas--kucuk::before {
+  box-shadow: inset 0 1px 0 var(--tas-ust-isik), inset 0 0 0 0.5px rgba(150, 115, 60, 0.4);
+}
+
+.tas--kucuk::after {
   display: none;
 }
 
@@ -887,32 +911,49 @@ a {
   color: var(--tas-sahte);
 }
 
-/* Kazınmış rakam: alt kenarda açık, üst kenarda koyu ince çizgi = yüzeye oyulmuş gibi. */
+/* Oyulmuş (gömme) rakam: oluğun üst duvarı gölgede, alt dudağı ışıkta. */
 .tas__sayi {
   position: relative;
   z-index: 1;
   letter-spacing: 0.005em;
   margin-top: calc(var(--en) * 0.08);
   font-variant-numeric: lining-nums;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95), 0 -0.7px 0 rgba(0, 0, 0, 0.42);
+  background: linear-gradient(180deg, color-mix(in srgb, currentColor 45%, black) 0%, currentColor 30%, currentColor 75%, color-mix(in srgb, currentColor 80%, white) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 calc(var(--en) * 0.02) 0 #fff) drop-shadow(0 calc(var(--en) * -0.014) 0 rgba(70, 40, 5, 0.55));
 }
 
-/* Kazınmış küçük çukur (boyalı). */
+/* Oyulmuş küçük çukur (boyalı). */
 .tas__nokta {
   position: relative;
   z-index: 1;
-  width: calc(var(--en) * 0.14);
-  height: calc(var(--en) * 0.14);
+  width: calc(var(--en) * 0.15);
+  height: calc(var(--en) * 0.15);
   min-width: 3px;
   min-height: 3px;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 28%, color-mix(in srgb, currentColor 50%, black) 0 45%, currentColor 75%);
-  box-shadow: inset 0 1.2px 1.4px rgba(0, 0, 0, 0.6), 0 0.9px 0 rgba(255, 255, 255, 0.95);
+  background: radial-gradient(circle at 50% 30%, color-mix(in srgb, currentColor 45%, black) 0 40%, currentColor 80%);
+  box-shadow: inset 0 calc(var(--en) * 0.02) calc(var(--en) * 0.02) rgba(0, 0, 0, 0.65), 0 calc(var(--en) * 0.018) 0 #fff;
+}
+
+/* Küçük boylarda rakam düz renk + tek ışık çizgisi: net okunsun, filtre maliyeti olmasın. */
+.tas--orta .tas__sayi,
+.tas--kucuk .tas__sayi {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  filter: none;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
 .tas--kucuk .tas__sayi {
   margin-top: calc(var(--en) * 0.04);
   text-shadow: none;
+}
+
+.tas--orta .tas__nokta {
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.55), 0 0.5px 0 #fff;
 }
 
 .tas--kucuk .tas__nokta {
@@ -923,7 +964,11 @@ a {
   position: relative;
   z-index: 1;
   width: 72%;
-  filter: drop-shadow(0 0.8px 0 rgba(255, 255, 255, 0.95)) drop-shadow(0 -0.5px 0 rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 calc(var(--en) * 0.02) 0 #fff) drop-shadow(0 calc(var(--en) * -0.012) 0 rgba(60, 20, 10, 0.5));
+}
+
+.tas--kucuk .tas__sahte {
+  filter: none;
 }
 
 .tas__yildiz {
@@ -931,15 +976,19 @@ a {
   z-index: 2;
   top: calc(var(--en) * 0.09);
   right: calc(var(--en) * 0.09);
-  width: calc(var(--en) * 0.2);
+  width: calc(var(--en) * 0.22);
   fill: var(--tas-okey-yildiz);
-  filter: drop-shadow(0 0.6px 0 rgba(255, 255, 255, 0.9));
+  filter: drop-shadow(0 1px 0 #fff) drop-shadow(0 -0.5px 0 rgba(80, 50, 0, 0.6));
 }
 
-/* Okey taşı: ince altın yaldız kenar ve çok seyrek, hafif bir parıltı. */
-.tas--okey {
-  box-shadow: inset 0 0 0 1px var(--tas-okey-yildiz), inset 0 0 0 1.8px rgba(255, 236, 180, 0.9), inset 0 1px 0 var(--tas-ust-isik),
-    var(--tas-kalinlik), var(--tas-dusen);
+/* Okey taşı: eğimli kenarın içinde altın yaldız çerçeve ve çok seyrek, hafif bir parıltı. */
+.tas--okey::before {
+  box-shadow: inset 0 0 0 calc(var(--en) * 0.035) var(--tas-okey-yildiz), inset 0 0 0 calc(var(--en) * 0.05) rgba(255, 240, 190, 0.9),
+    inset 0 calc(var(--en) * -0.06) calc(var(--en) * 0.06) rgba(140, 98, 38, 0.42);
+}
+
+.tas--kucuk.tas--okey::before {
+  box-shadow: inset 0 0 0 1px var(--tas-okey-yildiz), inset 0 0 0 1.6px rgba(255, 240, 190, 0.9);
 }
 
 .tas__parilti {
@@ -972,13 +1021,12 @@ a {
 
 .tas--secili {
   transform: translateY(-10px);
-  box-shadow: 0 0 0 2px var(--tas-secili), var(--tas-yuz), var(--tas-kalinlik),
-    calc(var(--k) * 2) 14px 18px rgba(0, 0, 0, 0.45), 0 0 14px rgba(255, 207, 77, 0.45);
+  box-shadow: 0 0 0 2px var(--tas-secili), var(--tas-kalinlik), 0 calc(var(--kalin) + 12px) 16px rgba(0, 0, 0, 0.45), 0 0 14px rgba(255, 207, 77, 0.45);
 }
 
 .tas--suruklenen {
   transform: translateY(-6px) scale(1.12) rotate(-2deg);
-  box-shadow: var(--tas-yuz), var(--tas-kalinlik), calc(var(--k) * 3) 22px 26px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--tas-kalinlik), 0 calc(var(--kalin) + 20px) 26px rgba(0, 0, 0, 0.5);
   z-index: 10;
   transition: none;
 }
@@ -998,28 +1046,36 @@ a {
   }
 }
 
-/* Kapalı taş (deste): taşın sırtı, ince kafes desenli; ortada kabartma çerçeve ve madalyon. */
+/* Kapalı taş (deste): fildişi sırt, ortada kabartma sekiz köşeli yıldız; çevresinde oyulmuş çerçeve. */
 .tas--kapali {
-  background: var(--tas-yansima), var(--tas-arka);
-}
-
-.tas--kapali::before {
-  inset: 14%;
-  border-radius: calc(var(--kose-tas) * 0.6);
-  border: 1px solid rgba(140, 105, 50, 0.35);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 1px 0 rgba(255, 255, 255, 0.6);
+  background: var(--tas-yansima), var(--tas-sirt-motif) center / 46% no-repeat, var(--tas-arka);
 }
 
 .tas--kapali::after {
-  inset: auto;
-  left: 50%;
-  top: 50%;
-  width: calc(var(--en) * 0.24);
-  height: calc(var(--en) * 0.24);
-  margin: calc(var(--en) * -0.12) 0 0 calc(var(--en) * -0.12);
-  border-radius: 50%;
-  background: radial-gradient(circle at 40% 35%, #fff0c0, #d9a948 55%, #9a6a1c);
-  box-shadow: 0 0 0 1px rgba(140, 105, 50, 0.35), 0 1px 0 rgba(255, 255, 255, 0.7);
+  inset: 14%;
+  opacity: 1;
+  background: none;
+  border-radius: calc(var(--kose-tas) * 0.6);
+  box-shadow: inset 0 calc(var(--en) * 0.015) calc(var(--en) * 0.02) rgba(110, 75, 25, 0.45), 0 calc(var(--en) * 0.015) 0 rgba(255, 255, 255, 0.95);
+}
+
+/* Efektler kapalı: yan yüz 3 katman, tek gölge, rakamda filtre yok. */
+:root[data-efekt="kapali"] .tas {
+  --tas-kalinlik: 0 calc(var(--kalin) * 0.34) 0 var(--tas-kenar), 0 calc(var(--kalin) * 0.67) 0 var(--tas-yan), 0 var(--kalin) 0 var(--tas-alt-golge),
+    0 calc(var(--kalin) + 1px) 0 var(--tas-alt-koyu);
+  --tas-dusen: 0 calc(var(--kalin) + 2px) calc(var(--kalin) * 0.6) rgba(10, 0, 4, 0.55);
+}
+
+:root[data-efekt="kapali"] .tas__sayi {
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  filter: none;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.95), 0 -0.6px 0 rgba(70, 40, 5, 0.4);
+}
+
+:root[data-efekt="kapali"] .tas__sahte,
+:root[data-efekt="kapali"] .tas__yildiz {
+  filter: none;
 }
 
 /* ---------- Pencere (modal) ---------- */

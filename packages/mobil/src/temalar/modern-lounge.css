@@ -63,6 +63,7 @@
   /* Taşlar: beyaz porselen, soğuk gri kalınlık */
   --tas-zemin: linear-gradient(165deg, #ffffff 0%, #f9fafc 40%, #eef0f4 78%, #e1e4ea 100%);
   --tas-kenar: #cfd3da;
+  --tas-yan: #b9bec8;
   --tas-alt-golge: #a7acb6;
   --tas-alt-koyu: #7c818b;
   --tas-arka: linear-gradient(160deg, #eceff3 0%, #cfd4dc 55%, #b4bbc6 100%);

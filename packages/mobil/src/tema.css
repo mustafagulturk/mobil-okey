@@ -90,25 +90,27 @@
   --istaka-raf: rgba(0, 0, 0, 0.26);            /* her sıranın altındaki gölge çizgisi */
   --istaka-yuva-vurgu: rgba(255, 224, 138, 0.38); /* sürüklerken üstüne gelinen yuva */
 
-  /* ---------- Taşlar (fildişi melamin, 3D) ---------- */
+  /* ---------- Taşlar (kalın bakalit, 3D) ----------
+     Yüz fildişi; altında görünür kalın yan yüz (box-shadow katmanları, yer kaplamaz).
+     Yan yüz renkleri yüze yakından aşağıya: kenar > yan > alt-golge, en altta alt-koyu çizgi. */
   --yazi-tipi-tas: "Oswald", "Roboto Condensed", "Arial Narrow", sans-serif;  /* sıkı, kalın rakamlar */
-  --tas-zemin: linear-gradient(172deg, #fffcf3 0%, #f8f1e1 48%, #efe4ca 100%);   /* yüz */
-  --tas-yansima: linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.3) 9%, rgba(255, 255, 255, 0) 26%);  /* üstten cila bandı */
-  --tas-kenar: #e7dabd;                         /* yan kalınlığın yüze yakın açık katmanı */
-  --tas-yan: #d3c19a;                           /* yan kalınlığın orta katmanı */
-  --tas-alt-golge: #b39b6b;                     /* yan kalınlığın koyu katmanı */
-  --tas-alt-koyu: #8a7347;                      /* kalınlığın en alt çizgisi */
+  --tas-zemin: linear-gradient(168deg, #fffbf2 0%, #f8eedb 40%, #efe0c2 78%, #e6d2ad 100%);   /* yüz */
+  --tas-yansima: radial-gradient(130% 55% at 28% 0%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 60%);  /* sol üstten vuran ışık */
+  --tas-kenar: #efe1c1;                         /* yan yüzün yüze yakın açık katmanı */
+  --tas-yan: #d6bd8f;                           /* yan yüzün orta katmanı */
+  --tas-alt-golge: #a3864f;                     /* yan yüzün koyu alt katmanı */
+  --tas-alt-koyu: #6a5430;                      /* kalınlığın en alt çizgisi */
+  --tas-derinlik: 0.17;                         /* görünür yan yüz kalınlığı / taş eni */
   --tas-ust-isik: rgba(255, 255, 255, 1);       /* üst kenardaki ince parlama */
   --tas-secili: #ffcf4d;                        /* seçili taşın çerçevesi */
-  --tas-kirmizi: #ad0f1e;                       /* derin kırmızı */
-  --tas-sari: #c08100;                          /* hardal / altın sarı */
-  --tas-mavi: #13357f;                          /* lacivert */
-  --tas-siyah: #18171a;                         /* kömür siyahı */
+  --tas-kirmizi: #b5122c;                       /* bakalit kırmızı */
+  --tas-sari: #cf7400;                          /* turuncu-hardal */
+  --tas-mavi: #1446b8;                          /* kobalt */
+  --tas-siyah: #1a1a20;                         /* kömür siyahı */
   --tas-sahte: #0b6646;                         /* sahte okey motifinin rengi */
   --tas-okey-yildiz: #c9973a;                   /* okey taşının yaldız kenarı ve yıldızı */
-  --tas-arka: repeating-linear-gradient(45deg, rgba(140, 105, 50, 0.1) 0 1px, transparent 1px 4px),
-    repeating-linear-gradient(-45deg, rgba(140, 105, 50, 0.1) 0 1px, transparent 1px 4px),
-    linear-gradient(172deg, #f3e7cb, #dcc8a0);  /* kapalı taş (deste): ince kafes desenli sırt */
+  --tas-arka: linear-gradient(168deg, #fffbf2 0%, #f8eedb 40%, #efe0c2 78%, #e6d2ad 100%);  /* kapalı taşın sırt zemini */
+  --tas-sirt-motif: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%20viewBox%3D'0%200%2040%2040'%3E%3Cg%20fill%3D'none'%20stroke%3D'%23fff'%20stroke-width%3D'1.6'%20stroke-linejoin%3D'round'%20transform%3D'translate(0%20.9)'%3E%3Crect%20x%3D'9'%20y%3D'9'%20width%3D'22'%20height%3D'22'%20rx%3D'1'%2F%3E%3Crect%20x%3D'9'%20y%3D'9'%20width%3D'22'%20height%3D'22'%20rx%3D'1'%20transform%3D'rotate(45%2020%2020)'%2F%3E%3Ccircle%20cx%3D'20'%20cy%3D'20'%20r%3D'5'%2F%3E%3C%2Fg%3E%3Cg%20fill%3D'none'%20stroke%3D'%23b08a4e'%20stroke-width%3D'1.6'%20stroke-linejoin%3D'round'%3E%3Crect%20x%3D'9'%20y%3D'9'%20width%3D'22'%20height%3D'22'%20rx%3D'1'%2F%3E%3Crect%20x%3D'9'%20y%3D'9'%20width%3D'22'%20height%3D'22'%20rx%3D'1'%20transform%3D'rotate(45%2020%2020)'%2F%3E%3Ccircle%20cx%3D'20'%20cy%3D'20'%20r%3D'5'%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D'20'%20cy%3D'20'%20r%3D'3'%20fill%3D'%23c9973a'%2F%3E%3C%2Fsvg%3E");  /* kapalı taş sırtı: kabartma sekiz köşeli yıldız */
 
   /* Taş ölçüleri. İstakadaki taş ekranın genişliğine göre küçülür, en fazla bu değerde olur. */
   --tas-en: min(42px, calc((100vw - env(safe-area-inset-left) - env(safe-area-inset-right) - 230px) / 15));
@@ -127,8 +129,8 @@
   --golge: 0 10px 28px rgba(0, 0, 0, 0.42), 0 2px 6px rgba(0, 0, 0, 0.25);
   --golge-buyuk: 0 24px 60px rgba(0, 0, 0, 0.6), 0 6px 18px rgba(0, 0, 0, 0.35);
   /* Sabit ölçülü taş gölgesi (taş dışı yerler için; .tas kendi ölçeğine göre katmanlı kenarı kendisi çizer). */
-  --golge-tas: 0.5px 1px 0 var(--tas-kenar), 1px 2px 0 var(--tas-yan), 1.5px 3px 0 var(--tas-alt-golge), 1.5px 3.5px 0 var(--tas-alt-koyu), 1.5px 7px 8px rgba(0, 0, 0, 0.4);
-  --golge-tas-kalkik: 0.5px 1px 0 var(--tas-kenar), 1px 2px 0 var(--tas-yan), 1.5px 3px 0 var(--tas-alt-golge), 1.5px 3.5px 0 var(--tas-alt-koyu), 2px 16px 22px rgba(0, 0, 0, 0.45);
+  --golge-tas: 0 1.5px 0 var(--tas-kenar), 0 3px 0 var(--tas-yan), 0 4.5px 0 var(--tas-alt-golge), 0 5.5px 0 var(--tas-alt-koyu), 0 7px 6px rgba(10, 0, 4, 0.55);
+  --golge-tas-kalkik: 0 1.5px 0 var(--tas-kenar), 0 3px 0 var(--tas-yan), 0 4.5px 0 var(--tas-alt-golge), 0 5.5px 0 var(--tas-alt-koyu), 0 16px 22px rgba(0, 0, 0, 0.45);
   --parlama-sira: 0 0 0 2px var(--renk-altin), 0 0 22px 5px rgba(240, 194, 90, 0.6);
   --parlama-altin: 0 0 18px rgba(255, 200, 100, 0.45);
   --bosluk: 12px;
