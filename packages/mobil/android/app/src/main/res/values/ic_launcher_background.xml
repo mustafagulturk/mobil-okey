@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Simgenin arka katmanı: zümrüt yeşili çuha (betikler/simgeleri-uret.mjs içindeki ZEMIN ile aynı). -->
-    <color name="ic_launcher_background">#0D5A3D</color>
-    <color name="acilis_zemini">#0D5A3D</color>
+    <color name="ic_launcher_background">#5C1526</color>
+    <color name="acilis_zemini">#5C1526</color>
 </resources>
