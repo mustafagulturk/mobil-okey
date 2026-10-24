@@ -1,18 +1,17 @@
-// Lobi: profil kartı, salonlar ve oyuna giriş düğmeleri. Yatay ekran için iki sütun:
-// solda oyuncunun kendisi (profil, çip, hediyeler), sağda salonlar ve eylemler.
+// Lobi: yatay ekran için iki sütun. Solda oyuncunun kendisi (cam oyuncu kartı, hediye, reklam,
+// görevler), sağda üst menü, salon kartları ve alttaki eylem çubuğu.
 import { salonaUygunMu, SALONLAR, type SalonBilgisi, type SalonId } from "@okey/kurallar";
 import { useEffect, useMemo, useState } from "react";
-import { IsimEtiketi } from "../bilesenler/IsimEtiketi.tsx";
-import { Cip, SeviyeCubugu } from "../bilesenler/Ortak.tsx";
 import { Pencere } from "../bilesenler/Pencere.tsx";
-import { CipSimgesi, Simge, type SimgeAdi } from "../bilesenler/Simge.tsx";
+import { Simge, type SimgeAdi } from "../bilesenler/Simge.tsx";
 import type { Ekran } from "../durum/durum.ts";
 import { useOyun } from "../durum/OyunSaglayici.tsx";
-import { cipBicim, kisaCip, metindekiSayilariBicimle } from "../yardimci/bicim.ts";
-import { ReklamDugmesi } from "./Magaza.tsx";
+import { kisaCip } from "../yardimci/bicim.ts";
+import { OyuncuPaneli } from "./lobi/OyuncuPaneli.tsx";
+import { SalonCizimTanimlari, SalonKarti } from "./lobi/SalonKarti.tsx";
 
 export function Lobi() {
-  const { durum, gonder, ekranaGit, antrenmanBaslat } = useOyun();
+  const { durum, gonder, antrenmanBaslat } = useOyun();
   const profil = durum.profil!;
   const [secili, setSecili] = useState<SalonId | null>(null);
   const [kodPenceresi, setKodPenceresi] = useState(false);
@@ -40,56 +39,25 @@ export function Lobi() {
   }, [secili, uygunlar]);
 
   const cevrimici = durum.baglanti === "bagli";
+  const toplamOyuncu = salonlar.reduce((t, s) => t + s.oyuncuSayisi, 0);
 
   return (
     <div className="ekran lobi">
-      <aside className="lobi__sol">
-        <div className="kart profil-karti">
-          <button className="profil-karti__etiket" onClick={() => ekranaGit("profil")}>
-            <IsimEtiketi ad={profil.ad} seviye={profil.seviye} etiket={profil.etiket} boyut="buyuk" />
-          </button>
-          <SeviyeCubugu mevcut={profil.seviyeIlerleme.mevcut} gereken={profil.seviyeIlerleme.gereken} />
-          <div className="profil-karti__cip">
-            <CipSimgesi boyut={26} />
-            <span>{cipBicim(profil.cip)}</span>
-            <button className="simge-dugme simge-dugme--altin" onClick={() => ekranaGit("magaza")} aria-label="Çip al">
-              <Simge ad="arti" />
-            </button>
-          </div>
-        </div>
-
-        <div className="lobi__oduller">
-          <button
-            className={`dugme dugme--hediye ${profil.gunlukHediyeAlinabilir ? "dugme--nabiz" : ""}`}
-            disabled={!profil.gunlukHediyeAlinabilir || !cevrimici}
-            onClick={() => gonder({ t: "gunlukHediye" })}
-          >
-            <Simge ad="hediye" />
-            {profil.gunlukHediyeAlinabilir ? "Günlük hediye" : "Hediye yarın"}
-          </button>
-          <ReklamDugmesi kisa />
-        </div>
-
-        {durum.gorevler && durum.gorevler.length > 0 && (
-          <button className="kart mini-gorevler" onClick={() => ekranaGit("gorevler")}>
-            <h3>Bugünün görevleri</h3>
-            {durum.gorevler.map((g) => (
-              <div key={g.id} className={`mini-gorev ${g.alindi ? "mini-gorev--alindi" : ""}`}>
-                <span>{g.metin}</span>
-                <small>{g.alindi ? "✓" : `${Math.min(g.ilerleme, g.hedef)}/${g.hedef}`}</small>
-                <div className="gorev__cubuk">
-                  <div style={{ width: `${Math.min(100, (g.ilerleme / g.hedef) * 100)}%` }} />
-                </div>
-              </div>
-            ))}
-          </button>
-        )}
-      </aside>
+      <SalonCizimTanimlari />
+      <OyuncuPaneli />
 
       <main className="lobi__sag">
         <header className="lobi__ust">
-          <h1>Salonlar</h1>
-          {!cevrimici && <span className="rozet-uyari">Bağlantı yok</span>}
+          <div className="lobi__baslik">
+            <h1>Salonlar</h1>
+            {cevrimici ? (
+              <span className="lobi__cevrimici">
+                <i className="salon__nokta" /> {toplamOyuncu > 0 ? `${toplamOyuncu} oyuncu masada` : "Çevrimiçi"}
+              </span>
+            ) : (
+              <span className="rozet-uyari">Bağlantı yok</span>
+            )}
+          </div>
           <nav className="lobi__menu">
             <MenuDugmesi simge="gorev" yazi="Görevler" ekran="gorevler" />
             <MenuDugmesi simge="kupa" yazi="Sıralama" ekran="siralama" />
@@ -100,61 +68,60 @@ export function Lobi() {
         </header>
 
         <div className="salonlar">
-          {salonlar.map((s, i) => {
-            const u = salonaUygunMu(s, profil.cip);
-            return (
-              <button
-                key={s.id}
-                className={`salon salon--${i} ${seciliSalon?.id === s.id ? "salon--secili" : ""} ${u.uygun ? "" : "salon--kapali"}`}
-                disabled={!u.uygun}
-                onClick={() => setSecili(s.id)}
-              >
-                <div className="salon__ust">
-                  <span className="salon__ad">{s.ad}</span>
-                  <span className="salon__oyuncu">
-                    <Simge ad="profil" boyut={13} /> {s.oyuncuSayisi}
-                  </span>
-                </div>
-                <div className="salon__giris">
-                  <Cip miktar={s.giris} kisa />
-                  <small>el başı</small>
-                </div>
-                <div className="salon__aralik">
-                  {u.uygun
-                    ? `${kisaCip(s.enAzCip)} – ${s.enFazlaCip === null ? "sınırsız" : kisaCip(s.enFazlaCip)}`
-                    : metindekiSayilariBicimle(u.sebep)}
-                </div>
-              </button>
-            );
-          })}
+          {salonlar.map((s, i) => (
+            <SalonKarti
+              key={s.id}
+              salon={s}
+              sira={i}
+              cip={profil.cip}
+              secili={seciliSalon?.id === s.id}
+              sec={() => setSecili(s.id)}
+            />
+          ))}
         </div>
 
         <div className="lobi__eylemler">
           <button
-            className="dugme dugme--birincil dugme--buyuk"
+            className="hizli-oyun"
             disabled={!cevrimici || !seciliSalon}
             onClick={() => seciliSalon && gonder({ t: "hizliOyun", salon: seciliSalon.id })}
           >
-            <Simge ad="oyna" /> Hızlı Oyun
+            <span className="hizli-oyun__simge">
+              <Simge ad="oyna" boyut={18} />
+            </span>
+            <span className="hizli-oyun__metin">
+              <b>Hızlı Oyun</b>
+              {seciliSalon && (
+                <small>
+                  {seciliSalon.ad} · {kisaCip(seciliSalon.giris)}
+                </small>
+              )}
+            </span>
           </button>
-          <button
-            className="dugme dugme--ikincil"
+          <EylemDugmesi
+            simge="arti"
+            yazi="Oda Kur"
             disabled={!cevrimici || !seciliSalon}
-            onClick={() => seciliSalon && gonder({ t: "odaKur", salon: seciliSalon.id })}
-          >
-            <Simge ad="arti" /> Oda Kur
-          </button>
-          <button className="dugme dugme--ikincil" disabled={!cevrimici} onClick={() => setKodPenceresi(true)}>
-            <Simge ad="anahtar" /> Kodla Katıl
-          </button>
-          <button className="dugme dugme--ikincil" onClick={antrenmanBaslat}>
-            <Simge ad="robot" /> Antrenman
-          </button>
+            tikla={() => seciliSalon && gonder({ t: "odaKur", salon: seciliSalon.id })}
+          />
+          <EylemDugmesi simge="anahtar" yazi="Kodla Katıl" disabled={!cevrimici} tikla={() => setKodPenceresi(true)} />
+          <EylemDugmesi simge="robot" yazi="Antrenman" tikla={antrenmanBaslat} />
         </div>
       </main>
 
       {kodPenceresi && <KodlaKatil kapat={() => setKodPenceresi(false)} />}
     </div>
+  );
+}
+
+function EylemDugmesi({ simge, yazi, disabled, tikla }: { simge: SimgeAdi; yazi: string; disabled?: boolean; tikla: () => void }) {
+  return (
+    <button className="eylem-dugmesi" disabled={disabled} onClick={tikla}>
+      <span className="eylem-dugmesi__simge">
+        <Simge ad={simge} boyut={18} />
+      </span>
+      <span>{yazi}</span>
+    </button>
   );
 }
 
@@ -165,9 +132,11 @@ function MenuDugmesi({ simge, yazi, ekran }: { simge: SimgeAdi; yazi: string; ek
     (ekran === "magaza" && (durum.profil?.kalanReklamHakki ?? 0) > 0);
   return (
     <button className="menu-dugmesi" onClick={() => ekranaGit(ekran)}>
-      <Simge ad={simge} boyut={22} />
-      <span>{yazi}</span>
-      {nokta && <i className="menu-dugmesi__nokta" />}
+      <span className="menu-dugmesi__daire">
+        <Simge ad={simge} boyut={19} />
+        {nokta && <i className="menu-dugmesi__nokta" />}
+      </span>
+      <span className="menu-dugmesi__yazi">{yazi}</span>
     </button>
   );
 }
