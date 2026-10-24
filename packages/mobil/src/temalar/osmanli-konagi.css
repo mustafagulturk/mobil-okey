@@ -1,0 +1,56 @@
+/* =====================================================================
+   2) OSMANLI KONAĞI — bordo kadife çuha, antika altın, gül ağacı çerçeve.
+   His: konak selamlığında kadife minderli, sırma işlemeli bir oyun odası.
+   Sıcak ve ağır; "Ağalar" havasını en çok taşıyan palet.
+   ===================================================================== */
+:root[data-tema="osmanli-konagi"] {
+  --tema-adi: "Osmanlı Konağı";
+
+  --renk-zemin: #12050a;
+  --renk-zemin-desen: #2a0c16;
+  --renk-yuzey: #240b14;
+  --renk-yuzey-acik: #36121f;
+  --renk-yuzey-kenar: rgba(240, 200, 120, 0.2);
+  --renk-yazi: #f8ecd6;
+  --renk-yazi-soluk: #c9aea6;
+  --renk-cizgi: rgba(255, 220, 200, 0.09);
+  --renk-hafif: rgba(255, 230, 215, 0.07);
+  --renk-karartma: rgba(14, 2, 6, 0.64);
+
+  /* Vurgu: antika altın (biraz daha koyu, daha az limon) */
+  --renk-altin: #e6b24a;
+  --renk-altin-acik: #ffdf9a;
+  --renk-altin-koyu: #9a6614;
+  --renk-altin-hafif: rgba(230, 178, 74, 0.17);
+  --gradyan-altin-metal: linear-gradient(180deg, #fff1c6 0%, #f2d07a 22%, #d9a03a 48%, #a46c18 70%, #cf9c3e 86%, #edc874 100%);
+
+  /* İkinci vurgu: yeşim (bordoya tamamlayıcı) */
+  --renk-vurgu-2: #4fd6a6;
+  --renk-vurgu-2-koyu: #12865c;
+
+  --dugme-ikincil-zemin: linear-gradient(180deg, rgba(255, 236, 225, 0.13), rgba(255, 236, 225, 0.05));
+
+  /* Masa: bordo kadife + gül ağacı */
+  --masa-cuha: #7a1a2e;
+  --masa-cuha-koyu: #2c0510;
+  --masa-cuha-gradyan: radial-gradient(ellipse 75% 70% at 50% 40%, #9c2b40 0%, var(--masa-cuha) 42%, #561021 72%, var(--masa-cuha-koyu) 100%);
+  --cuha-vinyet: radial-gradient(ellipse 85% 80% at 50% 45%, transparent 45%, rgba(20, 0, 6, 0.62) 100%);
+  --cuha-lamba: radial-gradient(ellipse 60% 62% at 50% 8%, rgba(255, 215, 150, 0.26), rgba(255, 200, 140, 0.06) 55%, transparent 75%);
+  --ceviz: linear-gradient(180deg, #4e2416 0%, #36170c 38%, #250e07 70%, #170804 100%);
+  --masa-ahsap: linear-gradient(180deg, #7e4228 0%, #5c2c18 38%, #42200f 70%, #2c1408 100%);
+
+  --cam-zemin: linear-gradient(180deg, rgba(64, 20, 36, 0.76) 0%, rgba(28, 6, 14, 0.84) 100%);
+  --cam-zemin-koyu: linear-gradient(180deg, rgba(34, 8, 18, 0.86), rgba(16, 3, 8, 0.9));
+  --cam-kenar: 1px solid rgba(240, 200, 120, 0.28);
+  --cam-ust-isik: inset 0 1px 0 rgba(255, 235, 210, 0.14), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  --cam-buzlu: linear-gradient(160deg, rgba(255, 220, 210, 0.12), rgba(30, 6, 14, 0.55));
+
+  --zemin-gece: radial-gradient(ellipse 120% 90% at 50% 0%, #3d1020 0%, #240913 38%, #12040a 70%, #070104 100%);
+  --isik-lamba: radial-gradient(ellipse 62% 58% at 50% -12%, rgba(255, 205, 130, 0.26) 0%, rgba(255, 180, 100, 0.1) 45%, transparent 72%);
+
+  --tas-kirmizi: #c4122f;
+  --tas-sari: #c76f00;
+  --tas-mavi: #1450c8;
+  --tas-siyah: #17171c;
+  --tas-sahte: #7a1a2e;
+}

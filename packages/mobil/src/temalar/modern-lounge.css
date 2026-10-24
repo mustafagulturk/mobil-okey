@@ -1,0 +1,77 @@
+/* =====================================================================
+   3) MODERN LOUNGE — antrasit çuha, neon camgöbeği + pembe, karbon çerçeve.
+   His: loş, müzikli bir kokteyl barı; e-spor / genç oyuncuya hitap eder.
+   Taşlar beyaz porselen (en yüksek rakam kontrastı).
+   ===================================================================== */
+:root[data-tema="modern-lounge"] {
+  --tema-adi: "Modern Lounge";
+
+  --renk-zemin: #0a0b0f;
+  --renk-zemin-desen: #16181f;
+  --renk-yuzey: #15171d;
+  --renk-yuzey-acik: #1f222a;
+  --renk-yuzey-kenar: rgba(80, 230, 255, 0.2);
+  --renk-yazi: #eef2f7;
+  --renk-yazi-soluk: #9ba4b4;
+  --renk-cizgi: rgba(255, 255, 255, 0.08);
+  --renk-hafif: rgba(255, 255, 255, 0.06);
+  --renk-karartma: rgba(0, 0, 0, 0.66);
+
+  /* Vurgu: neon camgöbeği */
+  --renk-altin: #3fe0ff;
+  --renk-altin-acik: #b8f5ff;
+  --renk-altin-koyu: #0a8fb0;
+  --renk-altin-hafif: rgba(63, 224, 255, 0.14);
+  --gradyan-altin: linear-gradient(180deg, #c8f8ff 0%, #6fe9ff 40%, #22c3e8 72%, #0b93b8 100%);
+  --gradyan-altin-metal: linear-gradient(180deg, #e8fdff 0%, #a3f2ff 22%, #45d8f6 48%, #129fc4 70%, #3ccbea 86%, #93eeff 100%);
+  --gradyan-altin-yazi: linear-gradient(180deg, #f4feff 0%, #b0f4ff 30%, #55def9 52%, #1ea9cf 70%, #93eeff 100%);
+  --renk-altin-parilti: rgba(80, 230, 255, 0.5);
+  --parlama-sira: 0 0 0 2px var(--renk-altin), 0 0 22px 5px rgba(63, 224, 255, 0.5);
+  --parlama-altin: 0 0 18px rgba(63, 224, 255, 0.4);
+
+  /* İkinci vurgu: neon pembe */
+  --renk-vurgu-2: #ff5cbf;
+  --renk-vurgu-2-koyu: #b01d78;
+
+  --dugme-birincil-yazi: #032630;
+  --dugme-birincil-kenar: #08617a;
+  --dugme-ikincil-zemin: linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.04));
+  --dugme-yesil-zemin: linear-gradient(180deg, #ffb0de 0%, #ff5cbf 40%, #c0247f 100%);
+
+  /* Masa: antrasit çuha + karbon çerçeve + füme istaka */
+  --masa-cuha: #2c3038;
+  --masa-cuha-koyu: #101216;
+  --masa-cuha-gradyan: radial-gradient(ellipse 75% 70% at 50% 40%, #3b404b 0%, var(--masa-cuha) 42%, #1f2229 72%, var(--masa-cuha-koyu) 100%);
+  --cuha-vinyet: radial-gradient(ellipse 85% 80% at 50% 45%, transparent 45%, rgba(0, 0, 0, 0.6) 100%);
+  --cuha-lamba: radial-gradient(ellipse 60% 62% at 50% 8%, rgba(190, 240, 255, 0.14), rgba(255, 120, 220, 0.04) 55%, transparent 75%);
+  --ceviz: linear-gradient(180deg, #2c2e35 0%, #1d1f24 38%, #141519 70%, #0b0c0f 100%);
+  --ceviz-damar: repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 6px);
+  --masa-ahsap: linear-gradient(180deg, #3a3d45 0%, #2a2c33 38%, #1d1f24 70%, #141519 100%);
+  --istaka-ceviz: linear-gradient(180deg, #474b55 0%, #363942 45%, #25272e 100%);
+  --istaka-raf-on: linear-gradient(180deg, #5c616d 0%, #42454f 30%, #23252b 100%);
+  --istaka-zemin: linear-gradient(180deg, #4d515b 0%, #3a3d46 55%, #282a31 100%);
+
+  --cam-zemin: linear-gradient(180deg, rgba(32, 35, 44, 0.76) 0%, rgba(12, 13, 18, 0.84) 100%);
+  --cam-zemin-koyu: linear-gradient(180deg, rgba(18, 20, 26, 0.86), rgba(6, 7, 10, 0.9));
+  --cam-kenar: 1px solid rgba(63, 224, 255, 0.22);
+  --cam-ust-isik: inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  --cam-buzlu: linear-gradient(160deg, rgba(220, 240, 255, 0.1), rgba(10, 12, 16, 0.55));
+
+  --zemin-gece: radial-gradient(ellipse 120% 90% at 50% 0%, #1c2030 0%, #12141c 38%, #0a0b0f 70%, #040405 100%);
+  --isik-lamba: radial-gradient(ellipse 62% 58% at 50% -12%, rgba(63, 224, 255, 0.14) 0%, rgba(255, 92, 191, 0.06) 45%, transparent 72%);
+
+  /* Taşlar: beyaz porselen, soğuk gri kalınlık */
+  --tas-zemin: linear-gradient(165deg, #ffffff 0%, #f9fafc 40%, #eef0f4 78%, #e1e4ea 100%);
+  --tas-kenar: #cfd3da;
+  --tas-alt-golge: #a7acb6;
+  --tas-alt-koyu: #7c818b;
+  --tas-arka: linear-gradient(160deg, #eceff3 0%, #cfd4dc 55%, #b4bbc6 100%);
+  --tas-kirmizi: #cc1236;
+  --tas-sari: #cc7400;
+  --tas-mavi: #1450c8;
+  --tas-siyah: #121317;
+  --tas-sahte: #b01d78;
+  --tas-okey-yildiz: #ff5cbf;
+  --tas-secili: #3fe0ff;
+  --balon-zemin: linear-gradient(180deg, #ffffff, #e6eaf0);
+}

@@ -18,12 +18,19 @@ import "@fontsource/fredoka/latin-600.css";
 import "@fontsource/fredoka/latin-ext-600.css";
 import "@fontsource/fredoka/latin-700.css";
 import "@fontsource/fredoka/latin-ext-700.css";
+// Taş rakamları (Oswald): sıkı, kalın, gerçek okey takımı rakamı. Sadece rakam gerektiği için latin, tek ağırlık.
+import "@fontsource/oswald/latin-700.css";
 import "./tema.css";
 import "./stil.css";
+import "./temalar/index.css";
 import { Uygulama } from "./Uygulama.tsx";
 import { geriTusunuDinle } from "./platform/geriTusu.ts";
 // Efekt ayarını erkenden yükle (<html data-efekt> özniteliği ilk çizimden önce hazır olsun).
 import "./efektler/ayar.ts";
+
+// ?tema=<ad> ile renk paleti denenebilir (bkz. src/temalar/README.md).
+const temaParam = new URLSearchParams(location.search).get("tema");
+if (temaParam) document.documentElement.dataset.tema = temaParam;
 
 geriTusunuDinle();
 

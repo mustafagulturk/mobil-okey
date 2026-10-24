@@ -1,0 +1,70 @@
+/* =====================================================================
+   4) İZNİK — koyu çini-yeşili zemin, turkuaz çuha, kobalt çini çerçeve,
+   İznik kırmızısı (mercan kırmızısı) düğmeler, beyaz düğme yazısı.
+   His: çini panolu bir köşk; parlak, ferah ve "Türk" kimliği güçlü.
+   Turkuaz–kırmızı tamamlayıcı çifti düğmeleri çok belirgin yapar.
+   ===================================================================== */
+:root[data-tema="iznik"] {
+  --tema-adi: "İznik";
+
+  --renk-zemin: #041a1c;
+  --renk-zemin-desen: #0a3134;
+  --renk-yuzey: #0a2a2e;
+  --renk-yuzey-acik: #113b40;
+  --renk-yuzey-kenar: rgba(120, 220, 220, 0.22);
+  --renk-yazi: #f5f9fc;
+  --renk-yazi-soluk: #a6c9c8;
+  --renk-cizgi: rgba(200, 235, 255, 0.1);
+  --renk-hafif: rgba(210, 240, 255, 0.07);
+  --renk-karartma: rgba(1, 10, 12, 0.66);
+
+  /* Vurgu: İznik mercan kırmızısı */
+  --renk-altin: #ef5a44;
+  --renk-altin-acik: #ffb8a8;
+  --renk-altin-koyu: #9e2a1c;
+  --renk-altin-hafif: rgba(239, 90, 68, 0.16);
+  --gradyan-altin: linear-gradient(180deg, #ffb6a6 0%, #f2705a 40%, #d43f2c 72%, #a82a1c 100%);
+  --gradyan-altin-metal: linear-gradient(180deg, #ff9c88 0%, #e8563f 22%, #cc3a27 48%, #a8281a 70%, #c43a28 86%, #e2604a 100%);
+  /* Başlık yazıları: çini beyazı → turkuaz */
+  --gradyan-altin-yazi: linear-gradient(180deg, #f4ffff 0%, #bff4f1 30%, #62dcd6 52%, #23a3a6 70%, #98ece7 100%);
+  --renk-altin-parilti: rgba(255, 150, 120, 0.5);
+  --parlama-sira: 0 0 0 2px #3fd8d2, 0 0 22px 5px rgba(63, 216, 210, 0.5);
+  --parlama-altin: 0 0 18px rgba(255, 140, 110, 0.42);
+
+  /* İkinci vurgu: turkuaz */
+  --renk-vurgu-2: #3fd8d2;
+  --renk-vurgu-2-koyu: #138a8c;
+
+  --dugme-birincil-yazi: #fff8f2;
+  --dugme-birincil-kenar: #6e180e;
+  --dugme-ikincil-zemin: linear-gradient(180deg, rgba(220, 240, 255, 0.13), rgba(220, 240, 255, 0.05));
+  --dugme-yesil-zemin: linear-gradient(180deg, #a6f3ee 0%, #3fd0ca 40%, #128487 100%);
+
+  /* Masa: turkuaz çuha + kobalt çini çerçeve */
+  --masa-cuha: #0f7579;
+  --masa-cuha-koyu: #042c36;
+  --masa-cuha-gradyan: radial-gradient(ellipse 75% 70% at 50% 40%, #199495 0%, var(--masa-cuha) 42%, #09565e 72%, var(--masa-cuha-koyu) 100%);
+  --cuha-vinyet: radial-gradient(ellipse 85% 80% at 50% 45%, transparent 45%, rgba(0, 12, 22, 0.6) 100%);
+  --cuha-lamba: radial-gradient(ellipse 60% 62% at 50% 8%, rgba(230, 255, 250, 0.2), rgba(200, 255, 250, 0.05) 55%, transparent 75%);
+  --ceviz: linear-gradient(180deg, #2350a8 0%, #183a80 38%, #102a60 70%, #0a1b42 100%);
+  --ceviz-damar: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.08) 0 1px, transparent 1px 22px);
+  --masa-ahsap: linear-gradient(180deg, #2a5cb8 0%, #1d4290 38%, #142f6a 70%, #0c1f48 100%);
+
+  --cam-zemin: linear-gradient(180deg, rgba(18, 62, 66, 0.76) 0%, rgba(6, 28, 32, 0.84) 100%);
+  --cam-zemin-koyu: linear-gradient(180deg, rgba(10, 36, 40, 0.86), rgba(4, 16, 18, 0.9));
+  --cam-kenar: 1px solid rgba(110, 220, 220, 0.26);
+  --cam-ust-isik: inset 0 1px 0 rgba(220, 245, 255, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  --cam-buzlu: linear-gradient(160deg, rgba(200, 245, 245, 0.12), rgba(6, 26, 30, 0.55));
+
+  --zemin-gece: radial-gradient(ellipse 120% 90% at 50% 0%, #0f4a4c 0%, #0a3033 38%, #051a1c 70%, #020c0d 100%);
+  --isik-lamba: radial-gradient(ellipse 62% 58% at 50% -12%, rgba(140, 240, 235, 0.18) 0%, rgba(120, 220, 230, 0.06) 45%, transparent 72%);
+
+  --tas-kirmizi: #c4122f;
+  --tas-sari: #c76f00;
+  --tas-mavi: #1450c8;
+  --tas-siyah: #17171c;
+  --tas-sahte: #138a8c;
+  --tas-okey-yildiz: #ef5a44;
+  --tas-secili: #3fd8d2;
+}

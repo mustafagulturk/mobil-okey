@@ -1,0 +1,112 @@
+/* =====================================================================
+   5) GÜNDÜZ KAHVEHANESİ — açık krem zemin, ceviz, çay-bakır vurgu,
+   adaçayı yeşili çuha. Tek açık tema.
+   His: öğleden sonra güneş alan mahalle kahvesi; aydınlık ortamda / güneş
+   altında telefonda oynayan, koyu temayı sevmeyen (çoğu zaman daha yaşlı)
+   oyuncuya hitap eder.
+   ===================================================================== */
+:root[data-tema="gunduz-kahvehanesi"] {
+  --tema-adi: "Gündüz Kahvehanesi";
+  color-scheme: light;
+
+  --renk-zemin: #efe4cf;
+  --renk-zemin-desen: #f7efdf;
+  --renk-yuzey: #fbf5e9;
+  --renk-yuzey-acik: #f1e5cd;
+  --renk-yuzey-kenar: rgba(110, 70, 30, 0.2);
+  --renk-yazi: #2b1c10;
+  --renk-yazi-soluk: #6e5844;
+  --renk-yazi-koyu: #2a1d10;
+  --renk-cizgi: rgba(80, 50, 20, 0.13);
+  --renk-hafif: rgba(90, 55, 20, 0.07);
+  --renk-karartma: rgba(40, 25, 10, 0.45);
+  --renk-yazi-golge: rgba(255, 250, 240, 0.6);
+
+  /* Vurgu: demli çay / bakır (açık zeminde yazı olarak da okunsun diye koyu) */
+  --renk-altin: #b8611f;
+  --renk-altin-acik: #8f4512;
+  --renk-altin-koyu: #6e3410;
+  --renk-altin-hafif: rgba(184, 97, 31, 0.13);
+  --gradyan-altin: linear-gradient(180deg, #ffd9a8 0%, #f0ad62 40%, #d4833a 72%, #a85a1c 100%);
+  /* Metal düğme ve başlık yazısı aynı gradyanı kullanır: krem zeminde başlık
+     okunsun diye koyu bakır, düğme yazısı açık. */
+  --gradyan-altin-metal: linear-gradient(180deg, #c06c30 0%, #a8561e 22%, #8e4412 48%, #74340c 70%, #8a4216 86%, #a85c26 100%);
+  --gradyan-altin-yazi: linear-gradient(180deg, #a85d22 0%, #8f4714 30%, #74360d 52%, #55250a 70%, #8a4818 100%);
+  --renk-altin-parilti: rgba(230, 150, 70, 0.4);
+  --parlama-sira: 0 0 0 2px #d4833a, 0 0 18px 4px rgba(212, 131, 58, 0.5);
+  --parlama-altin: 0 0 14px rgba(212, 131, 58, 0.35);
+
+  --renk-vurgu-2: #0f8a63;
+  --renk-vurgu-2-koyu: #0a5c42;
+  --renk-basari: #138a55;
+  --renk-hata: #c8362c;
+  --renk-uyari: #b86a00;
+  --renk-bilgi: #1e6fb0;
+  --renk-pasif: #9a8e80;
+
+  --dugme-birincil-yazi: #fff6e8;
+  --dugme-birincil-kenar: #5a2808;
+  --dugme-ikincil-zemin: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(250, 240, 222, 0.7));
+
+  /* Masa: adaçayı yeşili çuha + açık ceviz */
+  --masa-cuha: #5d7f4a;
+  --masa-cuha-koyu: #2c4424;
+  --masa-cuha-gradyan: radial-gradient(ellipse 75% 70% at 50% 40%, #789c62 0%, var(--masa-cuha) 42%, #496a3a 72%, var(--masa-cuha-koyu) 100%);
+  --cuha-vinyet: radial-gradient(ellipse 85% 80% at 50% 45%, transparent 50%, rgba(30, 40, 10, 0.4) 100%);
+  --cuha-lamba: radial-gradient(ellipse 60% 62% at 50% 8%, rgba(255, 245, 210, 0.28), rgba(255, 240, 200, 0.06) 55%, transparent 75%);
+  --ceviz: linear-gradient(180deg, #a06b3c 0%, #7e5029 38%, #643d1d 70%, #4c2d14 100%);
+  --masa-ahsap: linear-gradient(180deg, #b07a48 0%, #8e5c33 38%, #6e4424 70%, #553218 100%);
+
+  /* Cam paneller: buzlu krem */
+  --cam-zemin: linear-gradient(180deg, rgba(255, 251, 243, 0.86) 0%, rgba(246, 236, 218, 0.9) 100%);
+  --cam-zemin-koyu: linear-gradient(180deg, rgba(244, 233, 212, 0.92), rgba(234, 220, 194, 0.94));
+  --cam-kenar: 1px solid rgba(140, 90, 40, 0.24);
+  --cam-ust-isik: inset 0 1px 0 rgba(255, 255, 255, 0.85), inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  --cam-panel-zemin-koyu: rgba(120, 80, 30, 0.08);
+  --cam-buzlu: linear-gradient(160deg, rgba(255, 255, 255, 0.6), rgba(240, 228, 206, 0.8));
+
+  --golge-kucuk: 0 2px 6px rgba(80, 50, 20, 0.16);
+  --golge: 0 8px 22px rgba(80, 50, 20, 0.16), 0 2px 5px rgba(80, 50, 20, 0.12);
+  --golge-buyuk: 0 20px 50px rgba(60, 35, 10, 0.28), 0 6px 16px rgba(60, 35, 10, 0.16);
+
+  --zemin-gece: radial-gradient(ellipse 120% 90% at 50% 0%, #fffaf0 0%, #f5ead6 38%, #eadbbf 70%, #dccaa8 100%);
+  --isik-lamba: radial-gradient(ellipse 62% 58% at 50% -12%, rgba(255, 240, 200, 0.5) 0%, rgba(255, 230, 180, 0.15) 45%, transparent 72%);
+  --isik-kenar: radial-gradient(ellipse 140% 120% at 50% 50%, transparent 60%, rgba(120, 80, 30, 0.16) 100%);
+
+  --tas-kirmizi: #c4122f;
+  --tas-sari: #c76f00;
+  --tas-mavi: #1450c8;
+  --tas-siyah: #17171c;
+  --tas-sahte: #496a3a;
+  --tas-okey-yildiz: #d4833a;
+}
+
+/* Koyu "adalar": ahşap/çuha masa, salon kartları ve isim etiketleri kendi koyu
+   zeminlerini çizer. Bunların içinde yazı ve cam değişkenleri yeniden koyu tema
+   değerlerine döner. `color` da yeniden verilir: body'den miras gelen yazı
+   rengi kökte hesaplandığı için yalnız değişkeni değiştirmek yetmez. */
+:root[data-tema="gunduz-kahvehanesi"] :is(.masa, .salon, .etiket) {
+  color-scheme: dark;
+  color: var(--renk-yazi);
+  --renk-yazi: #f7efdc;
+  --renk-yazi-soluk: #d8cab2;
+  --renk-yazi-golge: rgba(0, 0, 0, 0.55);
+  --renk-cizgi: rgba(255, 236, 200, 0.1);
+  --renk-hafif: rgba(255, 244, 220, 0.08);
+  --renk-altin-acik: #ffd9a8;
+  --cam-zemin: linear-gradient(180deg, rgba(60, 40, 22, 0.72) 0%, rgba(34, 22, 12, 0.8) 100%);
+  --cam-zemin-koyu: linear-gradient(180deg, rgba(40, 26, 14, 0.84), rgba(24, 15, 8, 0.88));
+  --cam-kenar: 1px solid rgba(255, 210, 150, 0.26);
+  --cam-ust-isik: inset 0 1px 0 rgba(255, 240, 210, 0.16), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  --dugme-ikincil-zemin: linear-gradient(180deg, rgba(255, 248, 230, 0.16), rgba(255, 248, 230, 0.06));
+  --cam-panel-zemin-koyu: rgba(0, 0, 0, 0.3);
+}
+
+/* Masada düğme/şerit yazıları (masa.css) koyu yazıyla sabit: orada açık altın
+   metal kalsın. */
+:root[data-tema="gunduz-kahvehanesi"] .masa {
+  --gradyan-altin-metal: linear-gradient(180deg, #ffeccc 0%, #f8cf92 22%, #e6a35c 48%, #bd7430 70%, #dd9a58 86%, #f6c98c 100%);
+  --dugme-birincil-yazi: #3a1a06;
+  --dugme-birincil-kenar: #8a4a18;
+  --renk-altin: #e8a85a;
+}

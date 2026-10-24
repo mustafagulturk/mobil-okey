@@ -1,0 +1,9 @@
+/* Alternatif renk paletleri. Hiçbiri <html data-tema="..."> verilmeden etkin
+   olmaz; öznitelik yoksa uygulama tema.css'teki "Gece Salonu" ile açılır.
+   Ayrıntı: README.md */
+@import "./gece-salonu.css";
+@import "./bogaz-gecesi.css";
+@import "./osmanli-konagi.css";
+@import "./modern-lounge.css";
+@import "./gunduz-kahvehanesi.css";
+@import "./iznik.css";

@@ -1,0 +1,7 @@
+/* 0) GECE SALONU — mevcut zümrüt çuha + ceviz + altın tema (tema.css).
+   Burada üzerine yazılan bir şey yok; data-tema="gece-salonu" yalnızca
+   ortak.css'teki eksik değişkenleri devreye sokar ve diğer temalarla aynı
+   koşulda karşılaştırma yapmayı sağlar. */
+:root[data-tema="gece-salonu"] {
+  --tema-adi: "Gece Salonu";
+}

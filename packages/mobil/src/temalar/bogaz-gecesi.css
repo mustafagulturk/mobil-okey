@@ -1,0 +1,67 @@
+/* =====================================================================
+   1) BOĞAZ GECESİ — lacivert çuha, bakır vurgular, maun çerçeve.
+   His: gece yarısı bir yalı salonu; suya vuran sıcak bakır ışık.
+   Mavi çuha bilardo/poker masalarından tanıdık; gözü yormayan soğuk
+   zemin, sıcak (bakır) vurgularla dengelenir.
+   ===================================================================== */
+:root[data-tema="bogaz-gecesi"] {
+  --tema-adi: "Boğaz Gecesi";
+
+  --renk-zemin: #050c18;
+  --renk-zemin-desen: #0d1f38;
+  --renk-yuzey: #0c1b31;
+  --renk-yuzey-acik: #15294a;
+  --renk-yuzey-kenar: rgba(232, 150, 96, 0.2);
+  --renk-yazi: #f3eee4;
+  --renk-yazi-soluk: #a3b4ca;
+  --renk-cizgi: rgba(200, 220, 255, 0.09);
+  --renk-hafif: rgba(220, 232, 255, 0.07);
+  --renk-karartma: rgba(2, 6, 14, 0.66);
+
+  /* Vurgu: bakır (altın değişkenlerinin yerine) */
+  --renk-altin: #e8a06a;
+  --renk-altin-acik: #ffd3b0;
+  --renk-altin-koyu: #9a5428;
+  --renk-altin-hafif: rgba(232, 160, 106, 0.16);
+  --gradyan-altin: linear-gradient(180deg, #ffdcbf 0%, #f2ab78 40%, #d07f48 72%, #a65a2c 100%);
+  --gradyan-altin-metal: linear-gradient(180deg, #ffeadb 0%, #f8c39a 22%, #df8e57 48%, #a8592a 70%, #d58b56 86%, #f3bd92 100%);
+  --gradyan-altin-yazi: linear-gradient(180deg, #fff3e8 0%, #ffd2ad 30%, #eea268 52%, #bb6a33 70%, #f4b98b 100%);
+  --renk-altin-parilti: rgba(255, 180, 130, 0.5);
+  --parlama-sira: 0 0 0 2px var(--renk-altin), 0 0 22px 5px rgba(232, 160, 106, 0.55);
+  --parlama-altin: 0 0 18px rgba(255, 170, 120, 0.42);
+
+  --renk-vurgu-2: #5cc8ff;
+  --renk-vurgu-2-koyu: #1a78b0;
+
+  --dugme-birincil-yazi: #3a1808;
+  --dugme-birincil-kenar: #7a3c16;
+  --dugme-ikincil-zemin: linear-gradient(180deg, rgba(225, 236, 255, 0.13), rgba(225, 236, 255, 0.05));
+  --dugme-yesil-zemin: linear-gradient(180deg, #a8e8ff 0%, #4cb9ea 40%, #1d78b0 100%);
+
+  /* Masa: lacivert çuha + koyu maun */
+  --masa-cuha: #1b4c84;
+  --masa-cuha-koyu: #061631;
+  --masa-cuha-gradyan: radial-gradient(ellipse 75% 70% at 50% 40%, #2a64a3 0%, var(--masa-cuha) 42%, #113461 72%, var(--masa-cuha-koyu) 100%);
+  --cuha-vinyet: radial-gradient(ellipse 85% 80% at 50% 45%, transparent 45%, rgba(0, 6, 20, 0.62) 100%);
+  --cuha-lamba: radial-gradient(ellipse 60% 62% at 50% 8%, rgba(255, 200, 150, 0.24), rgba(255, 190, 140, 0.06) 55%, transparent 75%);
+  --ceviz: linear-gradient(180deg, #5e3322 0%, #43220f 38%, #30170b 70%, #200e06 100%);
+  --masa-ahsap: linear-gradient(180deg, #8e5636 0%, #6a3a22 38%, #4c2715 70%, #34190c 100%);
+
+  --cam-zemin: linear-gradient(180deg, rgba(22, 42, 76, 0.76) 0%, rgba(8, 18, 38, 0.84) 100%);
+  --cam-zemin-koyu: linear-gradient(180deg, rgba(10, 20, 42, 0.86), rgba(4, 10, 22, 0.9));
+  --cam-kenar: 1px solid rgba(232, 160, 110, 0.24);
+  --cam-ust-isik: inset 0 1px 0 rgba(220, 235, 255, 0.14), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  --cam-buzlu: linear-gradient(160deg, rgba(200, 220, 255, 0.12), rgba(8, 18, 40, 0.55));
+
+  --zemin-gece: radial-gradient(ellipse 120% 90% at 50% 0%, #12305a 0%, #0a1d3a 38%, #050e1f 70%, #02060f 100%);
+  --isik-lamba: radial-gradient(ellipse 62% 58% at 50% -12%, rgba(255, 190, 140, 0.22) 0%, rgba(255, 170, 110, 0.08) 45%, transparent 72%);
+
+  /* Taşlar: fildişi; sarı rakam koyulaştırıldı (fildişi üstünde ≥3:1) */
+  --tas-kirmizi: #c4122f;
+  --tas-sari: #c76f00;
+  --tas-mavi: #1450c8;
+  --tas-siyah: #17171c;
+  --tas-sahte: #1a6fb8;
+  --tas-okey-yildiz: #e8a06a;
+  --tas-secili: #ffb27a;
+}
