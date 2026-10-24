@@ -1,0 +1,45 @@
+/* ---------- Alt ekranlar (mağaza, ayarlar...) ---------- */
+.alt-ekran {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ekran-basligi {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.ekran-basligi h1 {
+  flex: 1;
+}
+
+.ekran-basligi__sag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sekmeler {
+  display: inline-flex;
+  padding: 3px;
+  gap: 3px;
+  border-radius: var(--kose-hap);
+  background: var(--renk-karartma);
+}
+
+.sekme {
+  padding: 6px 16px;
+  border-radius: var(--kose-hap);
+  font-weight: 800;
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-yazi-soluk);
+}
+
+.sekme--secili {
+  background: var(--dugme-birincil-zemin);
+  color: var(--dugme-birincil-yazi);
+}
+

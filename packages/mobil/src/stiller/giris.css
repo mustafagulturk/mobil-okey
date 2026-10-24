@@ -1,0 +1,53 @@
+/* ---------- Giriş ---------- */
+.giris {
+  display: grid;
+  grid-template-columns: 1fr minmax(300px, 380px);
+  gap: 24px;
+  align-items: center;
+}
+
+.giris__sahne {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-left: 12px;
+}
+
+.giris__alt {
+  color: var(--renk-yazi-soluk);
+  font-size: var(--yazi-buyuk);
+  max-width: 320px;
+}
+
+.giris__kart {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 100%;
+  overflow: auto;
+}
+
+.giris__durum {
+  text-align: center;
+}
+
+.giris__hata {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--renk-uyari);
+  font-size: var(--yazi-kucuk);
+  font-weight: 700;
+}
+
+.giris__baglantilar {
+  display: flex;
+  justify-content: space-between;
+}
+
+.giris__gelismis {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+

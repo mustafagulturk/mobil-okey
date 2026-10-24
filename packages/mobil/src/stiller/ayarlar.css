@@ -1,0 +1,42 @@
+/* ---------- Ayarlar ---------- */
+.ayarlar__icerik {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.ayarlar__icerik .kart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ayarlar__icerik .satir .girdi {
+  flex: 1;
+  width: auto;
+}
+
+.kurtarma-kodu {
+  display: block;
+  padding: 8px 10px;
+  border-radius: var(--kose-kucuk);
+  background: var(--renk-karartma);
+  font-size: 11px;
+  word-break: break-all;
+  user-select: all;
+  -webkit-user-select: all;
+}
+
+.kurtarma-kodu--gizli {
+  filter: blur(5px);
+}
+
+.surum {
+  font-size: var(--yazi-kucuk);
+  color: var(--renk-yazi-soluk);
+}
+

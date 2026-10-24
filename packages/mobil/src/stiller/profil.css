@@ -1,0 +1,140 @@
+/* ---------- Profil ---------- */
+.profil__icerik {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) 1fr;
+  gap: 12px;
+}
+
+.profil__onizleme {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: auto;
+}
+
+.profil__etiket-sahne {
+  display: grid;
+  place-items: center;
+  min-height: 66px;
+  border-radius: var(--kose);
+  background: var(--masa-cuha-gradyan);
+  padding: 8px;
+}
+
+.istatistik {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.istatistik div {
+  background: var(--renk-karartma);
+  border-radius: var(--kose-kucuk);
+  padding: 5px 8px;
+}
+
+.istatistik dt {
+  font-size: 10px;
+  color: var(--renk-yazi-soluk);
+  font-weight: 700;
+}
+
+.istatistik dd {
+  margin: 0;
+  font-weight: 900;
+}
+
+.istatistik small {
+  color: var(--renk-basari);
+}
+
+.profil__susler {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.sus-izgara {
+  flex: 1;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  grid-auto-rows: max-content;
+  gap: 8px;
+  padding: 2px;
+}
+
+.sus {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  border-radius: var(--kose);
+  background: var(--renk-karartma);
+  border: 2px solid transparent;
+}
+
+.sus--secili {
+  border-color: var(--renk-altin);
+  background: var(--renk-altin-hafif);
+}
+
+.sus--kilitli .sus__gorsel {
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+
+.sus__gorsel {
+  height: 34px;
+  display: grid;
+  place-items: center;
+}
+
+.sus__ad {
+  font-weight: 800;
+  font-size: var(--yazi-kucuk);
+}
+
+.sus__kosul {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: var(--renk-yazi-soluk);
+  font-weight: 700;
+}
+
+.sus-cerceve {
+  position: relative;
+  display: block;
+  width: 56px;
+  height: 28px;
+  border-radius: var(--kose-kucuk);
+  background: var(--cerceve);
+}
+
+.sus-cerceve::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 4px;
+  background: var(--renk-yuzey);
+}
+
+.sus-rozet {
+  font-size: 26px;
+}
+
+.sus-unvan {
+  font-weight: 900;
+  font-size: var(--yazi-kucuk);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+

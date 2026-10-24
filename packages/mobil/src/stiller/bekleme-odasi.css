@@ -1,0 +1,83 @@
+/* ---------- Bekleme odası ---------- */
+.bekleme {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bekleme__ust {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bekleme__salon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+}
+
+.bekleme__orta {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(180px, 230px) 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.oda-kodu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.oda-kodu__kod {
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  color: var(--renk-altin-acik);
+}
+
+.koltuklar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.koltuk {
+  min-height: 82px;
+  border-radius: var(--kose);
+  background: var(--masa-cuha-gradyan);
+  border: 2px solid var(--renk-yuzey-kenar);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  font-weight: 700;
+  color: var(--renk-yazi-soluk);
+}
+
+.koltuk--bos {
+  border-style: dashed;
+  background: var(--renk-karartma);
+}
+
+.koltuk__sahip {
+  font-size: 10px;
+  font-weight: 900;
+  color: var(--renk-altin);
+  text-transform: uppercase;
+}
+
+.bekleme__alt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+

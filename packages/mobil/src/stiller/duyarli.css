@@ -1,0 +1,23 @@
+/* ---------- Dar/alçak ekranlar için küçük ayarlar ---------- */
+@media (max-height: 360px) {
+  .salon__aralik {
+    display: none;
+  }
+}
+
+/* Telefon dik tutulursa (Android'de yatay kilitli; tarayıcıda olabilir) uyarı göster. */
+@media (orientation: portrait) and (max-width: 600px) {
+  body::after {
+    content: "Lütfen telefonu yan çevirin ↻";
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    display: grid;
+    place-items: center;
+    background: var(--renk-zemin);
+    color: var(--renk-yazi);
+    font-weight: 800;
+    font-size: var(--yazi-buyuk);
+  }
+}
+
