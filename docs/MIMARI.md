@@ -112,3 +112,26 @@ Reklam ödülünü de telefon değil sunucu verir. AdMob, reklam izlendiğinde s
 - **Yatay ölçekleme yok:** odalar tek sunucunun belleğinde. Çok büyürse odaları Redis gibi paylaşılan bir yerde tutmak ve oyuncuları oda koduna göre aynı sunucuya yönlendirmek gerekir.
 - **İade bildirimleri işlenmiyor:** Google'dan iade edilen satın almaların çipini geri almak için Real-time Developer Notifications kurulmalı.
 - **Google hesabıyla giriş yok:** hesap kurtarma kodu ile cihaz değiştirilebiliyor; Play Oyun Hizmetleri girişi sonradan eklenebilir.
+
+## Mülakatta sık gelebilecek sorular
+
+**"Bu projeyi 1 dakikada anlat."**
+Android için gerçek zamanlı, 4 kişilik online Okey oyunu yaptım. Telefon React ve Capacitor ile, sunucu Node.js ve WebSocket ile yazıldı. Kurallar iki tarafın paylaştığı tek bir TypeScript paketinde. Bütün kararları sunucu veriyor: desteyi karıştırıyor, her oyuncuya sadece kendi taşlarını gösteriyor, her hamleyi doğruluyor. Çip ekonomisi, Google Play satın alma, ödüllü reklam, seviye ve görev sistemi var; ödeme ve reklam ödülleri de sunucuda Google'a sorularak doğrulanıyor. 40 sanal oyuncuyla yük testi yaptım ve iki gerçek hata buldum.
+
+**"Neden WebSocket, neden HTTP değil?"**
+Sunucunun oyunculara kendiliğinden haber vermesi gerekiyor (rakip taş attı, süre doldu, sohbet). HTTP'de istemci sormadan sunucu konuşamaz; sürekli sormak (polling) hem gecikmeli hem israf.
+
+**"Hile yapılmasını nasıl engelledin?"**
+İstemciye güvenmiyorum. Taşları sunucu dağıtıyor ve diğer oyuncuların taşları telefona hiç gitmiyor. Telefon sadece niyet bildiriyor ("52 numaralı taşı atıyorum"); sunucu taşın gerçekten elinde olup olmadığına, sıranın onda olup olmadığına bakıyor. Bitiş iddiasını da sunucu kendi algoritmasıyla kontrol ediyor. Satın alma ve reklam ödülleri de telefonun sözüne değil Google'ın doğrulamasına göre veriliyor.
+
+**"El bitti mi kontrolünü nasıl yaptın?"**
+Geri izleme. En küçük taşı alıp onu içeren her olası peri deniyorum, kalanı aynı şekilde çözüyorum. Bot için bu yavaş kaldı (40 ms); taşları sayaç dizisine çevirip ara sonuçları ezberleyerek 2 ms'nin altına indirdim. İki yöntemin aynı sonucu verdiğini rastgele ellerle test ediyorum.
+
+**"Yük testinde ne buldun?"**
+İki hata: el arasında biri bağlantısını kopartırsa sonraki el hiç başlamıyordu (zamanlayıcı iptal edilip yeniden kurulmuyordu). İkincisi, bir oyuncu sürekli kopup bağlanarak sıradaki oyuncunun süresini sıfırlatabiliyordu. İkisini düzeltip regresyon testi ekledim.
+
+**"Ölçeklemek gerekse ne yapardın?"**
+Şu an odalar tek sunucunun belleğinde. Birden fazla sunucuya geçerken oyuncuları oda koduna göre aynı sunucuya yönlendirir (sticky routing), hesap ve çip verisini PostgreSQL'e taşırdım. Oda durumu kısa ömürlü olduğu için Redis yeterli olur.
+
+**"Çip ekonomisinde tutarlılığı nasıl sağladın?"**
+Her çip işlemi veritabanı transaction'ı içinde; bakiyede `CHECK(cip >= 0)` kısıtı var; aynı satın alma jetonu ve aynı reklam işlem kimliği benzersiz indeksle bir kez kullanılabiliyor; her değişim denetim tablosuna yazılıyor. Yük testi her oyuncunun bakiyesinin hareket kayıtlarının toplamına eşit olduğunu kontrol ediyor.
