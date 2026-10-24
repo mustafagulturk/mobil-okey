@@ -1,5 +1,8 @@
-// Ekranın ortasında açılan pencere (modal). Arka plana dokununca kapanır.
-import type { ReactNode } from "react";
+// Ekranın ortasında açılan pencere (modal): koyu cam, yaylı ölçekle açılır, arkası
+// bulanık kararır. Arka plana dokununca kapanır (kapanırken kısa bir çıkış animasyonu oynar).
+import { type ReactNode, useEffect, useRef, useState } from "react";
+import { efektlerAcik } from "../efektler/ayar.ts";
+import { parcaciklariDuraklat } from "../efektler/Parcaciklar.tsx";
 import { useGeriTusu } from "../platform/geriTusu.ts";
 import { Simge } from "./Simge.tsx";
 
@@ -11,16 +14,37 @@ interface Ozellikler {
 }
 
 export function Pencere({ baslik, kapat, children, genis }: Ozellikler) {
+  const [kapaniyor, setKapaniyor] = useState(false);
+  const zamanlayici = useRef<ReturnType<typeof setTimeout>>();
+
+  // Arka plandaki tozlar dursun: bulanık karartma her karede yeniden hesaplanmasın.
+  useEffect(() => {
+    const birak = parcaciklariDuraklat();
+    return () => {
+      birak();
+      clearTimeout(zamanlayici.current);
+    };
+  }, []);
+
+  const kapatAnimasyonlu = kapat
+    ? () => {
+        if (kapaniyor) return;
+        if (!efektlerAcik()) return kapat();
+        setKapaniyor(true);
+        zamanlayici.current = setTimeout(kapat, 170);
+      }
+    : undefined;
+
   // Android geri tuşu pencereyi kapatır (kapatılamayan pencerede hiçbir şey yapmaz).
-  useGeriTusu(() => kapat?.());
+  useGeriTusu(() => kapatAnimasyonlu?.());
   return (
-    <div className="pencere-arka" onClick={kapat}>
-      <div className={`pencere ${genis ? "pencere--genis" : ""}`} onClick={(e) => e.stopPropagation()}>
+    <div className={`pencere-arka ${kapaniyor ? "pencere-arka--kapaniyor" : ""}`} onClick={kapatAnimasyonlu}>
+      <div className={`pencere ${genis ? "pencere--genis" : ""}`} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal>
         {(baslik || kapat) && (
           <div className="pencere__ust">
             {baslik && <h2>{baslik}</h2>}
             {kapat && (
-              <button className="simge-dugme" onClick={kapat} aria-label="Kapat">
+              <button className="simge-dugme" onClick={kapatAnimasyonlu} aria-label="Kapat">
                 <Simge ad="kapat" />
               </button>
             )}

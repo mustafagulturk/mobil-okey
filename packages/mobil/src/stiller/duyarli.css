@@ -3,6 +3,32 @@
   .salon__aralik {
     display: none;
   }
+
+  .logo--buyuk .logo__yazi {
+    font-size: 46px;
+  }
+
+  .logo--buyuk .logo__taslar .tas {
+    --en: 44px;
+    font-size: 27px;
+  }
+
+  .giris__kart {
+    padding: 14px;
+    gap: 8px;
+  }
+}
+
+/* Dar yatay ekran: logo küçülür, kart daralır. */
+@media (max-width: 760px) and (orientation: landscape) {
+  .giris {
+    grid-template-columns: 1fr minmax(280px, 320px);
+    gap: 14px;
+  }
+
+  .logo--buyuk .logo__yazi {
+    font-size: 44px;
+  }
 }
 
 /* Telefon dik tutulursa (Android'de yatay kilitli; tarayıcıda olabilir) uyarı göster. */
@@ -14,10 +40,10 @@
     z-index: 999;
     display: grid;
     place-items: center;
-    background: var(--renk-zemin);
-    color: var(--renk-yazi);
-    font-weight: 800;
+    background: var(--zemin-gece);
+    color: var(--renk-altin-acik);
+    font-family: var(--yazi-tipi-baslik);
+    font-weight: 600;
     font-size: var(--yazi-buyuk);
   }
 }
-

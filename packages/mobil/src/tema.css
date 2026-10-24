@@ -1,95 +1,109 @@
 /* =====================================================================
-   TEMA — Uygulamanın bütün görünümü buradan yönetilir.
+   TEMA — "Gece Salonu". Uygulamanın bütün görünümü buradan yönetilir.
 
-   Temayı değiştirmek için burayı düzenle:
-     - Renkleri, yazı tipini, köşe yuvarlaklıklarını, gölgeleri ve
-       taş/masa ölçülerini aşağıdaki değişkenlerden değiştirebilirsin.
-     - Bileşenler (src/stil.css) kendi rengini yazmaz, sadece bu
-       değişkenleri kullanır. Burada yaptığın değişiklik her yere yansır.
-     - Yazı tipini değiştirmek için: @fontsource/<yazi-tipi> paketini kur,
-       src/main.tsx içindeki import satırlarını değiştir ve --yazi-tipi'ni güncelle.
+   Hava: gece yarısı lüks bir salon. Koyu, derin zümrüt-siyah zemin;
+   üstten vuran sıcak lamba ışığı; zümrüt çuha; cilalı ceviz; metalik
+   altın; fildişi 3D taşlar.
 
-   Hava: sıcak, modern bir kahvehane. Koyu zümrüt çuha, ahşap kenar,
-   krem taşlar, altın vurgular.
+   Kurallar:
+     - Bileşen stilleri (src/stiller/*) kendi rengini yazmaz; bu
+       değişkenleri kullanır. Burada yapılan değişiklik her yere yansır.
+     - Değişken adları diğer ekranlarca kullanılıyor: SİLMEYİN, değerini
+       değiştirin. Yeni değer gerekirse buraya ekleyin.
+     - Yazı tipleri src/main.tsx'te @fontsource paketlerinden yüklenir.
    ===================================================================== */
 
 :root {
+  color-scheme: dark;
+
   /* ---------- Yazı ---------- */
   --yazi-tipi: "Nunito", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --yazi-tipi-baslik: "Fredoka", var(--yazi-tipi);   /* başlıklar, büyük sayılar */
   --yazi-kucuk: 12px;
   --yazi-normal: 14px;
   --yazi-buyuk: 17px;
   --yazi-baslik: 22px;
-  --yazi-dev: 30px;
+  --yazi-dev: 32px;
 
   /* ---------- Ana renkler ---------- */
-  --renk-zemin: #0b2a20;            /* uygulamanın en arka zemini */
-  --renk-zemin-desen: #0f3427;      /* zemindeki hafif ışık */
-  --renk-yuzey: #143b2e;            /* kartlar, paneller */
-  --renk-yuzey-acik: #1c4a3a;       /* kart üstündeki ikinci katman */
-  --renk-yuzey-kenar: rgba(255, 233, 180, 0.14);
-  --renk-yazi: #f6efe0;             /* ana yazı (krem) */
-  --renk-yazi-soluk: #b9c7bd;       /* ikincil yazı */
-  --renk-yazi-koyu: #2b2118;        /* açık zemin üstündeki yazı */
+  --renk-zemin: #07140f;            /* en arka zemin (gece) */
+  --renk-zemin-desen: #0f2a20;      /* zemindeki hafif ışık */
+  --renk-yuzey: #0f2a21;            /* opak kartlar, paneller */
+  --renk-yuzey-acik: #173b2f;       /* kart üstündeki ikinci katman */
+  --renk-yuzey-kenar: rgba(240, 200, 120, 0.18);
+  --renk-yazi: #f7efdc;             /* ana yazı (fildişi) */
+  --renk-yazi-soluk: #a9bcb1;       /* ikincil yazı */
+  --renk-yazi-koyu: #2a1d10;        /* açık zemin üstündeki yazı */
 
-  --renk-cizgi: rgba(255, 255, 255, 0.08);      /* ayraçlar, ince kenarlar */
-  --renk-hafif: rgba(255, 255, 255, 0.06);      /* düğme/girdi zemini */
-  --renk-karartma: rgba(4, 16, 12, 0.66);       /* pencere açıkken arka plan */
-  --renk-yazi-golge: rgba(0, 0, 0, 0.45);
+  --renk-cizgi: rgba(255, 236, 200, 0.09);      /* ayraçlar, ince kenarlar */
+  --renk-hafif: rgba(255, 244, 220, 0.07);      /* düğme/girdi zemini */
+  --renk-karartma: rgba(3, 10, 8, 0.62);        /* pencere açıkken arka plan */
+  --renk-yazi-golge: rgba(0, 0, 0, 0.55);
 
   /* ---------- Vurgu (altın) ---------- */
-  --renk-altin: #e9b949;
-  --renk-altin-acik: #ffe08a;
-  --renk-altin-koyu: #a8761c;
-  --renk-altin-hafif: rgba(233, 185, 73, 0.16); /* seçili kart zemini */
-  --gradyan-altin: linear-gradient(180deg, #ffe08a 0%, #e9b949 55%, #c48d25 100%);
+  --renk-altin: #f0c25a;
+  --renk-altin-acik: #ffe6a3;
+  --renk-altin-koyu: #a3701c;
+  --renk-altin-hafif: rgba(240, 194, 90, 0.16);  /* seçili kart zemini */
+  --gradyan-altin: linear-gradient(180deg, #ffeeb0 0%, #f3cb68 40%, #d9a23a 72%, #b9832a 100%);
+  --gradyan-altin-metal: linear-gradient(180deg, #fff6d2 0%, #f7da86 22%, #e3ae45 48%, #b67d22 70%, #d9a948 86%, #f3d27e 100%);
+  --gradyan-altin-yazi: linear-gradient(180deg, #fff8dc 0%, #ffe39a 30%, #f0bd52 52%, #c58a2a 70%, #f6d27c 100%);
+  --renk-altin-parilti: rgba(255, 214, 120, 0.55);
+
+  /* İkinci vurgu: turkuaz-zümrüt */
+  --renk-vurgu-2: #34e3a4;
+  --renk-vurgu-2-koyu: #0f8f62;
 
   /* ---------- Durum renkleri ---------- */
-  --renk-basari: #4fd18b;
-  --renk-hata: #ff6b6b;
+  --renk-basari: #45dc97;
+  --renk-hata: #ff6f6a;
   --renk-uyari: #ffb547;
-  --renk-bilgi: #7cc4ff;
-  --renk-pasif: #6b7a72;            /* uygun olmayan salon vb. */
+  --renk-bilgi: #7cc8ff;
+  --renk-pasif: #64746c;            /* uygun olmayan salon vb. */
 
   /* ---------- Düğmeler ---------- */
-  --dugme-birincil-zemin: var(--gradyan-altin);
-  --dugme-birincil-yazi: #3a2a0c;
-  --dugme-ikincil-zemin: rgba(255, 255, 255, 0.08);
+  --dugme-birincil-zemin: var(--gradyan-altin-metal);
+  --dugme-birincil-yazi: #3a2608;
+  --dugme-birincil-kenar: #8a5c16;              /* altın düğmenin alt kalınlığı */
+  --dugme-ikincil-zemin: linear-gradient(180deg, rgba(255, 248, 230, 0.13), rgba(255, 248, 230, 0.05));
   --dugme-ikincil-yazi: var(--renk-yazi);
-  --dugme-tehlike-zemin: linear-gradient(180deg, #ff8a7a, #d9473a);
-  --dugme-yesil-zemin: linear-gradient(180deg, #5fe0a8, #1f9c66);
+  --dugme-tehlike-zemin: linear-gradient(180deg, #ff9a88 0%, #f0604f 45%, #c23a2e 100%);
+  --dugme-yesil-zemin: linear-gradient(180deg, #8ff0c4 0%, #36d394 40%, #17996a 100%);
 
   /* ---------- Salon kartlarının vurgu renkleri (sırayla) ---------- */
-  --salon-renk-0: #4fa3d9;   /* Çaylak */
-  --salon-renk-1: #e08b3a;   /* Kahvehane */
-  --salon-renk-2: #b56be0;   /* Ustalar */
-  --salon-renk-3: #e9b949;   /* Ağalar */
+  --salon-renk-0: #58b4f0;   /* Çaylak */
+  --salon-renk-1: #f0954a;   /* Kahvehane */
+  --salon-renk-2: #c27cf0;   /* Ustalar */
+  --salon-renk-3: #f0c25a;   /* Ağalar */
 
   /* ---------- Masa ---------- */
-  --masa-cuha: #0d5a3d;                         /* çuhanın orta rengi */
-  --masa-cuha-koyu: #063526;                    /* çuhanın kenar rengi */
-  --masa-cuha-gradyan: radial-gradient(ellipse at 50% 42%, #137450 0%, var(--masa-cuha) 45%, var(--masa-cuha-koyu) 100%);
-  --masa-ahsap: linear-gradient(180deg, #8a5a33 0%, #6b4226 50%, #4f2f1a 100%);
-  --masa-ahsap-kenar: 7px;                      /* ahşap çerçevenin kalınlığı */
+  --masa-cuha: #0e6444;                         /* çuhanın orta rengi */
+  --masa-cuha-koyu: #052a1d;                    /* çuhanın kenar rengi */
+  --masa-cuha-gradyan: radial-gradient(ellipse 75% 70% at 50% 40%, #198a5c 0%, var(--masa-cuha) 42%, #0a4631 72%, var(--masa-cuha-koyu) 100%);
+  --masa-ahsap: linear-gradient(180deg, #9a6438 0%, #74462a 38%, #55311b 70%, #3c2212 100%);
+  --masa-ahsap-kenar: 8px;                      /* ahşap çerçevenin kalınlığı */
+  --masa-ahsap-damar: repeating-linear-gradient(92deg, rgba(0, 0, 0, 0.07) 0 2px, transparent 2px 9px, rgba(255, 220, 170, 0.04) 9px 10px, transparent 10px 17px);
   --masa-cizgi: rgba(255, 255, 255, 0.07);      /* çuha üstündeki ince çizgiler */
 
   /* ---------- İstaka (taşların durduğu ahşap raf) ---------- */
-  --istaka-zemin: linear-gradient(180deg, #a87445 0%, #8a5a33 60%, #6b4226 100%);
-  --istaka-raf: rgba(0, 0, 0, 0.22);            /* her sıranın altındaki gölge çizgisi */
-  --istaka-yuva-vurgu: rgba(255, 224, 138, 0.35); /* sürüklerken üstüne gelinen yuva */
+  --istaka-zemin: linear-gradient(180deg, #b07a48 0%, #8e5c33 55%, #6a4124 100%);
+  --istaka-raf: rgba(0, 0, 0, 0.26);            /* her sıranın altındaki gölge çizgisi */
+  --istaka-yuva-vurgu: rgba(255, 224, 138, 0.38); /* sürüklerken üstüne gelinen yuva */
 
-  /* ---------- Taşlar ---------- */
-  --tas-zemin: linear-gradient(180deg, #fffaf0 0%, #f6ecd6 70%, #e8d9b8 100%);
-  --tas-kenar: #d6c49c;
-  --tas-alt-golge: #b9a57c;                     /* taşın kalınlığını veren alt kenar */
+  /* ---------- Taşlar (fildişi, 3D) ---------- */
+  --tas-zemin: linear-gradient(165deg, #fffdf6 0%, #fbf3e1 38%, #f1e4c6 78%, #e6d4ad 100%);
+  --tas-kenar: #d8c49a;
+  --tas-alt-golge: #b39a6a;                     /* taşın kalınlığını veren alt kenar */
+  --tas-alt-koyu: #8d7548;                      /* kalınlığın en alt çizgisi */
+  --tas-ust-isik: rgba(255, 255, 255, 0.95);    /* üst kenardaki parlama */
   --tas-secili: #ffcf4d;                        /* seçili taşın çerçevesi */
-  --tas-kirmizi: #d7263d;
-  --tas-sari: #e88a00;
-  --tas-mavi: #1f5fbf;
-  --tas-siyah: #1d1d1f;
-  --tas-sahte: #0e7a52;                         /* sahte okey simgesinin rengi */
-  --tas-okey-yildiz: #e9b949;                   /* okey taşının köşesindeki yıldız */
-  --tas-arka: linear-gradient(135deg, #e7d6ae, #cdb88a);  /* kapalı taş (deste) */
+  --tas-kirmizi: #d8202f;
+  --tas-sari: #e48300;
+  --tas-mavi: #1652c4;
+  --tas-siyah: #1b1a1f;
+  --tas-sahte: #0b7a52;                         /* sahte okey simgesinin rengi */
+  --tas-okey-yildiz: #f0c25a;                   /* okey taşının köşesindeki yıldız */
+  --tas-arka: linear-gradient(160deg, #f1e1b9 0%, #dcc595 55%, #c6ab76 100%);  /* kapalı taş (deste) */
 
   /* Taş ölçüleri. İstakadaki taş ekranın genişliğine göre küçülür, en fazla bu değerde olur. */
   --tas-en: min(42px, calc((100vw - env(safe-area-inset-left) - env(safe-area-inset-right) - 230px) / 15));
@@ -99,48 +113,38 @@
   --tas-kose: 6px;
 
   /* ---------- Biçim ---------- */
-  --kose-kucuk: 8px;
-  --kose: 14px;
-  --kose-buyuk: 22px;
+  --kose-kucuk: 9px;
+  --kose: 15px;
+  --kose-buyuk: 24px;
   --kose-hap: 999px;
-  --golge-kucuk: 0 2px 6px rgba(0, 0, 0, 0.25);
-  --golge: 0 8px 22px rgba(0, 0, 0, 0.35);
-  --golge-buyuk: 0 18px 50px rgba(0, 0, 0, 0.5);
-  --golge-tas: 0 2px 0 var(--tas-alt-golge), 0 4px 8px rgba(0, 0, 0, 0.3);
-  --parlama-sira: 0 0 0 3px var(--renk-altin), 0 0 18px 4px rgba(233, 185, 73, 0.65);
+  --golge-kucuk: 0 2px 6px rgba(0, 0, 0, 0.32);
+  --golge: 0 10px 28px rgba(0, 0, 0, 0.42), 0 2px 6px rgba(0, 0, 0, 0.25);
+  --golge-buyuk: 0 24px 60px rgba(0, 0, 0, 0.6), 0 6px 18px rgba(0, 0, 0, 0.35);
+  --golge-tas: 0 1px 0 var(--tas-alt-golge), 0 2px 0 var(--tas-alt-golge), 0 3px 0 var(--tas-alt-koyu), 0 5px 8px rgba(0, 0, 0, 0.35);
+  --golge-tas-kalkik: 0 1px 0 var(--tas-alt-golge), 0 2px 0 var(--tas-alt-golge), 0 3px 0 var(--tas-alt-koyu), 0 16px 22px rgba(0, 0, 0, 0.45);
+  --parlama-sira: 0 0 0 2px var(--renk-altin), 0 0 22px 5px rgba(240, 194, 90, 0.6);
+  --parlama-altin: 0 0 18px rgba(255, 200, 100, 0.45);
   --bosluk: 12px;
+
+  /* ---------- Cam paneller ---------- */
+  --cam-zemin: linear-gradient(180deg, rgba(26, 58, 46, 0.74) 0%, rgba(10, 28, 22, 0.82) 100%);
+  --cam-zemin-koyu: linear-gradient(180deg, rgba(12, 30, 24, 0.86), rgba(5, 15, 11, 0.9));
+  --cam-bulanik: blur(14px) saturate(150%);
+  --cam-kenar: 1px solid rgba(240, 200, 120, 0.24);
+  --cam-ust-isik: inset 0 1px 0 rgba(255, 240, 210, 0.14), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+  --parilti: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.6) 48%, rgba(255, 255, 255, 0.15) 54%, transparent 66%);
+
+  /* ---------- Ortam ışığı ve doku ---------- */
+  --zemin-gece: radial-gradient(ellipse 120% 90% at 50% 0%, #143c2e 0%, #0b241b 38%, #06140f 70%, #030a07 100%);
+  --isik-lamba: radial-gradient(ellipse 62% 58% at 50% -12%, rgba(255, 210, 130, 0.26) 0%, rgba(255, 190, 100, 0.1) 45%, transparent 72%);
+  --isik-kenar: radial-gradient(ellipse 140% 120% at 50% 50%, transparent 55%, rgba(0, 0, 0, 0.55) 100%);  /* köşe kararması (vinyet) */
+  --doku-gurultu: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
 
   /* ---------- Hareket ---------- */
   --sure-hizli: 120ms;
   --sure: 220ms;
   --sure-yavas: 420ms;
   --egri: cubic-bezier(0.2, 0.8, 0.2, 1);
-
-
-  /* =====================================================================
-     YENİ GÖRÜNÜM ("Gece Salonu") ortak değişkenleri. Ajanlar ve bileşenler
-     bunları kullanır; değerleri buradan değiştir.
-     ===================================================================== */
-  --yazi-tipi-baslik: "Fredoka", var(--yazi-tipi);   /* başlıklar, büyük sayılar */
-
-  /* Cam paneller: arkası bulanık, ince altın kenarlı koyu cam */
-  --cam-zemin: linear-gradient(180deg, rgba(22, 52, 42, 0.72), rgba(8, 26, 20, 0.78));
-  --cam-bulanik: blur(14px) saturate(140%);
-  --cam-kenar: 1px solid rgba(240, 200, 120, 0.22);
-  --cam-ust-isik: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-
-  /* Metalik altın (düğmeler, çerçeveler, büyük sayılar) */
-  --gradyan-altin-metal: linear-gradient(180deg, #fff3c4 0%, #f6d37a 28%, #d9a23a 55%, #b07a22 78%, #e8c46a 100%);
-  --renk-vurgu-2: #34e3a4;             /* turkuaz-yeşil ikinci vurgu */
-  --parilti: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.55) 50%, transparent 65%);
-
-  /* Ortam ışığı ve doku */
-  --isik-lamba: radial-gradient(ellipse 70% 55% at 50% -10%, rgba(255, 214, 140, 0.22), transparent 70%);
-  --zemin-gece: radial-gradient(ellipse at 50% 0%, #123a2c 0%, #0a2219 45%, #050f0b 100%);
-  --doku-gurultu: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-  --masa-ahsap-damar: repeating-linear-gradient(92deg, rgba(0,0,0,0.06) 0 2px, transparent 2px 9px);
-
-  /* Hareket eğrileri */
   --egri-yay: cubic-bezier(0.34, 1.56, 0.64, 1);    /* hafif sıçramalı */
   --egri-yumusak: cubic-bezier(0.22, 1, 0.36, 1);
 
@@ -150,3 +154,71 @@
   --guvenli-sol: env(safe-area-inset-left, 0px);
   --guvenli-sag: env(safe-area-inset-right, 0px);
 }
+
+/* Efektler kapalı ya da telefonda "hareketi azalt" açık: animasyonlar kısalır. */
+:root[data-efekt="kapali"] {
+  --sure: 120ms;
+  --sure-yavas: 180ms;
+  --egri-yay: var(--egri-yumusak);
+
+  /* ---------- Lobi: salon kimlikleri ---------- */
+  --salon-caylak-zemin: radial-gradient(ellipse 90% 120% at 25% 10%, #1f8a5c 0%, #0f5a3c 45%, #073224 100%);
+  --salon-caylak-doku: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0 1px, transparent 1px 3px);
+  --salon-caylak-kenar: rgba(130, 235, 180, 0.32);
+
+  --salon-kahve-zemin: radial-gradient(ellipse 70% 90% at 12% 0%, rgba(255, 176, 98, 0.45), transparent 60%),
+    linear-gradient(140deg, #8a4a22 0%, #5a2c14 50%, #2e150a 100%);
+  --salon-kahve-doku: radial-gradient(circle at 30% 30%, rgba(255, 210, 160, 0.09) 0 2px, transparent 3px) 0 0 / 11px 11px,
+    radial-gradient(circle at 70% 60%, rgba(0, 0, 0, 0.12) 0 2px, transparent 3px) 5px 5px / 13px 13px;
+  --salon-kahve-kenar: rgba(240, 160, 95, 0.45);
+
+  --salon-usta-zemin: radial-gradient(ellipse 80% 110% at 80% 0%, #6a44b0 0%, #34246e 45%, #141538 100%);
+  --salon-usta-doku: linear-gradient(118deg, transparent 25%, rgba(255, 255, 255, 0.09) 42%, transparent 58%),
+    repeating-radial-gradient(circle at 20% 120%, rgba(255, 255, 255, 0.025) 0 2px, transparent 2px 5px);
+  --salon-usta-kenar: rgba(190, 150, 255, 0.4);
+
+  --salon-aga-zemin: radial-gradient(ellipse 80% 100% at 50% -10%, rgba(233, 185, 73, 0.22), transparent 60%),
+    linear-gradient(160deg, #1d1a14 0%, #0d0c0a 60%, #050505 100%);
+  --salon-aga-doku: repeating-linear-gradient(45deg, rgba(233, 185, 73, 0.07) 0 1px, transparent 1px 14px),
+    repeating-linear-gradient(-45deg, rgba(233, 185, 73, 0.07) 0 1px, transparent 1px 14px);
+  --salon-aga-kenar: rgba(240, 200, 110, 0.75);
+
+  --cam-panel-zemin-koyu: rgba(0, 0, 0, 0.32);
+
+  /* ---------- Mağaza ve alt ekranlar ---------- */
+  
+  --madalya-altin: linear-gradient(145deg, #fff3c4 0%, #f2c75a 35%, #b8801f 70%, #f6d37a 100%);
+  --madalya-gumus: linear-gradient(145deg, #ffffff 0%, #d5dde4 35%, #8794a1 70%, #e8eef3 100%);
+  --madalya-bronz: linear-gradient(145deg, #ffd9b0 0%, #d98e4f 35%, #8a4f22 70%, #e6a46b 100%);
+  --kurdele-yakut: linear-gradient(180deg, #ff6f7f 0%, #d22c45 55%, #9b1430 100%);
+  --kurdele-zumrut: linear-gradient(180deg, #6ff0c0 0%, #19b07a 55%, #0b6d4a 100%);
+  --cam-buzlu: linear-gradient(160deg, rgba(200, 230, 220, 0.12), rgba(10, 30, 24, 0.55));
+
+  /* ---------- Bekleme odası ---------- */
+  --oda-tas-en: 34px;
+  --koltuk-sandalye: linear-gradient(180deg, #7a4a28 0%, #5a331a 60%, #3d2210 100%);
+
+  /* ---------- Masa ekranı ---------- */
+  --masa-cerceve: 11px; /* ceviz çerçevenin görünen kalınlığı */
+  --ceviz: linear-gradient(180deg, #6e4122 0%, #4e2c15 38%, #3a1f0e 70%, #2a160a 100%);
+  --ceviz-damar: repeating-linear-gradient(
+      179.4deg,
+      rgba(0, 0, 0, 0.13) 0 1px,
+      transparent 1px 4px,
+      rgba(0, 0, 0, 0.07) 4px 5.5px,
+      transparent 5.5px 11px,
+      rgba(255, 210, 160, 0.05) 11px 12px,
+      transparent 12px 19px
+    ),
+    repeating-linear-gradient(180.7deg, rgba(0, 0, 0, 0.08) 0 2px, transparent 2px 23px),
+    repeating-linear-gradient(90deg, rgba(255, 220, 180, 0.03) 0 40px, rgba(0, 0, 0, 0.04) 40px 95px, transparent 95px 170px);
+  --cuha-vinyet: radial-gradient(ellipse 85% 80% at 50% 45%, transparent 45%, rgba(0, 12, 6, 0.62) 100%);
+  --cuha-lamba: radial-gradient(ellipse 60% 62% at 50% 8%, rgba(255, 220, 150, 0.26), rgba(255, 210, 140, 0.06) 55%, transparent 75%);
+  --istaka-ceviz: linear-gradient(180deg, #a5683a 0%, #8a5229 45%, #6d3d1c 100%);
+  --istaka-raf-on: linear-gradient(180deg, #c78a52 0%, #9c5f2f 30%, #6a3a19 100%);
+  --metal-zumrut: linear-gradient(180deg, #c9f7e0 0%, #5fdca5 26%, #1f9f6a 55%, #0c6a44 80%, #36b77f 100%);
+  --kirmizi-sicak: #ff5a4a;
+  --balon-zemin: linear-gradient(180deg, #fffaf0, #f3e6c8);
+}
+

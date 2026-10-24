@@ -1,6 +1,7 @@
 // Kök bileşen: hangi ekranın görüneceğine karar verir. (Yönlendirme kütüphanesi yok;
 // ekran durumda tutulan basit bir değerdir.)
 import { Bildirimler } from "./bilesenler/Bildirimler.tsx";
+import { Parcaciklar } from "./efektler/Parcaciklar.tsx";
 import { OyunSaglayici, useOyun } from "./durum/OyunSaglayici.tsx";
 import { Ayarlar } from "./ekranlar/Ayarlar.tsx";
 import { BeklemeOdasi } from "./ekranlar/BeklemeOdasi.tsx";
@@ -16,9 +17,25 @@ import { uygulamayiKucult, varsayilanGeri } from "./platform/geriTusu.ts";
 export function Uygulama() {
   return (
     <OyunSaglayici>
+      <ArkaPlan />
       <Ekran />
       <Bildirimler />
     </OyunSaglayici>
+  );
+}
+
+/** Bütün ekranların arkasındaki "gece salonu": koyu zemin, üstten lamba ışığı, doku, köşe
+ *  kararması ve süzülen ışık tozları. Ekranlar şeffaf zeminle bunun üstünde durur. */
+function ArkaPlan() {
+  const { durum } = useOyun();
+  // Masada çuha ekranın çoğunu kaplar; tozlar azalır (pil ve akıcılık için).
+  const masada = !!durum.oda?.masa;
+  return (
+    <div className="arka-plan" aria-hidden>
+      <div className="arka-plan__lamba" />
+      <Parcaciklar yogunluk={masada ? "az" : "normal"} />
+      <div className="arka-plan__doku" />
+    </div>
   );
 }
 

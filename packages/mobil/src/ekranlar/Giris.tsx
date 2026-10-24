@@ -4,8 +4,9 @@
 //  - Sunucuya ulaşılamazsa çevrim dışı antrenman önerilir.
 //  - Başka cihazdaki hesaba kurtarma koduyla girilebilir.
 //  - Gelişmiş: sunucu adresi.
-import { useState } from "react";
+import { type CSSProperties, useState } from "react";
 import { Simge } from "../bilesenler/Simge.tsx";
+import { Tas } from "../bilesenler/Tas.tsx";
 import { sunucuAdresi } from "../durum/ayar.ts";
 import { useOyun } from "../durum/OyunSaglayici.tsx";
 import { kurtarmaKodunuCoz } from "../platform/depo.ts";
@@ -39,11 +40,13 @@ export function Giris() {
   return (
     <div className="ekran giris">
       <div className="giris__sahne">
-        <Logo />
+        <UcanTaslar />
+        <div className="giris__hale" aria-hidden />
+        <Logo buyuk />
         <p className="giris__alt">Kahvehane sıcaklığında, cebinde bir okey masası.</p>
       </div>
 
-      <div className="kart giris__kart">
+      <div className="kart cam giris__kart">
         {otomatik && !ulasilamadi ? (
           <div className="giris__durum">
             <div className="donen" />
@@ -55,6 +58,10 @@ export function Giris() {
           <>
             {!otomatik && (
               <>
+                <h2 className="giris__baslik">
+                  Masaya otur
+                  <small>Bir takma ad seç, hemen oyuna katıl.</small>
+                </h2>
                 <label className="alan-etiketi" htmlFor="ad">
                   Takma adın
                 </label>
@@ -134,16 +141,55 @@ export function Giris() {
   );
 }
 
-/** Uygulama logosu: iki krem taş ve yazı. */
-export function Logo() {
+/** Logonun arkasında yavaşça süzülen ve dönen 3D taşlar (yalnız transform animasyonu). */
+const UCAN_TASLAR: Array<{ id: number; x: string; y: string; r: number; s: number; sure: number; gecikme: number; uzak?: boolean }> = [
+  { id: 102, x: "4%", y: "10%", r: -18, s: 1, sure: 9, gecikme: 0 },
+  { id: 38, x: "80%", y: "4%", r: 14, s: 0.85, sure: 11, gecikme: -3 },
+  { id: 104, x: "88%", y: "64%", r: -10, s: 0.95, sure: 10, gecikme: -6 },
+  { id: 20, x: "10%", y: "70%", r: 20, s: 0.8, sure: 12, gecikme: -2 },
+  { id: 66, x: "44%", y: "-4%", r: 6, s: 0.6, sure: 13, gecikme: -8, uzak: true },
+  { id: 86, x: "56%", y: "84%", r: -24, s: 0.62, sure: 14, gecikme: -5, uzak: true },
+];
+
+function UcanTaslar() {
   return (
-    <div className="logo">
+    <div className="ucan-taslar" aria-hidden>
+      {UCAN_TASLAR.map((t, i) => (
+        <div
+          key={t.id}
+          className={`ucan-tas ${t.uzak ? "ucan-tas--uzak" : ""}`}
+          style={
+            {
+              left: t.x,
+              top: t.y,
+              "--r": `${t.r}deg`,
+              "--s": t.s,
+              "--sure": `${t.sure}s`,
+              "--gecikme": `${t.gecikme}s`,
+              "--giris": `${0.25 + i * 0.08}s`,
+            } as CSSProperties
+          }
+        >
+          <div className="ucan-tas__ic">
+            <Tas id={t.id} boyut="buyuk" okey={t.id === 20 ? { renk: 0, sayi: 11 } : null} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** Uygulama logosu: iki fildişi taş ve metalik altın yazı. */
+export function Logo({ buyuk }: { buyuk?: boolean }) {
+  return (
+    <div className={`logo ${buyuk ? "logo--buyuk" : ""}`}>
       <div className="logo__taslar">
-        <span className="logo__tas logo__tas--kirmizi">1</span>
-        <span className="logo__tas logo__tas--mavi">3</span>
+        <Tas id={0} boyut="buyuk" />
+        <Tas id={56} boyut="buyuk" />
       </div>
       <div className="logo__yazi">
-        Okey <span>Salonu</span>
+        <span>Okey</span>
+        <span>Salonu</span>
       </div>
     </div>
   );

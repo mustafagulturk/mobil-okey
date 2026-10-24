@@ -1,30 +1,234 @@
 /* ---------- Giriş ---------- */
 .giris {
   display: grid;
-  grid-template-columns: 1fr minmax(300px, 380px);
-  gap: 24px;
+  grid-template-columns: 1fr minmax(300px, 360px);
+  gap: 20px;
   align-items: center;
 }
 
+/* Sol: sahne (süzülen taşlar + logo). */
 .giris__sahne {
+  position: relative;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding-left: 12px;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+}
+
+/* Logonun arkasındaki sıcak ışık halesi. */
+.giris__hale {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 420px;
+  height: 260px;
+  margin: -150px 0 0 -210px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(255, 200, 110, 0.22) 0%, rgba(255, 180, 90, 0.08) 45%, transparent 70%);
+  pointer-events: none;
+  animation: hale-nefes 5s ease-in-out infinite, giris-sol 1.2s ease-out both;
+}
+
+@keyframes hale-nefes {
+  50% {
+    opacity: 0.65;
+    transform: scale(0.94);
+  }
+}
+
+@keyframes giris-sol {
+  from {
+    opacity: 0;
+  }
+}
+
+.giris__sahne .logo {
+  position: relative;
+  animation: logo-gir 900ms var(--egri-yay) 120ms both;
+}
+
+@keyframes logo-gir {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.86);
+  }
 }
 
 .giris__alt {
+  position: relative;
   color: var(--renk-yazi-soluk);
-  font-size: var(--yazi-buyuk);
-  max-width: 320px;
+  font-size: var(--yazi-normal);
+  font-weight: 600;
+  max-width: 400px;
+  letter-spacing: 0.02em;
+  animation: alt-gir 700ms var(--egri-yumusak) 520ms both;
 }
 
+@keyframes alt-gir {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* Büyük logo (giriş ekranı). */
+.logo--buyuk {
+  gap: 20px;
+}
+
+.logo--buyuk .logo__taslar .tas {
+  --en: 52px;
+  font-size: 32px;
+}
+
+.logo--buyuk .logo__yazi {
+  font-size: 56px;
+}
+
+.logo--buyuk .logo__taslar .tas:first-child {
+  animation: logo-tas-sol 1s var(--egri-yay) 200ms both;
+}
+
+.logo--buyuk .logo__taslar .tas:last-child {
+  animation: logo-tas-sag 1s var(--egri-yay) 320ms both;
+}
+
+@keyframes logo-tas-sol {
+  from {
+    opacity: 0;
+    transform: translateY(-40px) rotate(-40deg);
+  }
+}
+
+@keyframes logo-tas-sag {
+  from {
+    opacity: 0;
+    transform: translate(10px, -40px) rotate(40deg);
+  }
+}
+
+/* Logo yazısının üstünden geçen ışık: metin gradyanının üstüne bindirilmiş parıltı katmanı kayar. */
+.logo--buyuk .logo__yazi span {
+  background: var(--parilti) -150% 0 / 60% 100% no-repeat, var(--gradyan-altin-yazi);
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: logo-isik 6s ease-in-out 1.4s infinite;
+}
+
+.logo--buyuk .logo__yazi span + span {
+  animation-delay: 1.65s;
+}
+
+@keyframes logo-isik {
+  0% {
+    background-position: -150% 0, 0 0;
+  }
+  30%,
+  100% {
+    background-position: 250% 0, 0 0;
+  }
+}
+
+/* Süzülen 3D taşlar */
+.ucan-taslar {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  perspective: 600px;
+}
+
+.ucan-tas {
+  position: absolute;
+  animation: ucan-gir 1s var(--egri-yumusak) var(--giris) both;
+}
+
+@keyframes ucan-gir {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.6);
+  }
+}
+
+.ucan-tas__ic {
+  transform: rotate(var(--r)) scale(var(--s));
+  animation: suzul var(--sure) ease-in-out var(--gecikme) infinite;
+  filter: drop-shadow(0 12px 14px rgba(0, 0, 0, 0.45));
+  opacity: 0.92;
+}
+
+.ucan-tas--uzak .ucan-tas__ic {
+  opacity: 0.45;
+  filter: blur(1.5px);
+}
+
+.ucan-tas .tas {
+  pointer-events: none;
+}
+
+@keyframes suzul {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(var(--r)) rotateY(-14deg) rotateX(8deg) scale(var(--s));
+  }
+  33% {
+    transform: translate3d(6px, -12px, 0) rotate(calc(var(--r) + 6deg)) rotateY(16deg) rotateX(-6deg) scale(var(--s));
+  }
+  66% {
+    transform: translate3d(-5px, 6px, 0) rotate(calc(var(--r) - 4deg)) rotateY(-4deg) rotateX(12deg) scale(var(--s));
+  }
+}
+
+/* Sağ: cam kart */
 .giris__kart {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 10px;
   max-height: 100%;
   overflow: auto;
+  padding: 18px;
+  border-radius: var(--kose-buyuk);
+  animation: kart-gir 800ms var(--egri-yumusak) 300ms both;
+}
+
+.giris__kart::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 14%;
+  right: 14%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--renk-altin-acik), transparent);
+  opacity: 0.7;
+}
+
+@keyframes kart-gir {
+  from {
+    opacity: 0;
+    transform: translateX(36px) scale(0.96);
+  }
+}
+
+.giris__kart .dugme--birincil {
+  margin-top: 2px;
+  margin-bottom: 4px;
+}
+
+.giris__baslik {
+  font-size: var(--yazi-baslik);
+  line-height: 1.1;
+}
+
+.giris__baslik small {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--yazi-tipi);
+  font-size: var(--yazi-kucuk);
+  font-weight: 600;
+  color: var(--renk-yazi-soluk);
 }
 
 .giris__durum {
@@ -51,3 +255,8 @@
   gap: 6px;
 }
 
+:root[data-efekt="kapali"] .ucan-tas__ic,
+:root[data-efekt="kapali"] .giris__hale,
+:root[data-efekt="kapali"] .logo--buyuk .logo__yazi span {
+  animation: none;
+}
