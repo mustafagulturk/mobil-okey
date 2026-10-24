@@ -1209,7 +1209,7 @@ a {
   max-width: 100%;
   padding: 6px 16px 6px 6px;
   border-radius: var(--kose-hap);
-  background: linear-gradient(180deg, rgba(28, 58, 47, 0.82), rgba(8, 24, 18, 0.88));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--renk-yuzey-acik) 82%, transparent), color-mix(in srgb, var(--renk-zemin) 88%, transparent));
   -webkit-backdrop-filter: blur(10px) saturate(140%);
   backdrop-filter: blur(10px) saturate(140%);
   border: 1px solid rgba(255, 240, 210, 0.16);
