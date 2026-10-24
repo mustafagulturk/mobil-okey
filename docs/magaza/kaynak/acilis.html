@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="ortak.css">
+<style>
+ body{width:100vw;height:100vh;overflow:hidden}
+ .sahne{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(var(--o)*.09)}
+ .tas{position:relative;--g:calc(var(--o)*.17);transform:rotate(-6deg)}
+ .yildiz{position:absolute;top:4%;right:4%;width:30%}
+ h1{font-weight:900;font-size:calc(var(--o)*.085);color:var(--krem);margin-top:calc(var(--o)*.05);letter-spacing:-.01em}
+ h1 b{color:var(--altin)}
+</style></head><body>
+<div class="cuha"></div>
+<div class="sahne">
+ <div class="tas kirmizi"><span class="rakam">1</span><span class="nokta"></span>
+  <svg class="yildiz" viewBox="0 0 100 100"><path d="M50 6 L62.5 36.5 L95 38.8 L70 59.8 L78 92 L50 74.5 L22 92 L30 59.8 L5 38.8 L37.5 36.5 Z" fill="#e6b24a" stroke="#9a6614" stroke-width="5" stroke-linejoin="round"/></svg></div>
+ <h1>Okey <b>Salonu</b></h1>
+</div>
+<script>const o=Math.min(innerWidth,innerHeight);document.documentElement.style.setProperty('--o',o+'px');</script>
+</body></html>

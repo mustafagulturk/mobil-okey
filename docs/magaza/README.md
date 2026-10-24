@@ -28,7 +28,7 @@ bash docs/magaza/kaynak/uret.sh
   Taşın tüm ölçüleri `--g` (genişlik) değişkeninden türetilir.
 - `one-cikan-gorsel.html` – başlık, slogan ve taş yelpazesi (kırmızı 11-12-13 + yıldızlı okey).
   Önemli içerik kenarlardan en az ~70 px içeride tutulur; üst/alt ahşap kenar yalnızca süstür.
-- `simge.html` – yeşil çuha üzerinde altın yıldızlı okey taşı (öne çıkan görseldekiyle aynı stil). Köşeler bilerek yuvarlatılmaz; Play maskeyi kendisi uygular.
+- `simge.html` – bordo kadife çuha üzerinde altın yıldızlı okey taşı (öne çıkan görseldekiyle aynı stil). Köşeler bilerek yuvarlatılmaz; Play maskeyi kendisi uygular.
 - `uret.cjs` / `uret.sh` – üretim betiği.
 - `fonts/` – Nunito (700/800/900, latin + latin-ext; @fontsource/nunito 5.3.0'dan), lisans: `fonts/OFL.txt` (SIL OFL 1.1).
 
