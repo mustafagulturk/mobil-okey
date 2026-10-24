@@ -12,7 +12,7 @@
 // gizli tutulur, taş inince görünür.
 //
 // Online oyun ve antrenman aynı ekranı kullanır; fark sadece mesajların nereye gittiğidir.
-import { type Deger, diz, type IstemciMesaji, RENKLER, VARSAYILAN_ETIKET } from "@okey/kurallar";
+import { type Deger, diz, type IstemciMesaji, RENKLER, TAS_SAYISI, VARSAYILAN_ETIKET, yuzDegeri } from "@okey/kurallar";
 import { type CSSProperties, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { flushSync } from "react-dom";
@@ -35,7 +35,7 @@ import { useSimdi } from "../../yardimci/kancalar.ts";
 import { koltukAdi } from "../../yardimci/oda.ts";
 import type { SahteSonuc } from "./gelistirme.ts";
 import { Istaka } from "./Istaka.tsx";
-import { Madalyon } from "./Madalyon.tsx";
+import { Madalyon, tonu } from "./Madalyon.tsx";
 import { type MasaOlayi, olaylariCikar } from "./masaOlaylari.ts";
 import { OyuncuYeri } from "./OyuncuYeri.tsx";
 import { SohbetPaneli } from "./SohbetPaneli.tsx";
@@ -144,7 +144,7 @@ export function MasaEkrani() {
     oncekiMasa.current = { elNo: oda.elNo, masa };
     if (o.masa === masa || o.elNo !== oda.elNo || !kok.current || sahteMi) return;
     const olaylar = olaylariCikar(o.masa, masa);
-    olaylar.forEach((olay, i) => ucusHazirla(kok.current!, olay, ben, masa.okey, sonAtis.current, i * 140));
+    olaylar.forEach((olay, i) => ucusHazirla(kok.current!, olay, ben, masa.okey, sonAtis.current, i * 60));
     if (olaylar.some((ol) => ol.tur === "cek" && ol.koltuk === ben) && durum.ayarlar.ses) sesCek();
     sonAtis.current = null;
   }, [masa]);
@@ -219,6 +219,14 @@ export function MasaEkrani() {
   useEffect(() => tamEkranAc(), []);
 
   const okeyMetni = `${RENK_ADLARI[masa.okey.renk]} ${masa.okey.sayi}`;
+  // Okey ikonu için bu değerdeki herhangi bir taşın kimliği.
+  const okeyOrnegi = useMemo(() => {
+    for (let id = 0; id < TAS_SAYISI; id++) {
+      const d = yuzDegeri(id);
+      if (d && d.renk === masa.okey.renk && d.sayi === masa.okey.sayi) return id;
+    }
+    return null;
+  }, [masa.okey.renk, masa.okey.sayi]);
   const benimKoltugum = oda.koltuklar[ben];
   const benimKartim =
     benimKoltugum.tur === "insan" ? benimKoltugum.oyuncu : { ad: "Sen", seviye: undefined, etiket: VARSAYILAN_ETIKET };
@@ -255,9 +263,9 @@ export function MasaEkrani() {
       </div>
       <Parcaciklar yogunluk="az" />
 
-      {/* ---------- Üst şerit ---------- */}
-      <div className="masa__ust">
-        <div className="masa__ust-sol">
+      {/* ---------- Sol kenar: çıkış, üsttekinin yığını, soldaki oyuncu, yan (soldakinin yığını) ---------- */}
+      <aside className="masa__kenar masa__kenar--sol">
+        <div className="masa__kenar-ust">
           <button className="masa-simge" onClick={() => (bitti ? ayril() : setCikisOnay(true))} aria-label="Masadan kalk">
             <Simge ad="cikis" />
           </button>
@@ -268,72 +276,70 @@ export function MasaEkrani() {
             </small>
           </div>
         </div>
-        {rakip(2, "ust")}
-        <div className="masa__ust-sag">
-          {durum.profil && !durum.antrenman && <Cip miktar={durum.profil.cip} kisa />}
+        <div className="masa__kenar-orta">
+          <Yigin taslar={masa.atilanlar[goreli(2)]} okey={masa.okey} koltuk={goreli(2)} ton={tonu(koltukAdi(oda, goreli(2)))} yon="sag" />
+          {rakip(3, "sol")}
           <button
-            className="masa-simge"
-            onClick={() => {
-              setSohbetAcik(true);
-              sohbetOkundu();
-            }}
-            aria-label="Sohbet"
+            className={`yan-tas ${cekebilir && yanTaslar.length > 0 ? "yan-tas--cekilebilir" : ""}`}
+            onClick={() => cek("yan")}
+            disabled={!cekebilir || yanTaslar.length === 0}
+            aria-label="Yandan çek"
           >
-            <Simge ad="sohbet" />
-            {durum.okunmamisSohbet > 0 && <i className="rozet-sayi">{durum.okunmamisSohbet}</i>}
+            <Yigin taslar={yanTaslar} okey={masa.okey} koltuk={goreli(3)} ton={tonu(koltukAdi(oda, goreli(3)))} yon="ust" />
           </button>
         </div>
-      </div>
+        <div className="dizme-dugmeleri">
+          <button className="masa-dugme" onClick={() => otomatikDiz("seri")}>
+            Seri Diz
+          </button>
+          <button className="masa-dugme" onClick={() => otomatikDiz("cift")}>
+            Çift Diz
+          </button>
+        </div>
+      </aside>
 
-      {/* ---------- Orta: rakipler, yığınlar, deste ---------- */}
-      <div className="masa__orta">
-        {rakip(3, "sol")}
+      {/* ---------- Üst: karşıdaki oyuncu ---------- */}
+      <div className="masa__ust">{rakip(2, "ust")}</div>
 
-        <div className="masa__merkez">
-          <Yigin taslar={masa.atilanlar[goreli(2)]} okey={masa.okey} koltuk={goreli(2)} sinif="yigin--sol-ust" />
-          <div className="deste-alani">
-            <div className="deste-alani__ust">
-              <button
-                className={`deste ${cekebilir ? "deste--cekilebilir" : ""}`}
-                onClick={() => cek("orta")}
-                disabled={!cekebilir}
-                aria-label="Ortadan çek"
-                data-deste
-              >
+      {/* ---------- Merkez: deste, gösterge, okey ---------- */}
+      <div className="masa__merkez">
+        <div className="deste-alani">
+          <button
+            className={`deste ${cekebilir ? "deste--cekilebilir" : ""}`}
+            onClick={() => cek("orta")}
+            disabled={!cekebilir}
+            aria-label="Ortadan çek"
+            data-deste
+          >
+            <KapaliTas />
+            <KapaliTas />
+            <KapaliTas />
+            <span className="deste__sayi">{masa.ortaSayisi}</span>
+          </button>
+          <div className="gosterge" aria-label={`Gösterge; okey ${okeyMetni}`}>
+            <div key={oda.elNo} className={`gosterge__kart ${elBasi ? "gosterge__kart--cevir" : ""}`}>
+              <div className="gosterge__yuz">
+                <Tas id={masa.gosterge} boyut="orta" />
+              </div>
+              <div className="gosterge__arka">
                 <KapaliTas />
-                <KapaliTas />
-                <KapaliTas />
-                <span className="deste__sayi">{masa.ortaSayisi}</span>
-              </button>
-              <div className="gosterge">
-                <div key={oda.elNo} className={`gosterge__kart ${elBasi ? "gosterge__kart--cevir" : ""}`}>
-                  <div className="gosterge__yuz">
-                    <Tas id={masa.gosterge} boyut="orta" />
-                  </div>
-                  <div className="gosterge__arka">
-                    <KapaliTas />
-                  </div>
-                </div>
-                <span>Gösterge</span>
               </div>
             </div>
-            <div className="okey-bilgi">
-              <span>Okey</span>
-              <b className={`renk-${RENKLER[masa.okey.renk]}`}>{okeyMetni}</b>
-            </div>
-            {masa.gostergeGosterebilir && (
-              <button className="metal-dugme metal-dugme--zumrut metal-dugme--kucuk gosterge-dugmesi" onClick={() => hamle({ t: "hamle", eylem: { tur: "gostergeGoster" } })}>
-                Gösterge göster
-              </button>
-            )}
-            {masa.gostergeGosteren !== null && (
-              <span className="gosterge-not">{koltukAdi(oda, masa.gostergeGosteren)} göstergeyi gösterdi</span>
+            {okeyOrnegi !== null && (
+              <div className="okey-ikon" title={`Okey: ${okeyMetni}`}>
+                <Tas id={okeyOrnegi} okey={masa.okey} boyut="kucuk" />
+              </div>
             )}
           </div>
-          <Yigin taslar={masa.atilanlar[goreli(1)]} okey={masa.okey} koltuk={goreli(1)} sinif="yigin--sag-ust" />
         </div>
-
-        {rakip(1, "sag")}
+        {masa.gostergeGosterebilir && (
+          <button className="metal-dugme metal-dugme--zumrut metal-dugme--kucuk gosterge-dugmesi" onClick={() => hamle({ t: "hamle", eylem: { tur: "gostergeGoster" } })}>
+            Gösterge göster
+          </button>
+        )}
+        {masa.gostergeGosteren !== null && (
+          <span className="gosterge-not">{koltukAdi(oda, masa.gostergeGosteren)} göstergeyi gösterdi</span>
+        )}
       </div>
 
       <div className="masa__ipucu">
@@ -348,69 +354,66 @@ export function MasaEkrani() {
         )}
       </div>
 
-      {/* ---------- Alt: yan taş, istaka, atma alanı ---------- */}
-      <div className="masa__alt">
-        <div className="masa__alt-sol">
+      {/* ---------- İstaka ---------- */}
+      <div className="masa__istaka">
+        <div className={`benim-etiketim ${benimSiram ? "benim-etiketim--sirada" : ""} ${benimSiram && acil ? "benim-etiketim--acil" : ""}`}>
+          <Madalyon ad={benimKartim.ad} oran={benimSiram ? (kalanOran ?? 1) : null} acil={benimSiram && acil} boyut="kucuk" />
+          <IsimEtiketi ad={benimKartim.ad} seviye={benimKartim.seviye} etiket={benimKartim.etiket} boyut="kucuk" />
+          {balonlar[ben] && (
+            <div key={balonlar[ben]} className="konusma-balonu konusma-balonu--ben">
+              {balonlar[ben]}
+            </div>
+          )}
+        </div>
+        <Istaka
+          yuvalar={yuvalar}
+          okey={masa.okey}
+          secili={secili}
+          sirada={benimSiram}
+          dagitim={elBasi}
+          degistir={yuvalariDegistir}
+          sec={setSecili}
+          birakildi={birakildi}
+          suruklemeDurumu={setSurukleme}
+        />
+      </div>
+
+      {/* ---------- Sağ kenar: sohbet, sağdakinin yığını, sağdaki oyuncu, benim yığınım ---------- */}
+      <aside className="masa__kenar masa__kenar--sag">
+        <div className="masa__kenar-ust">
+          {durum.profil && !durum.antrenman && <Cip miktar={durum.profil.cip} kisa />}
           <button
-            className={`yan-tas ${cekebilir && yanTaslar.length > 0 ? "yan-tas--cekilebilir" : ""}`}
-            onClick={() => cek("yan")}
-            disabled={!cekebilir || yanTaslar.length === 0}
-            aria-label="Yandan çek"
+            className="masa-simge"
+            onClick={() => {
+              setSohbetAcik(true);
+              sohbetOkundu();
+            }}
+            aria-label="Sohbet"
           >
-            <Yigin taslar={yanTaslar} okey={masa.okey} koltuk={goreli(3)} />
-            <small>Yan</small>
+            <Simge ad="sohbet" />
+            {durum.okunmamisSohbet > 0 && <i className="rozet-sayi">{durum.okunmamisSohbet}</i>}
           </button>
-          <div className="dizme-dugmeleri">
-            <button className="masa-dugme" onClick={() => otomatikDiz("seri")}>
-              Seri Diz
-            </button>
-            <button className="masa-dugme" onClick={() => otomatikDiz("cift")}>
-              Çift Diz
-            </button>
-          </div>
         </div>
-
-        <div className="masa__istaka">
-          <div className={`benim-etiketim ${benimSiram ? "benim-etiketim--sirada" : ""} ${benimSiram && acil ? "benim-etiketim--acil" : ""}`}>
-            <Madalyon ad={benimKartim.ad} oran={benimSiram ? (kalanOran ?? 1) : null} acil={benimSiram && acil} boyut="kucuk" />
-            <IsimEtiketi ad={benimKartim.ad} seviye={benimKartim.seviye} etiket={benimKartim.etiket} boyut="kucuk" />
-            {balonlar[ben] && (
-              <div key={balonlar[ben]} className="konusma-balonu konusma-balonu--ben">
-                {balonlar[ben]}
-              </div>
-            )}
-          </div>
-          <Istaka
-            yuvalar={yuvalar}
-            okey={masa.okey}
-            secili={secili}
-            sirada={benimSiram}
-            dagitim={elBasi}
-            degistir={yuvalariDegistir}
-            sec={setSecili}
-            birakildi={birakildi}
-            suruklemeDurumu={setSurukleme}
-          />
-        </div>
-
-        <div className="masa__alt-sag">
+        <div className="masa__kenar-orta">
+          <Yigin taslar={masa.atilanlar[goreli(1)]} okey={masa.okey} koltuk={goreli(1)} ton={tonu(koltukAdi(oda, goreli(1)))} yon="alt" />
+          {rakip(1, "sag")}
           <div
             className={`atma-alani ${atabilir ? "atma-alani--aktif" : ""} ${atabilir && surukleme === "atUstunde" ? "atma-alani--ustunde" : ""}`}
             data-birak="at"
+            aria-label={atabilir ? "Buraya at" : "Attığın taşlar"}
           >
-            <Yigin taslar={benimAttiklarim} okey={masa.okey} koltuk={ben} />
-            <small>{atabilir ? "Buraya at" : "Attığın"}</small>
-          </div>
-          <div className="dizme-dugmeleri">
-            <button className="metal-dugme metal-dugme--altin" disabled={!atabilir || secili === null} onClick={() => secili !== null && at(secili)}>
-              At
-            </button>
-            <button className="metal-dugme metal-dugme--zumrut" disabled={!atabilir || secili === null || masa.el.length !== 15} onClick={bitir}>
-              Bitir
-            </button>
+            <Yigin taslar={benimAttiklarim} okey={masa.okey} koltuk={ben} ton={tonu(benimKartim.ad)} yon="sol" />
           </div>
         </div>
-      </div>
+        <div className="dizme-dugmeleri">
+          <button className="metal-dugme metal-dugme--altin" disabled={!atabilir || secili === null} onClick={() => secili !== null && at(secili)}>
+            At
+          </button>
+          <button className="metal-dugme metal-dugme--zumrut" disabled={!atabilir || secili === null || masa.el.length !== 15} onClick={bitir}>
+            Bitir
+          </button>
+        </div>
+      </aside>
 
       {/* ---------- Pencereler ---------- */}
       {bitti && oda.sonEl && !sonucKucuk && (
@@ -461,28 +464,21 @@ export function MasaEkrani() {
 }
 
 // ---------------------------------------------------------------------------
-// Yığın: bir oyuncunun attığı taşlar. Son üç taş hafif rastgele açılarla üst üste
-// durur (açı taşın kimliğinden türetilir; her render'da aynı kalır).
+// Yığın: bir oyuncunun attığı taşlar. Masanın köşelerinde, atan ile sıradaki oyuncu
+// arasında durur. Sadece son taş tam görünür; altındaki en fazla iki taş kaymış kenar
+// olarak seçilir. Zemindeki halka atanın madalyon renginde, küçük ok atana bakar.
 // ---------------------------------------------------------------------------
 
-function yiginDuzeni(tas: number) {
-  const h = Math.imul(tas + 17, 2654435761) >>> 0;
-  const r = (n: number) => ((h >>> n) & 0xff) / 255 - 0.5;
-  return {
-    "--a": `${(r(0) * 16).toFixed(1)}deg`,
-    "--x": `${(r(8) * 6).toFixed(1)}px`,
-    "--y": `${(r(16) * 4).toFixed(1)}px`,
-  } as CSSProperties;
-}
+type Yon = "ust" | "sag" | "alt" | "sol";
 
-function Yigin({ taslar, okey, koltuk, sinif = "" }: { taslar: number[]; okey: Deger; koltuk: number; sinif?: string }) {
+function Yigin({ taslar, okey, koltuk, ton, yon }: { taslar: number[]; okey: Deger; koltuk: number; ton: number; yon: Yon }) {
   const son = taslar.slice(-3);
   return (
-    <div className={`yigin ${sinif}`} data-yigin={koltuk}>
+    <div className={`yigin yigin--${yon}`} data-yigin={koltuk} style={{ "--ton": ton } as CSSProperties}>
+      <i className="yigin__ok" aria-hidden />
       <div className="yigin__yuva">
-        {son.length === 0 && <span className="bos-yer" />}
-        {son.map((t) => (
-          <div key={t} className="yigin__tas" style={yiginDuzeni(t)}>
+        {son.map((t, i) => (
+          <div key={t} className="yigin__tas" style={{ "--d": son.length - 1 - i } as CSSProperties}>
             <Tas id={t} okey={okey} boyut="orta" />
           </div>
         ))}
@@ -543,7 +539,7 @@ function ucusHazirla(
     }
     const kaynakTas = ust.querySelector<HTMLElement>(".tas");
     icerik = () => ({ el: kaynakTas!.cloneNode(true) as HTMLElement });
-    secenek = { donus: donus() };
+    secenek = { donus: donus() * 0.5, sure: olay.koltuk === ben ? 240 : 300 };
   } else {
     const benim = olay.koltuk === ben;
     if (olay.kaynak === "yan") {
@@ -558,12 +554,12 @@ function ucusHazirla(
       gizlenen = t;
       hedef = t.getBoundingClientRect();
       icerik = () => ({ el: t.cloneNode(true) as HTMLElement });
-      secenek = { donus: donus() * 0.6, yay: 60 };
+      secenek = { donus: donus() * 0.4, yay: 40, sure: 250 };
     } else {
       const m = madalyon(olay.koltuk);
       if (!m) return;
       hedef = merkezKutu(m.getBoundingClientRect(), ortaEn * 0.6, ortaBoy * 0.6);
-      secenek = { inis: false, sonOpaklik: 0.15, donus: donus() };
+      secenek = { inis: false, sonOpaklik: 0.15, donus: donus() * 0.5, sure: 300 };
       if (olay.kaynak === "yan") {
         const tas = olay.tas;
         icerik = () => tasCiz(tas, okey);

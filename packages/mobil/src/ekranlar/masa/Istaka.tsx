@@ -213,7 +213,7 @@ export function Istaka({ yuvalar, okey, secili, sirada, dagitim, degistir, sec, 
       </div>
       {surukle && (
         <div className="hayalet" ref={hayalet}>
-          <Tas id={surukle.tas} okey={okey} />
+          <Tas id={surukle.tas} okey={okey} suruklenen />
         </div>
       )}
     </>

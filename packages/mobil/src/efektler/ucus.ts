@@ -106,7 +106,7 @@ export function ucur(
     const cx = (ax + bx) / 2;
     const cy = Math.min(ay, by) - yay;
     const ADIM = 16;
-    const ucusPayi = inis ? 0.8 : 1;
+    const ucusPayi = inis ? 0.86 : 1;
     const kareler: Keyframe[] = [];
     for (let i = 0; i <= ADIM; i++) {
       const t = egri(i / ADIM);
@@ -114,7 +114,7 @@ export function ucur(
       const x = u * u * ax + 2 * u * t * cx + t * t * bx;
       const y = u * u * ay + 2 * u * t * cy + t * t * by;
       // Ortada biraz büyür (havaya kalkıyormuş gibi), sonra hedef boyutuna iner.
-      const s = s0 + (s1 - s0) * t + Math.sin(Math.PI * t) * 0.16 * Math.max(s0, s1);
+      const s = s0 + (s1 - s0) * t + Math.sin(Math.PI * t) * 0.1 * Math.max(s0, s1);
       const r = donus * Math.sin(Math.PI * t) + (inis ? 0 : donus * t);
       const o = 1 + (son - 1) * Math.max(0, (t - 0.6) / 0.4);
       kareler.push({ offset: (i / ADIM) * ucusPayi, transform: tf(x, y, r, s), opacity: o });
@@ -122,8 +122,7 @@ export function ucur(
     if (inis) {
       // İniş: hafifçe ezilip sıçrar, yerine oturur (taşın alt kenarı sabit kalır).
       const yerde = (sx: number, sy: number, dy = 0) => tf(bx, by + (h * s1 * (1 - sy)) / 2 + dy, 0, s1 * sx, s1 * sy);
-      kareler.push({ offset: 0.88, transform: yerde(1.1, 0.88), opacity: son });
-      kareler.push({ offset: 0.95, transform: yerde(0.97, 1.04, -2), opacity: son });
+      kareler.push({ offset: 0.93, transform: yerde(1.06, 0.92), opacity: son });
       kareler.push({ offset: 1, transform: yerde(1, 1), opacity: son });
     }
     anim = el.animate(kareler, { duration: sure, easing: "linear", fill: "both", delay: secenek.gecikme ?? 0 });

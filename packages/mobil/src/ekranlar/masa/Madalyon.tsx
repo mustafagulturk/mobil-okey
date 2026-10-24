@@ -20,7 +20,7 @@ export function halkaRengi(oran: number) {
 }
 
 /** Addan sabit bir ton (her oyuncunun madalyonu farklı renkte olsun). */
-function tonu(ad: string) {
+export function tonu(ad: string) {
   let h = 0;
   for (let i = 0; i < ad.length; i++) h = (h * 31 + ad.charCodeAt(i)) >>> 0;
   return h % 360;
