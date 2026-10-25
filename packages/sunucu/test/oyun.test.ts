@@ -1,5 +1,9 @@
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { BASLANGIC_CIPI, type SunucuMesaji } from "@okey/kurallar";
+import { BASLANGIC_CIPI, type ElSonucu, macPotuDagit, seviyeHesapla, seviyeOdulu, type SunucuMesaji, XP101 } from "@okey/kurallar";
+import { Veritabani } from "../src/veritabani.ts";
 import { testSunucusu, TestIstemcisi } from "./yardimci.ts";
 
 type OdaMesaji = Extract<SunucuMesaji, { t: "oda" }>;
@@ -87,7 +91,7 @@ describe("salon ve oda", () => {
     const son = await i.bekle("oda", (m) => m.oda.sonEl !== null, 20_000);
     const p = (await i.bekle("profil", (m) => m.profil.istatistik.oynanan === 1)).profil;
     const koltuk = son.oda.benimKoltugum!;
-    const sonuc = son.oda.sonEl!.sonuc;
+    const sonuc = son.oda.sonEl!.sonuc as ElSonucu;
     const beklenen =
       sonuc.tur === "berabere" ? BASLANGIC_CIPI : sonuc.koltuk === koltuk ? BASLANGIC_CIPI + 300 : BASLANGIC_CIPI - 100;
     expect(p.cip).toBe(beklenen);
@@ -156,4 +160,86 @@ describe("salon ve oda", () => {
     expect((await i.bekle("hata")).mesaj).toMatch(/saniyede en fazla bir/);
     i.kapat();
   });
+});
+
+describe("101", () => {
+  it("hızlı oyun sadece aynı salon ve oyun türündeki odalarla eşleşir", async () => {
+    sunucu = await testSunucusu({ eslesmeBeklemeMs: 5_000 });
+    const { i: a, h } = await TestIstemcisi.girisYap(sunucu.adres, { ad: "Ayla" });
+    const { i: b } = await TestIstemcisi.girisYap(sunucu.adres, { ad: "Berk" });
+    const { i: c } = await TestIstemcisi.girisYap(sunucu.adres, { ad: "Can" });
+    a.gonder({ t: "hizliOyun", salon: "caylak", oyun: "101" });
+    const oa = (await a.bekle("oda")).oda;
+    expect(oa.oyun).toBe("101");
+    b.gonder({ t: "hizliOyun", salon: "caylak" }); // oyun verilmezse Okey
+    const ob = (await b.bekle("oda")).oda;
+    expect(ob.oyun).toBe("okey");
+    expect(ob.kod).not.toBe(oa.kod);
+    c.gonder({ t: "hizliOyun", salon: "caylak", oyun: "101" });
+    expect((await c.bekle("oda")).oda.kod).toBe(oa.kod);
+
+    c.gonder({ t: "salonlar" });
+    const caylak = (await c.bekle("salonlar")).salonlar.find((x) => x.id === "caylak")!;
+    expect(caylak.oyuncuSayisi).toBe(1);
+    expect(caylak.oyuncuSayisi101).toBe(2);
+
+    // 101 odası maç tutar; giriş maç başında bir kez alınır.
+    c.gonder({ t: "odadanAyril" });
+    await c.bekle("odadanCikti");
+    for (const ad of ["Deniz", "Ece", "Fikret"]) {
+      const { i } = await TestIstemcisi.girisYap(sunucu.adres, { ad });
+      i.gonder({ t: "hizliOyun", salon: "caylak", oyun: "101" });
+      await i.bekle("oda");
+    }
+    const basladi = (await a.bekle("oda", (m) => m.oda.masa !== null)).oda;
+    expect(basladi.masa).toMatchObject({ oyun: "101" });
+    expect(basladi.mac).toMatchObject({ elNo: 1, elSayisi: 4, puanlar: [], kazananlar: null });
+    expect(basladi.turSuresiMs).toBe(2_000); // yardimci.ts: turSuresi101Ms
+    expect(sunucu.vt.cipHareketleri(h.oyuncuId).at(-1)).toMatchObject({ miktar: -100, sebep: "mac_girisi" });
+    a.kapat();
+    b.kapat();
+  });
+
+  it("maç sonunda pot en düşük toplama gider, XP ve istatistik bir kez işlenir", async () => {
+    sunucu = await testSunucusu({ turSuresi101Ms: 1, eslesmeBeklemeMs: 10, sonrakiElMs: 10 });
+    const { i } = await TestIstemcisi.girisYap(sunucu.adres);
+    i.gonder({ t: "hizliOyun", salon: "caylak", oyun: "101" });
+    const son = (await i.bekle("oda", (m) => m.oda.sonEl?.macBitti === true, 30_000)).oda;
+    const p = (await i.bekle("profil", (m) => m.profil.istatistik.oynanan === 1)).profil;
+    const koltuk = son.benimKoltugum!;
+    const kazananlar = son.mac!.kazananlar!;
+    const alinan = macPotuDagit(100, kazananlar)[koltuk];
+    expect(son.mac!.puanlar).toHaveLength(4);
+    // XP 100'ü geçerse seviye atlanır; seviye ödülü de çip olarak eklenir.
+    let seviyeOdulleri = 0;
+    for (let s = 2; s <= seviyeHesapla(p.xp).seviye; s++) seviyeOdulleri += seviyeOdulu(s);
+    expect(p.cip).toBe(BASLANGIC_CIPI - 100 + alinan + seviyeOdulleri);
+    expect(son.sonEl!.cipDegisimi[koltuk]).toBe(alinan - 100);
+    expect(p.istatistik.kazanilan).toBe(kazananlar.includes(koltuk) ? 1 : 0);
+    expect(son.sonEl!.xp[koltuk]).toBe(p.xp);
+    expect(p.xp).toBeGreaterThanOrEqual(XP101.macOynadi);
+    i.kapat();
+  }, 40_000);
+
+  it("sunucu maçın ara elinde kapanırsa maç girişi iade edilir", async () => {
+    const klasor = mkdtempSync(join(tmpdir(), "okey101-"));
+    const yol = join(klasor, "test.db");
+    try {
+      sunucu = await testSunucusu({ veritabaniYolu: yol, turSuresi101Ms: 1, eslesmeBeklemeMs: 10 });
+      const { i, h } = await TestIstemcisi.girisYap(sunucu.adres);
+      i.gonder({ t: "hizliOyun", salon: "caylak", oyun: "101" });
+      // İlk el biter, maç sürer (sonrakiElMs testte 60 sn: el arasında bekleriz).
+      const ara = await i.bekle("oda", (m) => m.oda.sonEl !== null, 20_000);
+      expect(ara.oda.sonEl!.macBitti).toBe(false);
+      expect(ara.oda.mac!.puanlar).toHaveLength(1);
+      await sunucu.kapat();
+      sunucu = null;
+      const vt = new Veritabani(yol);
+      expect(vt.oyuncuGetir(h.oyuncuId)!.cip).toBe(BASLANGIC_CIPI);
+      expect(vt.cipHareketleri(h.oyuncuId).at(-1)).toMatchObject({ miktar: 100, sebep: "sunucu_kapandi_iade" });
+      vt.kapat();
+    } finally {
+      rmSync(klasor, { recursive: true, force: true });
+    }
+  }, 30_000);
 });

@@ -6,16 +6,19 @@
 //
 // Kurallar:
 //  - Bir oyuncu aynı anda tek odada olabilir (oyuncuOdasi haritası).
-//  - Hızlı oyun: salonda yeri olan herkese açık bir oda varsa oraya oturulur, yoksa yeni
-//    oda açılır. Oda 4 insana ulaşınca hemen, yoksa ilk oyuncudan eslesmeBeklemeMs sonra
+//  - Her oda tek bir oyun türünü oynar (Okey ya da 101).
+//  - Hızlı oyun: salonda aynı oyun türünde yeri olan herkese açık bir oda varsa oraya
+//    oturulur, yoksa yeni oda açılır. Oda 4 insana ulaşınca hemen, yoksa ilk oyuncudan eslesmeBeklemeMs sonra
 //    boş koltuklara botlar oturarak başlar.
 //  - Özel oda: 5 karakterlik kodla katılınır, oyunu sahibi başlatır.
 //  - Bağlantısı kopan oyuncu odada kalır (yerine bot oynar); tekrar girince aynı masaya döner.
 
 import { randomInt } from "node:crypto";
 import {
-  type Eylem,
+  MAC101_GIRIS_CARPANI,
   Oda,
+  type OyunEylemi,
+  type OyunTuru,
   type OyuncuKarti,
   type Salon,
   salonaUygunMu,
@@ -26,7 +29,7 @@ import {
   type SunucuMesaji,
 } from "@okey/kurallar";
 import type { Ayarlar } from "./ayarlar.ts";
-import { elSonuIsle } from "./ilerleme.ts";
+import { elSonuIsle, macSonuIsle } from "./ilerleme.ts";
 import type { Veritabani } from "./veritabani.ts";
 
 export type Sonuc = { tamam: true } | { tamam: false; hata: string };
@@ -45,10 +48,11 @@ export interface SalonBaglami {
 interface OdaKaydi {
   oda: Oda;
   salon: Salon;
+  oyun: OyunTuru;
   ozel: boolean;
   /** Hızlı oyunda botlarla başlatma zamanlayıcısının iptali. */
   baslatmaIptal: (() => void) | null;
-  /** Bu elin girişini ödeyenler (sunucu el ortasında kapanırsa iade edilir). */
+  /** Bu elin (101'de maçın) girişini ödeyenler (sunucu yarıda kapanırsa iade edilir). */
   odeyenler: string[];
 }
 
@@ -58,16 +62,20 @@ export class SalonYoneticisi {
 
   constructor(private readonly b: SalonBaglami) {}
 
+  /** Salonlar ve her salondaki oyuncu sayısı; oyuncuSayisi Okey, oyuncuSayisi101 101 odalarını sayar. */
   salonListesi(): SalonBilgisi[] {
+    const say = (salon: SalonId, oyun: OyunTuru) =>
+      [...this.odalar.values()]
+        .filter((k) => k.salon.id === salon && k.oyun === oyun)
+        .reduce((t, k) => t + k.oda.insanSayisi(), 0);
     return SALONLAR.map((s) => ({
       id: s.id,
       ad: s.ad,
       giris: s.giris,
       enAzCip: s.enAzCip,
       enFazlaCip: s.enFazlaCip,
-      oyuncuSayisi: [...this.odalar.values()]
-        .filter((k) => k.salon.id === s.id)
-        .reduce((t, k) => t + k.oda.insanSayisi(), 0),
+      oyuncuSayisi: say(s.id, "okey"),
+      oyuncuSayisi101: say(s.id, "101"),
     }));
   }
 
@@ -81,15 +89,15 @@ export class SalonYoneticisi {
     return null;
   }
 
-  hizliOyun(kart: OyuncuKarti, salonId: SalonId, cip: number): Sonuc {
+  hizliOyun(kart: OyuncuKarti, salonId: SalonId, cip: number, oyun: OyunTuru = "okey"): Sonuc {
     const salon = salonBul(salonId);
     const engel = this.oturmaEngeli(kart.id, salon, cip);
     if (engel) return engel;
     // En kalabalık odayı doldurmayı tercih et ki oyuncular botlarla değil birbirleriyle oynasın.
     const aday = [...this.odalar.values()]
-      .filter((k) => !k.ozel && k.salon.id === salonId && k.oda.bosYer() > 0)
+      .filter((k) => !k.ozel && k.salon.id === salonId && k.oyun === oyun && k.oda.bosYer() > 0)
       .sort((a, b) => b.oda.insanSayisi() - a.oda.insanSayisi())[0];
-    const kayit = aday ?? this.odaAc(salon, false);
+    const kayit = aday ?? this.odaAc(salon, oyun, false);
     const s = this.otur(kayit, kart);
     if (!s.tamam) return s;
 
@@ -102,11 +110,11 @@ export class SalonYoneticisi {
     return { tamam: true };
   }
 
-  odaKur(kart: OyuncuKarti, salonId: SalonId, cip: number): Sonuc {
+  odaKur(kart: OyuncuKarti, salonId: SalonId, cip: number, oyun: OyunTuru = "okey"): Sonuc {
     const salon = salonBul(salonId);
     const engel = this.oturmaEngeli(kart.id, salon, cip);
     if (engel) return engel;
-    return this.otur(this.odaAc(salon, true), kart);
+    return this.otur(this.odaAc(salon, oyun, true), kart);
   }
 
   odayaKatil(kart: OyuncuKarti, kod: string, cip: number): Sonuc {
@@ -148,7 +156,7 @@ export class SalonYoneticisi {
     return true;
   }
 
-  hamle(oyuncuId: string, eylem: Eylem): Sonuc {
+  hamle(oyuncuId: string, eylem: OyunEylemi): Sonuc {
     const k = this.bulunduguOda(oyuncuId);
     if (!k) return { tamam: false, hata: "Bir masada değilsin" };
     return k.oda.hamle(oyuncuId, eylem);
@@ -166,13 +174,14 @@ export class SalonYoneticisi {
     this.bulunduguOda(kart.id)?.oda.kartGuncelle(kart);
   }
 
-  /** Sunucu kapanırken: zamanlayıcıları durdur, yarıda kalan ellerin girişini iade et. */
+  /** Sunucu kapanırken: zamanlayıcıları durdur, yarıda kalan ellerin (101'de maçların) girişini iade et. */
   kapat() {
     const zaman = this.b.ayarlar.simdi();
     for (const k of this.odalar.values()) {
       k.baslatmaIptal?.();
-      if (k.oda.oyunda) {
-        for (const id of k.odeyenler) this.b.vt.cipDegistir(id, k.salon.giris, "sunucu_kapandi_iade", zaman);
+      if (k.oda.potAcik) {
+        const giris = this.girisMiktari(k.salon, k.oyun);
+        for (const id of k.odeyenler) this.b.vt.cipDegistir(id, giris, "sunucu_kapandi_iade", zaman);
       }
       k.oda.kapat();
     }
@@ -213,31 +222,38 @@ export class SalonYoneticisi {
     return kod;
   }
 
-  private odaAc(salon: Salon, ozel: boolean): OdaKaydi {
+  /** Okey'de el başına, 101'de maç başına alınan giriş çipi. */
+  private girisMiktari(salon: Salon, oyun: OyunTuru): number {
+    return oyun === "101" ? salon.giris * MAC101_GIRIS_CARPANI : salon.giris;
+  }
+
+  private odaAc(salon: Salon, oyun: OyunTuru, ozel: boolean): OdaKaydi {
     const kod = this.yeniKod();
     const { vt, ayarlar } = this.b;
-    const kayit: OdaKaydi = { oda: null!, salon, ozel, baslatmaIptal: null, odeyenler: [] };
+    const kayit: OdaKaydi = { oda: null!, salon, oyun, ozel, baslatmaIptal: null, odeyenler: [] };
     kayit.oda = new Oda({
       kod,
       salon: salon.id,
-      giris: salon.giris,
+      oyun,
+      giris: this.girisMiktari(salon, oyun),
       rastgele: ayarlar.rastgele,
       simdi: ayarlar.simdi,
       zamanla: (fn, ms) => this.zamanla(fn, ms),
       gonder: this.b.gonder,
-      turSuresiMs: ayarlar.turSuresiMs,
+      turSuresiMs: oyun === "101" ? ayarlar.turSuresi101Ms : ayarlar.turSuresiMs,
       botGecikmeMs: ayarlar.botGecikmeMs,
       sonrakiElMs: ayarlar.sonrakiElMs,
       elBasinda: (insanlar, giris) => {
         const zaman = ayarlar.simdi();
-        const yetmeyenler = insanlar.filter((id) => !vt.cipDegistir(id, -giris, "el_girisi", zaman));
+        const sebep = oyun === "101" ? "mac_girisi" : "el_girisi";
+        const yetmeyenler = insanlar.filter((id) => !vt.cipDegistir(id, -giris, sebep, zaman));
         kayit.odeyenler = insanlar.filter((id) => !yetmeyenler.includes(id));
         for (const id of yetmeyenler) this.oyuncuOdasi.delete(id);
         for (const id of kayit.odeyenler) this.b.profilGonder(id);
         return yetmeyenler;
       },
       elSonunda: (bilgi) => {
-        const s = elSonuIsle(vt, bilgi, ayarlar.simdi());
+        const s = bilgi.oyun === "101" ? macSonuIsle(vt, bilgi, ayarlar.simdi()) : elSonuIsle(vt, bilgi, ayarlar.simdi());
         kayit.odeyenler = [];
         for (const id of bilgi.oyuncular) {
           if (!id) continue;

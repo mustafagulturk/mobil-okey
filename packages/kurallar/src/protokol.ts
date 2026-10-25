@@ -9,6 +9,11 @@ import { z } from "zod";
 import { SALON_IDLERI, type SalonId } from "./ekonomi.ts";
 import type { Etiket, Istatistik } from "./kozmetik.ts";
 import type { ElSonucu, MasaGorunumu } from "./masa.ts";
+import type { ElSonucu101, MacDurumu, MasaGorunumu101 } from "./masa101.ts";
+
+export const OYUN_TURLERI = ["okey", "101"] as const;
+export type OyunTuru = (typeof OYUN_TURLERI)[number];
+const oyun = z.enum(OYUN_TURLERI).default("okey");
 
 const ad = z
   .string()
@@ -24,6 +29,15 @@ export const eylemSemasi = z.discriminatedUnion("tur", [
   z.object({ tur: z.literal("at"), tas }),
   z.object({ tur: z.literal("bitir"), tas }),
   z.object({ tur: z.literal("gostergeGoster") }),
+  // 101
+  z.object({ tur: z.literal("ac"), perler: z.array(z.array(tas).min(2).max(13)).min(1).max(11) }),
+  z.object({
+    tur: z.literal("isle"),
+    tas,
+    koltuk: z.number().int().min(0).max(3),
+    per: z.number().int().min(0).max(40),
+    okeyAl: z.boolean().optional(),
+  }),
 ]);
 
 export const istemciMesajiSemasi = z.discriminatedUnion("t", [
@@ -37,8 +51,8 @@ export const istemciMesajiSemasi = z.discriminatedUnion("t", [
 
   // Salon ve oda
   z.object({ t: z.literal("salonlar") }),
-  z.object({ t: z.literal("hizliOyun"), salon: z.enum(SALON_IDLERI) }),
-  z.object({ t: z.literal("odaKur"), salon: z.enum(SALON_IDLERI) }),
+  z.object({ t: z.literal("hizliOyun"), salon: z.enum(SALON_IDLERI), oyun }),
+  z.object({ t: z.literal("odaKur"), salon: z.enum(SALON_IDLERI), oyun }),
   z.object({ t: z.literal("odayaKatil"), kod: z.string().trim().toUpperCase().length(5) }),
   z.object({ t: z.literal("odadanAyril") }),
   z.object({ t: z.literal("basla") }),
@@ -90,7 +104,9 @@ export type KoltukGorunumu =
   | { tur: "bot"; ad: string };
 
 export interface ElOzeti {
-  sonuc: ElSonucu;
+  sonuc: ElSonucu | ElSonucu101;
+  /** 101: bu elle maç bitti mi? (Çip ve XP sadece maç sonunda dağıtılır.) Okey'de her zaman true. */
+  macBitti: boolean;
   /** Her koltuğun bu eldeki çip değişimi (kazanan +, diğerleri -; berabere 0). */
   cipDegisimi: number[];
   /** Her koltuğun kazandığı XP (botlar için 0). */
@@ -101,13 +117,16 @@ export interface ElOzeti {
 
 export interface OdaGorunumu {
   kod: string;
+  oyun: OyunTuru;
   salon: SalonId | "antrenman";
   giris: number;
   sahipId: string | null;
   koltuklar: KoltukGorunumu[];
   benimKoltugum: number | null;
   oyunda: boolean;
-  masa: MasaGorunumu | null;
+  masa: MasaGorunumu | MasaGorunumu101 | null;
+  /** 101 maç puan tablosu; Okey'de null. */
+  mac: MacDurumu | null;
   /** Sıradaki oyuncunun hamle süresinin bittiği an (ms). */
   turBitis: number | null;
   /**
@@ -130,6 +149,8 @@ export interface SohbetMesaji {
 
 export interface SalonBilgisi {
   id: SalonId;
+  /** Salondaki oyuncu sayısı oyun türüne göre. */
+  oyuncuSayisi101?: number;
   ad: string;
   giris: number;
   enAzCip: number;

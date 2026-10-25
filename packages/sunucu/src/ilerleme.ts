@@ -12,13 +12,15 @@ import {
   acikSusler,
   bugun,
   CERCEVELER,
-  type ElSonuBilgisi,
   GUNLUK_HEDIYE,
   GUNLUK_REKLAM_SINIRI,
   gunlukGorevler,
   type GorevDurumu,
   type Istatistik,
   KOLTUK_SAYISI,
+  type MacSonuBilgisi,
+  macPotuDagit,
+  type OkeyElSonuBilgisi,
   type OyuncuKarti,
   type Profil,
   ROZETLER,
@@ -27,6 +29,7 @@ import {
   type SunucuMesaji,
   UNVANLAR,
   XP,
+  XP101,
 } from "@okey/kurallar";
 import type { OyuncuSatiri, Veritabani } from "./veritabani.ts";
 
@@ -111,7 +114,7 @@ export interface ElSonuSonucu {
  * Pot = 4 x giriş (bot koltukları da sanal olarak giriş koyar). Kazanan potun tamamını
  * alır; berabere biterse herkes girişini geri alır.
  */
-export function elSonuIsle(vt: Veritabani, bilgi: ElSonuBilgisi, zaman: number): ElSonuSonucu {
+export function elSonuIsle(vt: Veritabani, bilgi: OkeyElSonuBilgisi, zaman: number): ElSonuSonucu {
   const { masa, oyuncular, giris } = bilgi;
   const sonuc = masa.sonuc!;
   const pot = giris * KOLTUK_SAYISI;
@@ -155,6 +158,46 @@ export function elSonuIsle(vt: Veritabani, bilgi: ElSonuBilgisi, zaman: number):
       for (const [sayac, miktar] of Object.entries(artis) as [keyof Istatistik, number][]) {
         vt.gorevSayaciArtir(id, gun, sayac, miktar);
       }
+    });
+    if (b.length) bildirimler.set(id, b);
+  }
+  return { cipDegisimi, xp, bildirimler };
+}
+
+/**
+ * 101 maçı bitti: çip, XP, istatistik ve görev hesabı (maç başına bir kez).
+ * Giriş maç başında alınmıştı; pot (4 x giriş) en düşük toplamlı koltuk(lar)a dağıtılır
+ * (macPotuDagit). İstatistikte bir maç bir "oynanan", kazanılan maç bir "kazanilan" sayılır;
+ * aynı sayaçlar günlük görevleri de ilerletir.
+ */
+export function macSonuIsle(vt: Veritabani, bilgi: MacSonuBilgisi, zaman: number): ElSonuSonucu {
+  const { mac, eller, oyuncular, giris } = bilgi;
+  const kazananlar = mac.kazananlar ?? [];
+  const alinan = macPotuDagit(giris, kazananlar, KOLTUK_SAYISI);
+  const gun = bugun(zaman);
+  const cipDegisimi = alinan.map((a) => a - giris);
+  const xp = [0, 0, 0, 0];
+  const bildirimler = new Map<string, Bildirim[]>();
+
+  for (let koltuk = 0; koltuk < KOLTUK_SAYISI; koltuk++) {
+    const id = oyuncular[koltuk];
+    if (!id) continue; // bot
+    const kazandi = kazananlar.includes(koltuk);
+    if (alinan[koltuk] > 0) vt.cipDegistir(id, alinan[koltuk], "mac_kazanildi", zaman);
+
+    const bitirdigi = eller.filter((e) => e.tur === "bitti" && e.koltuk === koltuk);
+    xp[koltuk] =
+      XP101.macOynadi +
+      (kazandi ? XP101.macKazandi : 0) +
+      bitirdigi.length * XP101.elBitirdi +
+      bitirdigi.filter((e) => e.tur === "bitti" && e.okeyle).length * XP101.okeyleBitirdi;
+
+    const artis = { oynanan: 1, kazanilan: kazandi ? 1 : 0 };
+    const b = degisiklikleriIzle(vt, id, zaman, () => {
+      vt.xpEkle(id, xp[koltuk]);
+      vt.istatistikArtir(id, artis);
+      vt.gorevSayaciArtir(id, gun, "oynanan", artis.oynanan);
+      vt.gorevSayaciArtir(id, gun, "kazanilan", artis.kazanilan);
     });
     if (b.length) bildirimler.set(id, b);
   }

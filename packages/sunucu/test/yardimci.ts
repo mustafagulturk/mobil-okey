@@ -12,6 +12,7 @@ export async function testSunucusu(ek: Partial<Ayarlar> = {}): Promise<CalisanSu
       port: 0,
       veritabaniYolu: ":memory:",
       turSuresiMs: 2_000,
+      turSuresi101Ms: 2_000,
       botGecikmeMs: 1,
       sonrakiElMs: 60_000,
       eslesmeBeklemeMs: 100,

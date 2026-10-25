@@ -8,6 +8,7 @@ import {
   type GorevDurumu,
   type IstemciMesaji,
   type OdaGorunumu,
+  type OyunTuru,
   type OyuncuKarti,
   type Profil,
   SALONLAR,
@@ -83,8 +84,9 @@ export class OnizlemeBaglanti extends Yayinci implements Baglanti {
         return this.ilet({ t: "siralama", tur: m.tur, ...siralama(m.tur, this.profil) });
       case "odaKur":
       case "hizliOyun":
+        return this.ilet({ t: "oda", oda: beklemeOdasi(this.profil, m.oyun) });
       case "odayaKatil":
-        return this.ilet({ t: "oda", oda: beklemeOdasi(this.profil) });
+        return this.ilet({ t: "oda", oda: beklemeOdasi(this.profil, "okey") });
       case "basla":
         return this.ilet({ t: "hata", mesaj: "Önizlemede online oyun yok; antrenmanı deneyin" });
       case "odadanAyril":
@@ -105,7 +107,8 @@ export class OnizlemeBaglanti extends Yayinci implements Baglanti {
 
 function salonlar(): SalonBilgisi[] {
   const sayilar = [214, 136, 41, 9];
-  return SALONLAR.map((s, i) => ({ ...s, oyuncuSayisi: sayilar[i] }));
+  const sayilar101 = [88, 52, 17, 4];
+  return SALONLAR.map((s, i) => ({ ...s, oyuncuSayisi: sayilar[i], oyuncuSayisi101: sayilar101[i] }));
 }
 
 const GOREVLER: GorevDurumu[] = [
@@ -121,9 +124,10 @@ function siralama(tur: "seviye" | "cip", p: Profil): { satirlar: SiralamaSatiri[
   return { satirlar, ben };
 }
 
-function beklemeOdasi(p: Profil): OdaGorunumu {
+function beklemeOdasi(p: Profil, oyun: OyunTuru): OdaGorunumu {
   return {
     kod: "K7M2Q",
+    oyun,
     salon: "kahvehane",
     giris: 500,
     sahipId: p.id,
@@ -136,9 +140,10 @@ function beklemeOdasi(p: Profil): OdaGorunumu {
     benimKoltugum: 0,
     oyunda: false,
     masa: null,
+    mac: null,
     turBitis: null,
     turKalanMs: null,
-    turSuresiMs: 25_000,
+    turSuresiMs: oyun === "101" ? 45_000 : 25_000,
     sonEl: null,
     elNo: 0,
   };

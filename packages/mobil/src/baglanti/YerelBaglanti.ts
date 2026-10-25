@@ -3,14 +3,17 @@
 // zamanlayıcı olarak setTimeout, "gonder" olarak da doğrudan uygulamanın dinleyicileri.
 //
 // Sadece masa ile ilgili mesajlar (hamle, sohbet, basla, odadanAyril) işlenir;
-// çip, görev gibi şeyler antrenmanda yoktur.
-import { type IstemciMesaji, type OyuncuKarti, Oda, type SunucuMesaji } from "@okey/kurallar";
+// çip, görev gibi şeyler antrenmanda yoktur. Antrenman Okey ya da 101 oynanabilir.
+import { type IstemciMesaji, type OyunTuru, type OyuncuKarti, Oda, type SunucuMesaji } from "@okey/kurallar";
 import { type Baglanti, Yayinci } from "./baglanti.ts";
 
 export class YerelBaglanti extends Yayinci implements Baglanti {
   private oda: Oda | null = null;
 
-  constructor(private readonly ben: OyuncuKarti) {
+  constructor(
+    private readonly ben: OyuncuKarti,
+    private readonly oyun: OyunTuru = "okey",
+  ) {
     super();
   }
 
@@ -19,6 +22,7 @@ export class YerelBaglanti extends Yayinci implements Baglanti {
     this.oda = new Oda({
       kod: "ANTRN",
       salon: "antrenman",
+      oyun: this.oyun,
       giris: 0,
       rastgele: Math.random,
       simdi: Date.now,
@@ -29,7 +33,8 @@ export class YerelBaglanti extends Yayinci implements Baglanti {
       gonder: (oyuncuId, mesaj) => {
         if (oyuncuId === this.ben.id) this.ilet(mesaj);
       },
-      turSuresiMs: 30_000,
+      // Antrenmanda acele yok; 101'de açma ve işleme için daha da uzun.
+      turSuresiMs: this.oyun === "101" ? 60_000 : 30_000,
       botGecikmeMs: 850,
       sonrakiElMs: 12_000,
     });
