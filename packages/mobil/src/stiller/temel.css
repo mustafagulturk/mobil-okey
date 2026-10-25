@@ -1373,3 +1373,26 @@ a {
     animation-duration: 1ms !important;
   }
 }
+
+/* ---------- Oyun türü rozeti (bekleme odası, 101 masası) ---------- */
+.oyun-rozeti {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: var(--kose-hap);
+  font-family: var(--yazi-tipi-baslik);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: var(--renk-altin-acik);
+  background: var(--renk-altin-hafif);
+  box-shadow: inset 0 0 0 1px var(--renk-altin-koyu);
+}
+
+.oyun-rozeti--101 {
+  color: var(--dugme-birincil-yazi);
+  background: var(--gradyan-altin-metal);
+  box-shadow: 0 0 0 1px var(--dugme-birincil-kenar), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}

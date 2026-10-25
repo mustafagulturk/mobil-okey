@@ -6,7 +6,8 @@
 //     parmağın altında kalkık ve gölgeli gezer, asıl taş yerinde soluk görünür.
 //     Hayalet karede bir kez (rAF), React'e uğramadan, transform ile taşınır.
 //  3) Bırakılınca parmağın altındaki öğeye bakılır (elementFromPoint): bir yuva ise
-//     taş oraya taşınır, atma alanı ise atılır, gösterge/deste alanı ise el bitirilir.
+//     taş oraya taşınır, atma alanı ise atılır, gösterge/deste alanı ise el bitirilir
+//     (Okey), masadaki bir per ise taş o pere işlenir (101).
 //  4) Hiç kaymadan bırakılırsa bu bir dokunuştur: taş seçilir/seçim kalkar.
 //
 // İstaka ve taşlar memo'ludur: masa ekranının saniyede birkaç kez yenilenen
@@ -20,7 +21,20 @@ import { type CSSProperties, memo, type PointerEvent as ReactPointerEvent, useLa
 import { Tas } from "../../bilesenler/Tas.tsx";
 import { efektlerAcik } from "../../efektler/ayar.ts";
 import { SIRA_UZUNLUGU, tasiTasi, type Yuvalar } from "../../yardimci/istaka.ts";
-import { birakmaAlani, hayaletiKoy, suruklemeyiIzle, yuvaVurgula, yuvaVurgusunuKaldir } from "./surukleme.ts";
+import {
+  type BirakmaHedefi,
+  birakmaAlani,
+  hayaletiKoy,
+  hedefAnahtari,
+  perVurgula,
+  perVurgusunuKaldir,
+  type SuruklemeDurumu,
+  suruklemeyiIzle,
+  yuvaVurgula,
+  yuvaVurgusunuKaldir,
+} from "./surukleme.ts";
+
+export type { BirakmaHedefi, SuruklemeDurumu };
 
 interface Ozellikler {
   yuvalar: Yuvalar;
@@ -31,15 +45,13 @@ interface Ozellikler {
   dagitim: boolean;
   degistir: (y: Yuvalar) => void;
   sec: (tas: number | null) => void;
-  /** Taş atma ya da bitirme alanına bırakıldı; kutu hayaletin bırakıldığı yer (uçuş oradan başlar). */
-  birakildi: (tas: number, kutu: DOMRect | null, hedef: "at" | "bitir") => void;
-  /** Sürükleme başladı/bitti ve parmak bir bırakma alanının üstünde mi. */
-  suruklemeDurumu: (durum: SuruklemeDurumu) => void;
+  /** Taş bir bırakma alanına bırakıldı; kutu hayaletin bırakıldığı yer (uçuş oradan başlar). */
+  birakildi: (tas: number, kutu: DOMRect | null, hedef: BirakmaHedefi) => void;
+  /** Sürükleme başladı/bitti ve parmak bir bırakma alanının üstünde mi; tas: sürüklenen taş. */
+  suruklemeDurumu: (durum: SuruklemeDurumu, tas: number | null) => void;
   /** Bu taş istakada gizli durur (ör. bitirmek için ortaya konmuşken). */
   gizliTas?: number | null;
 }
-
-export type SuruklemeDurumu = "yok" | "var" | "atUstunde" | "bitirUstunde";
 
 export const Istaka = memo(IstakaIc, (a, b) =>
   a.yuvalar === b.yuvalar &&
@@ -114,14 +126,14 @@ function IstakaIc({ yuvalar, okey, secili, sirada, dagitim, degistir, sec, birak
     const kutu = tasEl.getBoundingClientRect();
     const ofsetX = e.clientX - kutu.left;
     const ofsetY = e.clientY - kutu.top;
-    let alan: "at" | "bitir" | null = null;
+    let alan = "";
     let sonX = e.clientX;
     let sonY = e.clientY;
     suruklemeyiIzle(e, {
       basla: () => {
         hayaletKonum.current = { x: e.clientX, y: e.clientY, ofsetX, ofsetY };
         setSurukle({ tas, kaynak });
-        ref.current.suruklemeDurumu("var");
+        ref.current.suruklemeDurumu("var", tas);
       },
       hareket: (x, y, alt) => {
         sonX = x;
@@ -129,10 +141,12 @@ function IstakaIc({ yuvalar, okey, secili, sirada, dagitim, degistir, sec, birak
         hayaletKonum.current = { x, y, ofsetX, ofsetY };
         hayaletiKoy(hayalet.current, x, y, ofsetX, ofsetY);
         yuvaVurgula(alt);
+        perVurgula(alt);
         const yeni = birakmaAlani(alt);
-        if (yeni !== alan) {
-          alan = yeni;
-          ref.current.suruklemeDurumu(yeni === "at" ? "atUstunde" : yeni === "bitir" ? "bitirUstunde" : "var");
+        if (hedefAnahtari(yeni) !== alan) {
+          alan = hedefAnahtari(yeni);
+          const d = yeni?.alan === "at" ? "atUstunde" : yeni?.alan === "bitir" ? "bitirUstunde" : yeni?.alan === "per" ? "perUstunde" : "var";
+          ref.current.suruklemeDurumu(d, tas);
         }
       },
       bitir: (x, y, alt, iptal) => {
@@ -140,8 +154,9 @@ function IstakaIc({ yuvalar, okey, secili, sirada, dagitim, degistir, sec, birak
         hayaletiKoy(hayalet.current, iptal ? sonX : x, iptal ? sonY : y, ofsetX, ofsetY);
         const kutu = hayalet.current?.firstElementChild?.getBoundingClientRect() ?? null;
         yuvaVurgusunuKaldir();
+        perVurgusunuKaldir();
         setSurukle(null);
-        ref.current.suruklemeDurumu("yok");
+        ref.current.suruklemeDurumu("yok", null);
         if (iptal) return;
         const yuva = alt?.closest<HTMLElement>(".istaka [data-yuva]");
         if (yuva) {

@@ -5,6 +5,7 @@ import { SALONLAR, type KoltukGorunumu } from "@okey/kurallar";
 import { useEffect, useState, type CSSProperties } from "react";
 import { IsimEtiketi } from "../bilesenler/IsimEtiketi.tsx";
 import { CipSimgesi, Simge } from "../bilesenler/Simge.tsx";
+import { OYUN_ADI } from "../durum/oyunTuru.ts";
 import { useOyun } from "../durum/OyunSaglayici.tsx";
 import { kopyala, paylas } from "../platform/cihaz.ts";
 import { useGeriTusu } from "../platform/geriTusu.ts";
@@ -47,11 +48,12 @@ export function BeklemeOdasi() {
           <Simge ad="cikis" boyut={16} /> Ayrıl
         </button>
         <div className="bekleme__salon">
+          <span className={`oyun-rozeti oyun-rozeti--${oda.oyun}`}>{OYUN_ADI[oda.oyun]}</span>
           <span className="bekleme__salon-ad">{salonAdi}</span>
           <span className="bekleme__ayrac" />
           <CipSimgesi boyut={18} />
           <b>{cipBicim(oda.giris)}</b>
-          <small>el başı</small>
+          <small>{oda.oyun === "101" ? "maç başı · 4 el" : "el başı"}</small>
         </div>
         <div className="bekleme__sayi">
           <Simge ad="profil" boyut={15} />
@@ -127,7 +129,7 @@ export function BeklemeOdasi() {
                 <i />
                 <i />
               </span>
-              <span className="masa-ust__yazi">{salonAdi}</span>
+              <span className="masa-ust__yazi">{oda.oyun === "101" ? `101 · ${salonAdi}` : salonAdi}</span>
               <span className="masa-ust__not">Boş koltuklara oyun başlayınca bot oturur</span>
             </div>
           </div>

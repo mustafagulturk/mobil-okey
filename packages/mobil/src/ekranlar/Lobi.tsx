@@ -1,11 +1,13 @@
 // Lobi: yatay ekran için iki sütun. Solda oyuncunun kendisi (cam oyuncu kartı, hediye, reklam,
-// görevler), sağda üst menü, salon kartları ve alttaki eylem çubuğu.
-import { salonaUygunMu, SALONLAR, type SalonBilgisi, type SalonId } from "@okey/kurallar";
+// görevler), sağda üst menü, oyun türü anahtarı (Okey / 101), salon kartları ve alttaki eylem
+// çubuğu. Hızlı oyun, oda kurma ve antrenman seçili oyun türüyle başlar.
+import { type OyunTuru, salonaUygunMu, SALONLAR, type SalonBilgisi, type SalonId } from "@okey/kurallar";
 import { useEffect, useMemo, useState } from "react";
 import { Pencere } from "../bilesenler/Pencere.tsx";
 import { Simge, type SimgeAdi } from "../bilesenler/Simge.tsx";
 import type { Ekran } from "../durum/durum.ts";
 import { useOyun } from "../durum/OyunSaglayici.tsx";
+import { kayitliOyunTuru, oyunTuruKaydet } from "../durum/oyunTuru.ts";
 import { kisaCip } from "../yardimci/bicim.ts";
 import { OyuncuPaneli } from "./lobi/OyuncuPaneli.tsx";
 import { SalonCizimTanimlari, SalonKarti } from "./lobi/SalonKarti.tsx";
@@ -15,6 +17,11 @@ export function Lobi() {
   const profil = durum.profil!;
   const [secili, setSecili] = useState<SalonId | null>(null);
   const [kodPenceresi, setKodPenceresi] = useState(false);
+  const [oyun, setOyun] = useState<OyunTuru>(kayitliOyunTuru);
+  const oyunSec = (o: OyunTuru) => {
+    setOyun(o);
+    oyunTuruKaydet(o);
+  };
 
   // Salon bilgilerini (oyuncu sayıları) bağlanınca ve sonra ara ara iste.
   useEffect(() => {
@@ -39,7 +46,9 @@ export function Lobi() {
   }, [secili, uygunlar]);
 
   const cevrimici = durum.baglanti === "bagli";
-  const toplamOyuncu = salonlar.reduce((t, s) => t + s.oyuncuSayisi, 0);
+  // Salondaki çevrimiçi oyuncu sayısı seçili oyuna göre (sunucu 101 sayısını ayrıca bildirir).
+  const oyuncuSayisi = (s: SalonBilgisi) => (oyun === "101" ? (s.oyuncuSayisi101 ?? 0) : s.oyuncuSayisi);
+  const toplamOyuncu = salonlar.reduce((t, s) => t + oyuncuSayisi(s), 0);
 
   return (
     <div className="ekran lobi">
@@ -65,6 +74,7 @@ export function Lobi() {
               </button>
             )}
           </div>
+          <OyunAnahtari oyun={oyun} sec={oyunSec} />
           <nav className="lobi__menu">
             <MenuDugmesi simge="gorev" yazi="Görevler" ekran="gorevler" />
             <MenuDugmesi simge="kupa" yazi="Sıralama" ekran="siralama" />
@@ -78,7 +88,8 @@ export function Lobi() {
           {salonlar.map((s, i) => (
             <SalonKarti
               key={s.id}
-              salon={s}
+              salon={{ ...s, oyuncuSayisi: oyuncuSayisi(s) }}
+              oyun={oyun}
               sira={i}
               cip={profil.cip}
               secili={seciliSalon?.id === s.id}
@@ -91,13 +102,13 @@ export function Lobi() {
           <button
             className="hizli-oyun"
             disabled={!cevrimici || !seciliSalon}
-            onClick={() => seciliSalon && gonder({ t: "hizliOyun", salon: seciliSalon.id })}
+            onClick={() => seciliSalon && gonder({ t: "hizliOyun", salon: seciliSalon.id, oyun })}
           >
             <span className="hizli-oyun__simge">
               <Simge ad="oyna" boyut={18} />
             </span>
             <span className="hizli-oyun__metin">
-              <b>Hızlı Oyun</b>
+              <b>{oyun === "101" ? "Hızlı 101" : "Hızlı Oyun"}</b>
               {seciliSalon && (
                 <small>
                   {seciliSalon.ad} · {kisaCip(seciliSalon.giris)}
@@ -109,14 +120,32 @@ export function Lobi() {
             simge="arti"
             yazi="Oda Kur"
             disabled={!cevrimici || !seciliSalon}
-            tikla={() => seciliSalon && gonder({ t: "odaKur", salon: seciliSalon.id })}
+            tikla={() => seciliSalon && gonder({ t: "odaKur", salon: seciliSalon.id, oyun })}
           />
           <EylemDugmesi simge="anahtar" yazi="Kodla Katıl" disabled={!cevrimici} tikla={() => setKodPenceresi(true)} />
-          <EylemDugmesi simge="robot" yazi="Antrenman" tikla={antrenmanBaslat} />
+          <EylemDugmesi simge="robot" yazi="Antrenman" tikla={() => antrenmanBaslat(oyun)} />
         </div>
       </main>
 
       {kodPenceresi && <KodlaKatil kapat={() => setKodPenceresi(false)} />}
+    </div>
+  );
+}
+
+/**
+ * Oyun türü anahtarı: iki sekmeli altın bir "kaydırmalı düğme". Seçili sekmenin arkasındaki
+ * altın parça yaylanarak öbür sekmeye kayar (sadece transform).
+ */
+function OyunAnahtari({ oyun, sec }: { oyun: OyunTuru; sec: (o: OyunTuru) => void }) {
+  return (
+    <div className={`oyun-anahtari oyun-anahtari--${oyun === "101" ? "sag" : "sol"}`} role="tablist" aria-label="Oyun türü">
+      <i className="oyun-anahtari__parca" aria-hidden />
+      {(["okey", "101"] as const).map((o) => (
+        <button key={o} role="tab" aria-selected={oyun === o} className="oyun-anahtari__sekme" onClick={() => sec(o)}>
+          {o === "okey" ? "Okey" : "101"}
+          <small>{o === "okey" ? "klasik" : "perli"}</small>
+        </button>
+      ))}
     </div>
   );
 }

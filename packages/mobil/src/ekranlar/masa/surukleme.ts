@@ -141,8 +141,42 @@ export function yuvaVurgusunuKaldir() {
   vurgulu = null;
 }
 
+/** Sürükleme başladı/bitti ve parmak bir bırakma alanının üstünde mi. */
+export type SuruklemeDurumu = "yok" | "var" | "atUstunde" | "bitirUstunde" | "perUstunde";
+
+/**
+ * Bırakma hedefi: atma alanı, bitirme alanı (Okey: göstergenin üstü) ya da masadaki bir per
+ * (101'de işleme). Hedefler HTML'de data-birak ile işaretlenir; per için data-koltuk ve data-per.
+ */
+export type BirakmaHedefi = { alan: "at" } | { alan: "bitir" } | { alan: "per"; koltuk: number; per: number };
+
 /** Altındaki öğe hangi bırakma alanında? */
-export function birakmaAlani(alt: HTMLElement | null): "at" | "bitir" | null {
-  const a = alt?.closest<HTMLElement>("[data-birak]")?.dataset.birak;
-  return a === "at" || a === "bitir" ? a : null;
+export function birakmaAlani(alt: HTMLElement | null): BirakmaHedefi | null {
+  const el = alt?.closest<HTMLElement>("[data-birak]");
+  const a = el?.dataset.birak;
+  if (a === "at" || a === "bitir") return { alan: a };
+  if (el && a === "per") return { alan: "per", koltuk: Number(el.dataset.koltuk), per: Number(el.dataset.per) };
+  return null;
+}
+
+/** Hedefin değişip değişmediğini anlamak için kısa anahtar ("at", "per:2/1"). */
+export function hedefAnahtari(h: BirakmaHedefi | null): string {
+  if (!h) return "";
+  return h.alan === "per" ? `per:${h.koltuk}/${h.per}` : h.alan;
+}
+
+// ---------- Üstüne gelinen per vurgusu (yuva vurgusu gibi, render'sız) ----------
+let vurguluPer: HTMLElement | null = null;
+
+export function perVurgula(alt: HTMLElement | null) {
+  const per = alt?.closest<HTMLElement>('[data-birak="per"]') ?? null;
+  if (per === vurguluPer) return;
+  vurguluPer?.classList.remove("per101--ustunde");
+  per?.classList.add("per101--ustunde");
+  vurguluPer = per;
+}
+
+export function perVurgusunuKaldir() {
+  vurguluPer?.classList.remove("per101--ustunde");
+  vurguluPer = null;
 }

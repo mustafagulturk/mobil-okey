@@ -12,6 +12,7 @@ import { Simge } from "../bilesenler/Simge.tsx";
 import { Tas } from "../bilesenler/Tas.tsx";
 import { adresiDuzelt, ONIZLEME, ORNEK_ADRES, sunucuAdresi } from "../durum/ayar.ts";
 import { useOyun } from "../durum/OyunSaglayici.tsx";
+import { kayitliOyunTuru } from "../durum/oyunTuru.ts";
 import { kurtarmaKodunuCoz } from "../platform/depo.ts";
 
 export function Giris() {
@@ -45,7 +46,7 @@ export function Giris() {
   };
 
   const antrenmanDugmesi = (
-    <button className={`dugme ${antrenmanOnde ? "dugme--birincil dugme--buyuk" : "dugme--ikincil"}`} onClick={antrenmanBaslat}>
+    <button className={`dugme ${antrenmanOnde ? "dugme--birincil dugme--buyuk" : "dugme--ikincil"}`} onClick={() => antrenmanBaslat(kayitliOyunTuru())}>
       <Simge ad="robot" /> {antrenmanOnde ? "Antrenman oyna" : "Çevrim dışı antrenman"}
     </button>
   );

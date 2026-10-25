@@ -4,14 +4,18 @@
 //   - bir koltuğun atılanlar dizisi uzadıysa: o koltuk taş attı,
 //   - kısaldıysa: sağındaki (sıradaki) oyuncu o yığından ("yan") çekti,
 //   - ortaSayisi azaldıysa: taş sayısı artan (ve yandan çekmeyen) oyuncu ortadan çekti.
+// Okey ve 101 masası bu alanlarda aynıdır; fark çıkarma ikisinde de çalışır.
 import type { MasaGorunumu } from "@okey/kurallar";
+
+/** Fark çıkarmanın baktığı alanlar (Okey ve 101 görünümlerinin ortak kısmı). */
+export type OlayMasasi = Pick<MasaGorunumu, "koltuk" | "el" | "tasSayilari" | "atilanlar" | "ortaSayisi">;
 
 export type MasaOlayi =
   | { tur: "at"; koltuk: number; tas: number }
   | { tur: "cek"; kaynak: "yan"; koltuk: number; yigin: number; tas: number }
   | { tur: "cek"; kaynak: "orta"; koltuk: number; tas: number | null };
 
-export function olaylariCikar(a: MasaGorunumu, b: MasaGorunumu): MasaOlayi[] {
+export function olaylariCikar(a: OlayMasasi, b: OlayMasasi): MasaOlayi[] {
   const cekenler: MasaOlayi[] = [];
   const atanlar: MasaOlayi[] = [];
   const yandanCeken = new Set<number>();

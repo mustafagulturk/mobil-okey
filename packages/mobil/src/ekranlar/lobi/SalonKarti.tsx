@@ -1,7 +1,7 @@
 // Lobideki salon kartı: her salonun kendi görsel kimliği (çuha, bakır, kadife, siyah-altın),
 // küçük masa illüstrasyonu, büyük giriş çipi, çip aralığı ve çevrimiçi oyuncu sayısı.
 // Dokununca kart parmağın olduğu yöne hafifçe 3B eğilir (efektler açıksa).
-import { salonaUygunMu, type SalonBilgisi } from "@okey/kurallar";
+import { type OyunTuru, salonaUygunMu, type SalonBilgisi } from "@okey/kurallar";
 import { useRef, type CSSProperties, type PointerEvent } from "react";
 import { CipSimgesi, Simge } from "../../bilesenler/Simge.tsx";
 import { efektlerAcik } from "../../efektler/ayar.ts";
@@ -16,13 +16,15 @@ const ALT_YAZI: Record<string, string> = {
 
 interface Ozellikler {
   salon: SalonBilgisi;
+  /** 101'de giriş çipi bir elin değil, 4 ellik maçın bedelidir. */
+  oyun: OyunTuru;
   sira: number;
   cip: number;
   secili: boolean;
   sec: () => void;
 }
 
-export function SalonKarti({ salon, sira, cip, secili, sec }: Ozellikler) {
+export function SalonKarti({ salon, oyun, sira, cip, secili, sec }: Ozellikler) {
   const u = salonaUygunMu(salon, cip);
   const ref = useRef<HTMLButtonElement>(null);
 
@@ -84,7 +86,7 @@ export function SalonKarti({ salon, sira, cip, secili, sec }: Ozellikler) {
         <span className="salon__giris">
           <CipSimgesi boyut={24} />
           <b>{kisaCip(salon.giris)}</b>
-          <small>el başı</small>
+          <small>{oyun === "101" ? "maç başı" : "el başı"}</small>
         </span>
 
         <span className="salon__aralik">

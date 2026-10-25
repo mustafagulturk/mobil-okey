@@ -1,0 +1,674 @@
+/* =====================================================================
+   101 MASASI — Okey masasının (masa.css) üstüne gelen farklar.
+   Aynı ceviz çerçeve, çuha, istaka, yığınlar ve düğmeler; ortada her oyuncunun
+   açtığı perler kendi tarafında durur, deste ve gösterge tam ortadadır.
+   Renkler tema değişkenlerinden; oyuncu rengi madalyondaki gibi --ton'dan.
+   ===================================================================== */
+
+.masa--101 {
+  /* 22 taşlık el iki sıraya dizilir; istaka biraz küçülür ki ortada perlere yer kalsın. */
+  --tas-en: min(34px, calc((100vw - var(--guvenli-sol) - var(--guvenli-sag) - 270px) / 15));
+  /* tema.css'te kökte hesaplanan boy, buradaki ene göre yeniden hesaplansın */
+  --tas-boy: calc(var(--tas-en) * var(--tas-oran));
+  /* Üst ve alt per sırasının boyu: en büyük per taşı + yan yüz + kenar boşluğu. */
+  --per-sira-boy: 36px;
+}
+
+/* ---------- Ortadaki perler alanı ----------
+   Karşıdakinin perleri üstte, soldakinin solda, sağdakinin sağda, benimkiler altta;
+   deste ve gösterge tam ortada. */
+.masa101__alan {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-rows: var(--per-sira-boy) minmax(0, 1fr) var(--per-sira-boy);
+  grid-template-areas:
+    "ust ust ust"
+    "sol orta sag"
+    "ben ben ben";
+  gap: 3px 8px;
+  align-items: stretch;
+  justify-content: stretch;
+  /* Orta sütunun genişliğini istaka belirler; perler ne kadar uzarsa uzasın sütunu itmez. */
+  width: 0;
+  min-width: 100%;
+  min-height: 0;
+  padding: 2px 0 0;
+}
+
+.masa101__orta {
+  grid-area: orta;
+  /* Ortadaki deste ve gösterge Okey'dekinden biraz küçük */
+  --tas-orta-en: 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-height: 0;
+}
+
+.masa101__orta .deste-alani {
+  gap: 16px;
+}
+
+.masa101__orta .gosterge-dugmesi {
+  position: absolute;
+  bottom: -4px;
+  z-index: 3;
+}
+
+/* "X göstergeyi gösterdi" notu: perlerin üstünde okunabilsin diye küçük koyu bir hap */
+.masa101__orta .gosterge-not {
+  position: absolute;
+  top: -8px;
+  z-index: 3;
+  padding: 1px 8px;
+  border-radius: var(--kose-hap);
+  background: var(--cam-zemin-koyu);
+  box-shadow: inset 0 0 0 1px var(--renk-yuzey-kenar), 0 2px 6px rgba(0, 0, 0, 0.4);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.per-alani {
+  --per-tas-en: 22px;
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  /* "safe": sığmayan içerik üstten değil alttan taşar; useSigdir taşmayı ölçebilsin. */
+  align-content: safe center;
+  gap: 4px 6px;
+  min-width: 0;
+  min-height: 0;
+  padding: 2px 6px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: radial-gradient(ellipse at 50% 50%, hsl(var(--ton) 50% 40% / 0.14), rgba(0, 0, 0, 0.12) 80%);
+  box-shadow: inset 0 0 0 1px hsl(var(--ton) 60% 62% / 0.28);
+  transition: box-shadow var(--sure);
+}
+
+.per-alani--ust {
+  grid-area: ust;
+  justify-content: safe center;
+  /* Karşıdakinin plakasıyla arasına nefes */
+  margin: 0 6%;
+}
+
+.per-alani--ben {
+  grid-area: ben;
+  justify-content: safe center;
+  margin: 0 6%;
+}
+
+.per-alani--sol {
+  grid-area: sol;
+  justify-content: flex-start;
+  /* Soldaki oyuncunun plakası kenar sütunundan masaya biraz taşar */
+  margin-left: 24px;
+}
+
+.per-alani--sag {
+  grid-area: sag;
+  justify-content: flex-end;
+  margin-right: 24px;
+}
+
+.per-alani--bos {
+  justify-content: safe center;
+  background: none;
+  box-shadow: inset 0 0 0 1px hsl(var(--ton) 60% 62% / 0.12);
+}
+
+.per-alani__bos {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--renk-yazi-soluk);
+  opacity: 0.55;
+  white-space: nowrap;
+}
+
+/* Bir per: koyu oluk üstünde yan yana küçük taşlar. Taşların kalın yan yüzü için altta pay. */
+.per101 {
+  position: relative;
+  display: flex;
+  gap: 1px;
+  padding: 2px 3px calc(var(--per-tas-en) * var(--tas-derinlik) + 2px);
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);
+  transition: transform var(--sure) var(--egri-yay), box-shadow var(--sure), opacity var(--sure);
+}
+
+.per101 .tas {
+  --en: var(--per-tas-en);
+  font-size: calc(var(--en) * 0.72);
+}
+
+/* Yeni açılan/işlenen taş yerine yumuşakça oturur */
+.per101 .tas {
+  animation: per-tas-gir 0.42s var(--egri-yay) both;
+}
+
+@keyframes per-tas-gir {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.6);
+  }
+}
+
+/* Çiftler biraz ayrık durur: her çift kendi küçük tepsisinde */
+.per101--cift {
+  background: color-mix(in srgb, var(--renk-vurgu-2-koyu) 22%, rgba(0, 0, 0, 0.2));
+}
+
+/* İşleme: sürüklenen/seçili taşın işlenebileceği perler altınla nefes alır. */
+.per101--hedef {
+  cursor: pointer;
+  box-shadow: 0 0 0 1.5px var(--renk-altin), 0 0 14px color-mix(in srgb, var(--renk-altin) 55%, transparent),
+    inset 0 0 10px color-mix(in srgb, var(--renk-altin) 25%, transparent);
+  animation: per-nefes 1.1s ease-in-out infinite;
+}
+
+@keyframes per-nefes {
+  50% {
+    box-shadow: 0 0 0 2px var(--renk-altin-acik), 0 0 22px color-mix(in srgb, var(--renk-altin) 75%, transparent),
+      inset 0 0 12px color-mix(in srgb, var(--renk-altin) 35%, transparent);
+  }
+}
+
+/* Parmak perin üstünde: büyür ve parlar (surukleme.ts sınıfı ekler) */
+.per101--ustunde {
+  animation: none;
+  transform: scale(1.08);
+  background: color-mix(in srgb, var(--renk-altin) 30%, rgba(0, 0, 0, 0.2));
+  box-shadow: 0 0 0 2px var(--renk-altin-acik), 0 0 26px 4px color-mix(in srgb, var(--renk-altin) 80%, transparent);
+}
+
+/* Okey alınabilecek per: üstünde küçük "okey al" etiketi */
+.per101--okey-al::before {
+  content: "okey al";
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  z-index: 3;
+  transform: translateX(-50%);
+  padding: 0 5px;
+  border-radius: var(--kose-hap);
+  background: var(--gradyan-altin-metal);
+  color: var(--dugme-birincil-yazi);
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+/* Sürüklerken işlenemeyen perler geri çekilir */
+.masa--isleme .per101:not(.per101--hedef) {
+  opacity: 0.45;
+}
+
+/* ---------- Açma rozeti (rakip plakası ve benim etiketim) ---------- */
+.acma-rozeti {
+  flex-shrink: 0;
+  padding: 1px 7px;
+  border-radius: var(--kose-hap);
+  background: var(--gradyan-altin-metal);
+  color: var(--dugme-birincil-yazi);
+  font-family: var(--yazi-tipi-baslik);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 16px;
+  white-space: nowrap;
+  box-shadow: 0 0 0 1px var(--dugme-birincil-kenar), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  animation: rozet-gir 0.5s var(--egri-yay) both;
+}
+
+.acma-rozeti--cift {
+  background: var(--metal-zumrut);
+  color: var(--renk-yazi);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 1px var(--renk-vurgu-2-koyu), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+@keyframes rozet-gir {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+/* Kenar sütunundaki plakalarda rozet plakanın altına asılır (plaka masaya fazla taşmasın) */
+.masa__kenar .oyuncu-yeri .acma-rozeti {
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.masa__kenar .oyuncu-yeri__plaka {
+  position: relative;
+}
+
+/* ---------- Benim etiketim (kompakt): madalyon, ad ve açma rozeti; ipucu satırına sığar ---------- */
+.benim-etiketim--kompakt {
+  left: 6px;
+  gap: 5px;
+  padding: 1px 8px 1px 1px;
+}
+
+.benim-etiketim--kompakt .madalyon--kucuk {
+  --boy: 24px;
+}
+
+.benim-etiketim__ad {
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--yazi-tipi-baslik);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.benim-etiketim--kompakt .acma-rozeti {
+  font-size: 10px;
+  line-height: 15px;
+}
+
+/* ---------- Sol üstte el sayacı (dokununca puan tablosu) ---------- */
+.masa__bilgi--dugme {
+  align-items: flex-start;
+  padding: 2px 4px;
+  border-radius: var(--kose-kucuk);
+  text-align: left;
+  transition: transform var(--sure-hizli) var(--egri);
+}
+
+.masa__bilgi--dugme:active {
+  transform: scale(0.95);
+}
+
+.masa__bilgi--dugme > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.masa__bilgi--dugme .oyun-rozeti {
+  height: 17px;
+  padding: 0 6px;
+  font-size: 11px;
+}
+
+/* ---------- Yan taş: kullanılamayacaksa kırmızı uyarı ---------- */
+.yan-tas--riskli::after {
+  border-color: var(--renk-hata);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--renk-hata) 50%, transparent), inset 0 0 12px color-mix(in srgb, var(--renk-hata) 20%, transparent);
+}
+
+.yan-tas__uyari {
+  position: absolute;
+  left: -6px;
+  bottom: -6px;
+  z-index: 3;
+  padding: 0 5px;
+  border-radius: var(--kose-hap);
+  background: var(--dugme-tehlike-zemin);
+  color: var(--renk-yazi);
+  font-style: normal;
+  font-family: var(--yazi-tipi-baslik);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+/* ---------- Aç düğmesi ---------- */
+.ac-dugmesi {
+  padding: 0 8px;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.ac-dugmesi--hazir {
+  animation: ac-parla 1.6s ease-in-out infinite;
+}
+
+@keyframes ac-parla {
+  50% {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), inset 0 -2px 0 rgba(0, 0, 0, 0.25), 0 2px 0 var(--renk-vurgu-2-koyu),
+      0 0 18px 2px color-mix(in srgb, var(--renk-vurgu-2) 70%, transparent);
+  }
+}
+
+/* Yetersiz: ne kadar kaldığını gösterir; soluk ama okunur */
+.ac-dugmesi--yetersiz:disabled {
+  opacity: 0.6;
+  font-size: 12px;
+}
+
+/* ---------- Ceza onayı ---------- */
+.ceza-uyarisi {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 12px;
+  line-height: 1.4;
+}
+
+.ceza-uyarisi__rozet {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--dugme-tehlike-zemin);
+  color: var(--renk-yazi);
+  font-family: var(--yazi-tipi-baslik);
+  font-size: 14px;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--renk-hata) 40%, transparent), 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------- Puan tablosu: sol üstten açılan cam panel ---------- */
+.puan-arka {
+  position: fixed;
+  inset: 0;
+  z-index: 44;
+  background: color-mix(in srgb, var(--renk-karartma) 50%, transparent);
+  animation: karart-gir var(--sure) ease-out both;
+}
+
+.puan-tablosu {
+  position: absolute;
+  top: calc(var(--guvenli-ust) + 56px);
+  left: calc(var(--guvenli-sol) + 20px);
+  width: min(380px, calc(100vw - 40px));
+  padding: 10px 12px 10px;
+  border-radius: var(--kose);
+  background: var(--cam-zemin-koyu);
+  -webkit-backdrop-filter: var(--cam-bulanik);
+  backdrop-filter: var(--cam-bulanik);
+  border: var(--cam-kenar);
+  box-shadow: var(--golge-buyuk), var(--cam-ust-isik);
+  transform-origin: 30px 0;
+  animation: puan-gir 0.32s var(--egri-yay) both;
+}
+
+@keyframes puan-gir {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(-8px);
+  }
+}
+
+.puan-tablosu__ust {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.puan-tablosu__ust b {
+  font-family: var(--yazi-tipi-baslik);
+  font-weight: 600;
+  font-size: var(--yazi-buyuk);
+  color: var(--renk-altin-acik);
+}
+
+.puan-tablosu__ust span {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--renk-yazi-soluk);
+}
+
+.puan-tablosu__ust .simge-dugme {
+  margin-left: auto;
+}
+
+.puan-tablosu__izgara {
+  display: grid;
+  align-items: center;
+  gap: 2px 4px;
+  font-size: var(--yazi-kucuk);
+}
+
+.puan-tablosu__ad {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-bottom: 3px;
+  text-align: center;
+  font-weight: 800;
+  color: var(--renk-yazi-soluk);
+  border-bottom: 1px solid var(--renk-cizgi);
+}
+
+.puan-tablosu__ad.ben {
+  color: var(--renk-altin-acik);
+}
+
+.puan-tablosu__ad.lider::before {
+  content: "";
+  display: inline-block;
+  width: 11px;
+  height: 8px;
+  margin-right: 3px;
+  background: var(--gradyan-altin-metal);
+  clip-path: polygon(0 100%, 0 25%, 25% 60%, 50% 0, 75% 60%, 100% 25%, 100% 100%);
+}
+
+.puan-tablosu__el {
+  padding-right: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--renk-yazi-soluk);
+  white-space: nowrap;
+}
+
+.puan-tablosu__hucre {
+  padding: 3px 0;
+  border-radius: 6px;
+  text-align: center;
+  font-family: var(--yazi-tipi-baslik);
+  font-weight: 600;
+  font-size: 14px;
+  background: var(--renk-hafif);
+}
+
+.puan-tablosu__hucre.eksi {
+  color: var(--renk-basari);
+}
+
+.puan-tablosu__hucre.simdiki,
+.puan-tablosu__el.simdiki {
+  color: var(--renk-altin-acik);
+}
+
+.puan-tablosu__hucre.simdiki {
+  background: var(--renk-altin-hafif);
+}
+
+.puan-tablosu__hucre .ceza {
+  font-style: normal;
+  color: var(--renk-hata);
+}
+
+.puan-tablosu__el.toplam,
+.puan-tablosu__hucre.toplam {
+  margin-top: 3px;
+  color: var(--renk-yazi);
+}
+
+.puan-tablosu__hucre.toplam {
+  font-size: 16px;
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 0 0 1px var(--renk-yuzey-kenar);
+}
+
+.puan-tablosu__hucre.toplam.lider {
+  color: var(--dugme-birincil-yazi);
+  background: var(--gradyan-altin-metal);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--renk-altin) 45%, transparent);
+}
+
+.puan-tablosu__not {
+  margin: 7px 0 0;
+  font-size: 10px;
+  color: var(--renk-yazi-soluk);
+  text-align: center;
+}
+
+/* ---------- 101 sonuç penceresi: el el puan tablosu ---------- */
+.sonuc101 {
+  width: min(640px, 100%);
+}
+
+/* Dev başlıktaki Ç/Ş çengeli alt yazıya değmesin */
+.sonuc101 .sonuc__ust {
+  gap: 5px;
+}
+
+.sonuc101__tablo {
+  display: grid;
+  align-items: center;
+  gap: 4px 5px;
+  padding: 8px 10px;
+  border-radius: var(--kose);
+  background: var(--cuha-lamba), var(--doku-gurultu), var(--masa-cuha-gradyan);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 0, 0, 0.4), 0 0 0 4px var(--renk-yuzey-acik);
+  font-size: var(--yazi-kucuk);
+}
+
+.sonuc101__baslik {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--renk-yazi-soluk);
+}
+
+.sonuc101__baslik.simdiki {
+  color: var(--renk-altin-acik);
+}
+
+.sonuc101__oyuncu {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 3px 6px 3px 3px;
+  border-radius: var(--kose-hap);
+  background: rgba(0, 0, 0, 0.28);
+  box-shadow: inset 0 0 0 1px var(--renk-cizgi);
+  animation: sonuc-gir 0.45s var(--egri-yay) both;
+  animation-delay: calc(var(--o) * 70ms + 200ms);
+}
+
+.sonuc101__oyuncu.ben {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--renk-altin) 60%, transparent);
+}
+
+.sonuc101__oyuncu.kazanan {
+  background: linear-gradient(180deg, var(--renk-altin-hafif), rgba(0, 0, 0, 0.2));
+  box-shadow: inset 0 0 0 1.5px var(--renk-altin), 0 0 14px color-mix(in srgb, var(--renk-altin) 30%, transparent);
+}
+
+.sonuc101__oyuncu .madalyon--kucuk {
+  --boy: 26px;
+}
+
+.sonuc101__bitirdi {
+  margin-left: auto;
+  padding: 0 6px;
+  border-radius: var(--kose-hap);
+  background: color-mix(in srgb, var(--renk-vurgu-2) 18%, transparent);
+  color: var(--renk-vurgu-2);
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sonuc101__hucre {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+  font-family: var(--yazi-tipi-baslik);
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--renk-yazi-soluk);
+}
+
+.sonuc101__hucre.simdiki {
+  color: var(--renk-yazi);
+  font-size: 16px;
+  background: var(--renk-altin-hafif);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--renk-altin) 45%, transparent);
+}
+
+.sonuc101__hucre.eksi-puan {
+  color: var(--renk-basari);
+}
+
+.sonuc101__hucre.toplam {
+  color: var(--renk-yazi);
+  font-size: 17px;
+  background: rgba(0, 0, 0, 0.38);
+  box-shadow: inset 0 0 0 1px var(--renk-yuzey-kenar);
+}
+
+.sonuc101__hucre.toplam.lider {
+  color: var(--dugme-birincil-yazi);
+  background: var(--gradyan-altin-metal);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--renk-altin) 45%, transparent);
+}
+
+.sonuc101__hucre.cip {
+  font-size: 13px;
+}
+
+.sonuc101__hucre.cip.arti {
+  color: var(--renk-basari);
+}
+
+.sonuc101__hucre.cip.eksi {
+  color: var(--renk-hata);
+}
+
+.sonuc101__hucre .xp {
+  font-family: var(--yazi-tipi);
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--renk-bilgi);
+}
+
+/* ---------- Daha yüksek ekranlar (ör. 915x412): istaka biraz büyür ---------- */
+@media (min-height: 405px) {
+  .masa--101 {
+    --tas-en: min(36px, calc((100vw - var(--guvenli-sol) - var(--guvenli-sag) - 270px) / 15));
+  }
+}
+
+/* ---------- Alçak ekranlar ---------- */
+@media (max-height: 380px) {
+  .masa--101 {
+    --per-sira-boy: 34px;
+  }
+
+  .sonuc101__hucre {
+    height: 26px;
+  }
+}
