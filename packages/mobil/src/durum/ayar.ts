@@ -19,7 +19,7 @@ export const ORNEK_ADRES = "wss://okey-sunucu.onrender.com/ws";
 /**
  * Sunucu adresi: Ayarlar'da girilen > VITE_SUNUCU_URL > geliştirme varsayılanı.
  *
- * null dönerse online oyun için bir adres yoktur: telefona kurulan sürümde (Capacitor)
+ * null dönerse online oyun için bir adres yoktur: yayın derlemesinde (telefon ya da web)
  * ne derlemede VITE_SUNUCU_URL verilmiş ne de Ayarlar'da adres girilmiştir. Bu durumda
  * boşuna localhost'a bağlanmaya çalışılmaz; giriş ekranı antrenmanı öne çıkarır.
  */
@@ -32,7 +32,9 @@ export function sunucuAdresi(ayarlar: Ayarlar): string | null {
     // emülatörünü varsayarız (10.0.2.2 emülatörde bilgisayarın kendisidir).
     return import.meta.env.DEV ? "ws://10.0.2.2:8080/ws" : null;
   }
-  // Tarayıcıda sayfayı sunan bilgisayarın 8080 portunu deneriz.
+  // Yayındaki web sürümünde (portfolyodaki demo) sunucu yoksa sadece antrenman açılır.
+  if (!import.meta.env.DEV) return null;
+  // Geliştirmede sayfayı sunan bilgisayarın 8080 portunu deneriz.
   return `ws://${location.hostname || "localhost"}:8080/ws`;
 }
 
