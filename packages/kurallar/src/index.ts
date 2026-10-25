@@ -6,3 +6,6 @@ export * from "./oda.ts";
 export * from "./ekonomi.ts";
 export * from "./kozmetik.ts";
 export * from "./protokol.ts";
+export * from "./yuzbir.ts";
+export * from "./masa101.ts";
+export * from "./bot101.ts";
