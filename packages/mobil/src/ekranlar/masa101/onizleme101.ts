@@ -6,6 +6,9 @@
 //   __okey101Onizle("acik")     → ben de açmışım; elimdeki taşlar masadaki perlere işlenebilir
 //   __okey101Onizle("bos")      → kimse açmamış, sıra bende ve çekeceğim (boş masa, deste yuvası)
 //   __okey101Onizle("kalabalik")→ herkes açmış: iki seri, iki çift; çok per (taşlar küçülür)
+//   __okey101Onizle("hepsiSeri")→ dördü de seri açmış, işlenmiş uzun seriler (~70 taş)
+//   __okey101Onizle("ucSeri")   → üçü seri, karşıdaki çift açmış
+//   __okey101Onizle("hepsiCift")→ dördü de çift açmış (5-7 çift)
 //   __okey101Onizle("elSonu")   → 2. el bitti (sağdaki okeyle bitirdi)
 //   __okey101Onizle("macSonu")  → 4. el bitti, maçı ben kazandım
 //   __okey101Onizle(s, true)    → antrenman yerine online oda gibi (çip ve XP görünür; ?onizleme=1 ile)
@@ -16,7 +19,7 @@
 //   __okey101ElHazirla("isle")  → elime kırmızı 9 ve sarı 11 eklenir (açtıktan sonra işlemek için)
 import { type AcikPer, ciftGecerli, type MasaGorunumu101, Oda, okeyiBul, type OdaGorunumu, perGecerli } from "@okey/kurallar";
 
-export type Senaryo101 = "orta" | "yan" | "acik" | "bos" | "kalabalik" | "elSonu" | "macSonu";
+export type Senaryo101 = "orta" | "yan" | "acik" | "bos" | "kalabalik" | "hepsiSeri" | "ucSeri" | "hepsiCift" | "elSonu" | "macSonu";
 
 /** Taş kimliği: renk (0 kırmızı, 1 sarı, 2 mavi, 3 siyah), sayı, kopya (0/1). */
 const t = (renk: number, sayi: number, kopya = 0) => renk * 26 + (sayi - 1) * 2 + kopya;
@@ -51,6 +54,30 @@ const BENIM_PERLER = [
 ];
 const BENIM_DIGER = [t(K, 2), t(S, 3), t(M, 4), t(Y, 6), t(M, 1), t(K, 5), t(S, 1), t(Y, 2), t(M, 13, 1), t(K, 7), t(S, 5), t(Y, 7)];
 
+// "hepsiSeri": dört oyuncu da seri açmış, üstüne işlenmiş perler (en kalabalık gerçekçi masa).
+const HEPSI_SERI: AcikPer[][] = [
+  [per([t(K, 9), t(K, 10), t(K, 11), t(K, 12), t(K, 13)]), per([t(S, 8), t(S, 9), t(S, 10), t(S, 11)]), per([t(M, 11), t(Y, 11), t(S, 11, 1)]), per([t(Y, 3), t(Y, 4), t(Y, 5)]), per([t(K, 6), t(S, 6), t(Y, 6), t(M, 6, 1)])],
+  [per([t(M, 9), t(M, 10), t(M, 11, 1), t(M, 12), t(M, 13)]), per([t(K, 13, 1), t(S, 13), t(Y, 13)]), per([t(S, 1), t(S, 2), t(S, 3), t(S, 4)]), per([t(K, 8), t(M, 8), t(Y, 8)])],
+  [per([t(Y, 9), t(Y, 10), t(Y, 11, 1), t(Y, 12)]), per([t(K, 12, 1), t(S, 12), t(M, 12, 1)]), per([t(K, 2), t(K, 3), t(K, 4), t(K, 5)]), per([t(M, 1), t(M, 2), t(M, 3), t(M, 4)]), per([t(S, 5), t(S, 6, 1), t(S, 7)])],
+  [per([t(K, 7), t(K, 8, 1), t(K, 9, 1), t(K, 10, 1), t(K, 11, 1)]), per([t(S, 10, 1), t(M, 10, 1), t(Y, 10, 1)]), per([t(Y, 1), t(Y, 2), OKEY_TASI]), per([t(S, 3, 1), t(K, 3, 1), t(Y, 3, 1)]), per([t(M, 5), t(M, 6), t(M, 7)])],
+];
+
+/** Verilen taşlarla çakışmayan çiftler (renk renk, sayı sayı); senaryolarda taş kimlikleri tekil kalsın. */
+function serbestCiftler(haric: number[]): AcikPer[] {
+  const dolu = new Set([...haric, ...BENIM_DIGER, ...ATILANLAR.flat(), GOSTERGE]);
+  const r: AcikPer[] = [];
+  for (let sayi = 1; sayi <= 13; sayi++)
+    for (const renk of [K, S, M, Y]) if (!dolu.has(t(renk, sayi)) && !dolu.has(t(renk, sayi, 1))) r.push(cift(t(renk, sayi), t(renk, sayi, 1)));
+  return r;
+}
+
+const ATILANLAR = [
+  [t(Y, 1), t(K, 8)],
+  [t(M, 2), t(S, 2), t(K, 4)],
+  [t(Y, 5), t(M, 3)],
+  [t(K, 6), t(S, 7, 1), t(Y, 3, 1)],
+];
+
 function masa(s: Senaryo101): MasaGorunumu101 {
   const acik = s !== "orta" && s !== "yan" && s !== "bos";
   const kalabalik = s === "kalabalik";
@@ -59,17 +86,48 @@ function masa(s: Senaryo101): MasaGorunumu101 {
   const el = acik ? [...BENIM_DIGER] : [...BENIM_PERLER.flat(), ...BENIM_DIGER];
   // "yan": henüz çekmedim (21 taş)
   if (s === "yan" || bos) el.pop();
+  if (s === "hepsiSeri") {
+    return {
+      ...masa("acik"),
+      acma: ["seri", "seri", "seri", "seri"],
+      acmaDegeri: HEPSI_SERI.map(deger),
+      perler: HEPSI_SERI,
+      tasSayilari: [12, 4, 3, 2],
+      cezalar: [0, 0, 0, 0],
+    };
+  }
+  if (s === "ucSeri") {
+    // Karşıdaki (koltuk 2) 6 çift açmış; diğer üçü seri.
+    const seriler = [HEPSI_SERI[0], HEPSI_SERI[1], HEPSI_SERI[3]];
+    const ciftler = serbestCiftler(seriler.flat().flatMap((p) => p.taslar)).slice(0, 6);
+    return {
+      ...masa("acik"),
+      acma: ["seri", "seri", "cift", "seri"],
+      acmaDegeri: [deger(seriler[0]), deger(seriler[1]), ciftler.length, deger(seriler[2])],
+      perler: [seriler[0], seriler[1], ciftler, seriler[2]],
+      tasSayilari: [12, 4, 3, 2],
+      cezalar: [0, 0, 0, 0],
+    };
+  }
+  if (s === "hepsiCift") {
+    // Dördü de çift açmış: 7, 6, 5 ve 6 çift.
+    const c = serbestCiftler([]);
+    const perler = [c.slice(0, 7), c.slice(7, 13), c.slice(13, 18), c.slice(18, 24)];
+    return {
+      ...masa("acik"),
+      acma: ["cift", "cift", "cift", "cift"],
+      acmaDegeri: perler.map((p) => p.length),
+      perler,
+      tasSayilari: [12, 6, 5, 4],
+      cezalar: [0, 0, 0, 0],
+    };
+  }
   return {
     oyun: "101",
     koltuk: 0,
     el,
     tasSayilari: [el.length, 20, 11, 9],
-    atilanlar: [
-      [t(Y, 1), t(K, 8)],
-      [t(M, 2), t(S, 2), t(K, 4)],
-      [t(Y, 5), t(M, 3)],
-      [t(K, 6), t(S, 7, 1), t(Y, 3, 1)],
-    ],
+    atilanlar: ATILANLAR.map((a) => [...a]),
     ortaSayisi: 31,
     gosterge: GOSTERGE,
     okey: OKEY,

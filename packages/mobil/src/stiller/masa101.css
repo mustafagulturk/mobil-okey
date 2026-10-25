@@ -1,7 +1,7 @@
 /* =====================================================================
    101 MASASI — Okey masasının (masa.css) üstüne gelen farklar.
-   Aynı ceviz çerçeve, çuha, istaka, yığınlar ve düğmeler; ortada iki eşit sütun:
-   solda seri/grup perleri, sağda çiftler; deste ve gösterge çiftlerin altındaki yuvada.
+   Aynı ceviz çerçeve, çuha, istaka, yığınlar ve düğmeler; ortada iki sütun:
+   solda seri/grup perleri, sağda çiftler; deste ve gösterge sağ alttaki yuvada.
    Renkler tema değişkenlerinden; oyuncu rengi madalyondaki gibi --ton'dan.
    ===================================================================== */
 
@@ -13,10 +13,15 @@
 }
 
 /* ---------- Ortadaki perler alanı ----------
-   İki eşit sütun: solda herkesin seri/grup perleri, sağda herkesin çiftleri. Her sütun
-   ince altın kenarlı bir çerçeve; başlığı üst kenarın ortasına oturur. Sağ sütunun altında
-   deste ve göstergenin durduğu deste yuvası vardır; sol sütun aynı boyda tek parça kalır. */
+   İki sütun: solda herkesin seri/grup perleri, sağda herkesin çiftleri. Genişlikleri
+   içeriğe göre bölüşülür (PerAlani satır içi grid-template-columns verir, geçiş yumuşak);
+   ikisi de rahatsa eşit, bir sütun boşsa dar bir yer tutucu. Her sütun ince altın kenarlı
+   bir çerçeve; başlığı üst kenara gömülü. Sağ sütunun altında deste yuvası; çiftler
+   kalabalıksa yuva çiftlerin yanına geçer ve dikey dizilir. 101 işleme usulü olduğu için
+   masada çok taş birikir: iç boşluklar dar tutulur ki yer sığmaya harcansın. */
 .masa101__alan {
+  /* Taş eni: iki sütunda ortak (useSigdir ayarlar) */
+  --per-tas-en: 22px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
@@ -27,25 +32,37 @@
   min-width: 100%;
   min-height: 0;
   /* Üstte sütun başlıklarına yer; yanlarda rakip plakalarına, altta benim etiketime nefes */
-  padding: 7px 14px 5px;
+  padding: 7px 14px 4px;
+  transition: grid-template-columns 0.45s var(--egri);
 }
 
 .per-sutunu {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
   min-height: 0;
+}
+
+/* Çiftler kalabalık: deste yuvası çiftlerin sağına, alta yaslı */
+.masa101__alan--deste-yan .per-sutunu--cift {
+  flex-direction: row;
+  align-items: flex-end;
 }
 
 .per-sutunu__cerceve {
   position: relative;
   flex: 1;
   display: flex;
+  min-width: 0;
   min-height: 0;
   border-radius: 12px;
   background: radial-gradient(ellipse at 50% 40%, rgba(0, 0, 0, 0.06), rgba(0, 0, 0, 0.2) 85%);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--renk-altin) 30%, transparent), inset 0 2px 10px rgba(0, 0, 0, 0.28);
+}
+
+.masa101__alan--deste-yan .per-sutunu--cift .per-sutunu__cerceve {
+  align-self: stretch;
 }
 
 /* İçte kesik bir dikiş çizgisi (çuhanın ortasındaki halka gibi) */
@@ -58,6 +75,7 @@
   pointer-events: none;
 }
 
+/* Başlık üst kenara gömülü: listeden yer yemez */
 .per-sutunu__baslik {
   position: absolute;
   top: -7px;
@@ -78,19 +96,24 @@
   white-space: nowrap;
 }
 
-/* Satırların kaydığı liste; taş boyunu useSigdir burada ayarlar. */
+/* Dar sütunda başlık sıkışır */
+.per-sutunu--dar .per-sutunu__baslik {
+  padding: 0 6px;
+  letter-spacing: 0.08em;
+}
+
+/* Satırların dizildiği liste. İç boşluklar PerAlani'deki yerleşim modeliyle (OLCU) aynı. */
 .per-sutunu__liste {
-  --per-tas-en: 22px;
   position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
   /* "safe": sığmayan içerik üstten değil alttan taşar; useSigdir taşmayı ölçebilsin. */
   justify-content: safe center;
-  gap: 3px;
+  gap: 2px;
   min-width: 0;
   min-height: 0;
-  padding: 8px 5px 4px;
+  padding: 5px 4px 2px;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -155,54 +178,42 @@
   letter-spacing: 0.03em;
 }
 
-/* ---------- Bir oyuncunun satırı: künye + perleri ----------
-   Künye satırın solunda sabit bir oluk; perler onun sağında kayar ve alt satıra iner. */
+/* Dar (boş) sütun: yalnızca kısa bir not, alt alta iki satır; üstünde ince altın çizgi */
+.per-sutunu__bos .per-sutunu__kisa,
+.per-sutunu--dar .per-sutunu__bos b,
+.per-sutunu--dar .per-sutunu__bos small {
+  display: none;
+}
+
+.per-sutunu--dar .per-sutunu__bos .per-sutunu__kisa {
+  display: block;
+  max-width: 64px;
+  padding-top: 6px;
+  border-top: 1px solid color-mix(in srgb, var(--renk-altin) 35%, transparent);
+  line-height: 1.25;
+}
+
+/* ---------- Bir oyuncunun satırı: perleri ----------
+   Künye yok (açma değeri oyuncunun plakasındaki rozette yazar); satırın kime ait olduğunu
+   soldaki ince, oyuncunun renginde çizgi ve hafif renkli zemin söyler. Perler yan yana,
+   sığmazsa alt satıra iner. */
 .per-satiri {
   position: relative;
-  /* Satır sığmayınca ezilmesin; sütun taşları küçültür ya da kayar */
+  /* Satır sığmayınca ezilmesin; alan taşları küçültür ya da kayar */
   flex: none;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 3px;
-  min-height: calc(var(--per-tas-en) * var(--tas-oran) + 8px);
-  padding: 1px 3px 1px 50px;
-  border-radius: 9px;
-  background: linear-gradient(90deg, hsl(var(--ton) 50% 40% / 0.2), hsl(var(--ton) 50% 40% / 0.04) 60%, transparent);
-  box-shadow: inset 2px 0 0 hsl(var(--ton) 62% 60% / 0.75);
+  padding: 0 2px 0 6px;
+  border-radius: 7px;
+  background: linear-gradient(90deg, hsl(var(--ton) 50% 40% / 0.22), hsl(var(--ton) 50% 40% / 0.04) 55%, transparent);
+  box-shadow: inset 2.5px 0 0 hsl(var(--ton) 66% 62% / 0.85);
 }
 
-.per-satiri__kunye {
-  position: absolute;
-  left: 7px;
-  top: 50%;
-  display: flex;
-  flex-direction: column;
-  width: 42px;
-  transform: translateY(-50%);
-  line-height: 1.1;
-}
-
-/* Ad oyuncunun renginde (madalyonun tonu), açma değeri altın */
-.per-satiri__kunye b {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 10px;
-  font-weight: 800;
-  color: hsl(var(--ton) 70% 80%);
-}
-
-.per-satiri__kunye small {
-  font-family: var(--yazi-tipi-baslik);
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--renk-altin-acik);
-  white-space: nowrap;
-}
-
-/* ---------- Deste yuvası: çiftlerin altında, deste ve gösterge yan yana ----------
-   Koyu, altın kenarlı bir oyuk; solda deste ve kalan taş, sağda gösterge ve okey. */
+/* ---------- Deste yuvası: sağ altta, deste ve gösterge yan yana ----------
+   Koyu, altın kenarlı sade bir oyuk; yazı yok. Kalan taş destenin üstündeki küçük
+   rozette, okey taşı ayrıca çizilmez (gösterge yeter). */
 .deste-yuvasi {
   /* Deste ve gösterge masadakinden biraz küçük */
   --tas-orta-en: 21px;
@@ -210,7 +221,7 @@
   flex: none;
   display: flex;
   justify-content: center;
-  padding: 4px 8px 5px;
+  padding: 3px 8px 4px;
   border-radius: 12px;
   background: linear-gradient(180deg, rgba(0, 0, 0, 0.34), rgba(0, 0, 0, 0.2));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--renk-altin) 45%, transparent), inset 0 2px 8px rgba(0, 0, 0, 0.45),
@@ -224,61 +235,32 @@
 }
 
 .deste-yuvasi .deste-alani {
-  gap: 7px;
+  gap: 12px;
+}
+
+/* Çiftlerin yanında: deste üstte, gösterge altta (dar dikey şerit) */
+.masa101__alan--deste-yan .deste-yuvasi {
+  padding: 6px 4px 5px 6px;
+}
+
+.masa101__alan--deste-yan .deste-yuvasi .deste-alani {
+  flex-direction: column;
+  gap: 8px;
 }
 
 .deste-yuvasi .deste {
   padding: 2px 2px 2px 5px;
 }
 
-/* Kalan taş künyede yazar; destenin rozeti gerekmez */
+/* Kalan taş: destenin köşesinde küçük rozet */
 .deste-yuvasi .deste__sayi {
-  display: none;
-}
-
-.deste-yuvasi .gosterge {
-  margin-left: 6px;
-}
-
-/* Okey taşı göstergenin sağ yanına yaslanır; göstergenin sayısını örtmez */
-.deste-yuvasi .okey-ikon {
-  right: -21px;
+  right: -7px;
   bottom: -3px;
-}
-
-.deste-alani__yazi {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.1;
-  white-space: nowrap;
-}
-
-.deste-alani__yazi b {
-  font-family: var(--yazi-tipi-baslik);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--renk-altin-acik);
-}
-
-.deste-alani__yazi small {
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-  color: var(--renk-yazi-soluk);
-}
-
-/* Destenin künyesiyle gösterge arasında ince altın ayraç */
-.deste-alani__yazi--deste {
-  padding-right: 9px;
-  border-right: 1px solid color-mix(in srgb, var(--renk-altin) 30%, transparent);
-}
-
-.deste-alani__yazi--gosterge {
-  margin-left: 24px;
-}
-
-.deste-yuvasi--cekilebilir .deste-alani__yazi--deste small {
-  color: var(--renk-altin-acik);
+  min-width: 18px;
+  padding: 0 4px;
+  font-size: 10px;
+  line-height: 14px;
+  text-align: center;
 }
 
 /* "Gösterge göster" düğmesi ve "X göstergeyi gösterdi" notu yuvanın üst kenarına oturur */
@@ -289,6 +271,14 @@
   left: 50%;
   z-index: 3;
   transform: translateX(-50%);
+}
+
+/* Dar dikey yuvada: sağ kenara yaslı, çiftlerin üstüne doğru açılır */
+.masa101__alan--deste-yan .deste-yuvasi .gosterge-dugmesi,
+.masa101__alan--deste-yan .deste-yuvasi .gosterge-not {
+  left: auto;
+  right: 0;
+  transform: none;
 }
 
 .deste-yuvasi .gosterge-dugmesi {
@@ -309,7 +299,7 @@
   position: relative;
   display: flex;
   gap: 1px;
-  padding: 2px 2px calc(var(--per-tas-en) * var(--tas-derinlik) + 1px);
+  padding: 1px 1px calc(var(--per-tas-en) * var(--tas-derinlik) + 1px);
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.2);
   box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35);

@@ -2,9 +2,10 @@
 // ve sürükle-bırak, aynı köşe yığınları, deste, gösterge, uçuşlar ve sohbet (masa/ortak.tsx).
 // 101'e özgü olanlar:
 //
-//  - Ortada iki eşit sütun (PerAlani): solda herkesin seri/grup perleri, sağda herkesin
-//    çiftleri; her satırın başında oyuncunun künyesi. Deste ve gösterge sağ altta, çiftlerin
-//    altındaki deste yuvasında. Rakip plakalarında açma rozeti ("Seri 112", "Çift 5").
+//  - Ortada iki sütun (PerAlani): solda herkesin seri/grup perleri, sağda herkesin
+//    çiftleri; genişlikleri içeriğe göre bölüşülür, satırın kime ait olduğunu oyuncunun
+//    rengindeki ince çizgi söyler. Deste ve gösterge sağ altta, çiftlerin altındaki (çiftler
+//    kalabalıksa yanındaki) sade deste yuvasında. Rakip plakalarında açma rozeti ("Seri 112", "Çift 5").
 //  - Sağ alttaki "Aç" düğmesi: açmamışken elden en iyi açılışı bulur ("Aç · 112" ya da
 //    "Çift aç · 5"); açtıktan sonra aynı türden yeni perleri açar ("Per aç").
 //  - İşleme: istakadaki taş masadaki bir perin üstüne sürüklenip bırakılır (ya da taş
@@ -32,7 +33,6 @@ import {
   DisHayalet,
   GostergeNotu,
   istakaKutulari,
-  okeyMetni,
   SiraIpucu,
   SohbetDugmesi,
   useBalonlar,
@@ -48,7 +48,7 @@ import {
 } from "../masa/ortak.tsx";
 import { OyuncuYeri } from "../masa/OyuncuYeri.tsx";
 import { suruklemeYeniBitti } from "../masa/surukleme.ts";
-import { type Oyuncu101, PerSutunu } from "./PerAlani.tsx";
+import { type Oyuncu101, PerAlani } from "./PerAlani.tsx";
 import { PuanTablosu } from "./PuanTablosu.tsx";
 import { SonucPenceresi101 } from "./SonucPenceresi101.tsx";
 import { acmaDugmesi, acmaRozeti, atisUyarisi, diz101, islemeHedefleri, yanUyarisi } from "./yardimci101.ts";
@@ -252,12 +252,11 @@ export function Masa101Ekrani() {
           koltuk: k,
           ad: r === 0 ? "Sen" : koltukAdi(oda, k),
           ton: tonu(r === 0 ? benimKartim.ad : koltukAdi(oda, k)),
-          deger: masa.acma[k] === "seri" ? masa.acmaDegeri[k] : null,
           perler: masa.perler[k],
           hedefler: koltukHedefleri[k],
         };
       }),
-    [ben, adlar, benimKartim.ad, masa.perler, masa.acma, masa.acmaDegeri, koltukHedefleri],
+    [ben, adlar, benimKartim.ad, masa.perler, koltukHedefleri],
   );
   const perDokun = secili !== null ? (k: number, per: number) => isle(secili, k, per) : undefined;
 
@@ -317,45 +316,29 @@ export function Masa101Ekrani() {
       {/* ---------- Üst: karşıdaki oyuncu ---------- */}
       <div className="masa__ust">{rakip(2, "ust")}</div>
 
-      {/* ---------- Merkez: solda seriler, sağda çiftler; çiftlerin altında deste yuvası ---------- */}
-      <div className="masa__merkez masa101__alan">
-        <PerSutunu tur="seri" oyuncular={oyuncular} okey={masa.okey} dokun={perDokun} />
-        <PerSutunu
-          tur="cift"
-          oyuncular={oyuncular}
-          okey={masa.okey}
-          dokun={perDokun}
-          alt={
-            <div className={`deste-yuvasi ${cekebilir ? "deste-yuvasi--cekilebilir" : ""}`}>
-              <DesteVeGosterge
-                ortaSayisi={masa.ortaSayisi}
-                gosterge={masa.gosterge}
-                okey={masa.okey}
-                elNo={oda.elNo}
-                elBasi={elBasi}
-                cekebilir={cekebilir}
-                cek={() => !suruklemeYeniBitti() && cek("orta")}
-                cekmeSurukle={(e) => cekmeSurukle(e, "orta")}
-                yazilar={{
-                  deste: (
-                    <>
-                      <b>Deste</b>
-                      <small>{masa.ortaSayisi} taş kaldı</small>
-                    </>
-                  ),
-                  gosterge: (
-                    <>
-                      <b>Gösterge</b>
-                      <small>Okey {okeyMetni(masa.okey).toLocaleLowerCase("tr")}</small>
-                    </>
-                  ),
-                }}
-              />
-              <GostergeNotu oda={oda} gosterebilir={masa.gostergeGosterebilir} gosteren={masa.gostergeGosteren} gonder={gonder} />
-            </div>
-          }
-        />
-      </div>
+      {/* ---------- Merkez: solda seriler, sağda çiftler; sağ altta deste yuvası ---------- */}
+      <PerAlani
+        oyuncular={oyuncular}
+        okey={masa.okey}
+        dokun={perDokun}
+        deste={
+          <div className={`deste-yuvasi ${cekebilir ? "deste-yuvasi--cekilebilir" : ""}`}>
+            {/* Kalan taş destenin rozetinde; göstergenin yanında okey taşı yok (sade yuva) */}
+            <DesteVeGosterge
+              ortaSayisi={masa.ortaSayisi}
+              gosterge={masa.gosterge}
+              okey={masa.okey}
+              elNo={oda.elNo}
+              elBasi={elBasi}
+              cekebilir={cekebilir}
+              cek={() => !suruklemeYeniBitti() && cek("orta")}
+              cekmeSurukle={(e) => cekmeSurukle(e, "orta")}
+              okeyGizli
+            />
+            <GostergeNotu oda={oda} gosterebilir={masa.gostergeGosterebilir} gosteren={masa.gostergeGosteren} gonder={gonder} />
+          </div>
+        }
+      />
 
       <SiraIpucu benimSiram={benimSiram} acil={acil} asama={masa.asama} ipucu={ipucu} kalanSn={kalanSn} />
 

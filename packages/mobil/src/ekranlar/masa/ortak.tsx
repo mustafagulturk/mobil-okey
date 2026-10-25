@@ -397,8 +397,8 @@ export function DesteVeGosterge(o: {
   cekmeSurukle: (e: ReactPointerEvent<HTMLElement>) => void;
   sinif?: string;
   birak?: "bitir";
-  /** Destenin ve göstergenin yanına yazılan küçük künyeler (101'deki deste yuvası). */
-  yazilar?: { deste: ReactNode; gosterge: ReactNode };
+  /** Göstergenin yanındaki okey taşı çizilmesin (101'in sade deste yuvası). */
+  okeyGizli?: boolean;
 }) {
   const ornek = useMemo(() => okeyOrnegi(o.okey), [o.okey.renk, o.okey.sayi]);
   const metin = okeyMetni(o.okey);
@@ -417,7 +417,6 @@ export function DesteVeGosterge(o: {
         <KapaliTas />
         <span className="deste__sayi">{o.ortaSayisi}</span>
       </button>
-      {o.yazilar && <span className="deste-alani__yazi deste-alani__yazi--deste">{o.yazilar.deste}</span>}
       <div className="gosterge" aria-label={`Gösterge; okey ${metin}`}>
         <div key={o.elNo} className={`gosterge__kart ${o.elBasi ? "gosterge__kart--cevir" : ""}`}>
           <div className="gosterge__yuz">
@@ -427,13 +426,12 @@ export function DesteVeGosterge(o: {
             <KapaliTas />
           </div>
         </div>
-        {ornek !== null && (
+        {ornek !== null && !o.okeyGizli && (
           <div className="okey-ikon" title={`Okey: ${metin}`}>
             <Tas id={ornek} okey={o.okey} boyut="kucuk" />
           </div>
         )}
       </div>
-      {o.yazilar && <span className="deste-alani__yazi deste-alani__yazi--gosterge">{o.yazilar.gosterge}</span>}
     </div>
   );
 }
