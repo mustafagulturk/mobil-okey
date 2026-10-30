@@ -39,6 +39,7 @@ export function sahteSonucOdasi(oda: OdaGorunumu, s: SahteSonuc): OdaGorunumu {
     masa: { ...masa, sonuc },
     sonEl: {
       sonuc,
+      macBitti: true,
       cipDegisimi: [0, 1, 2, 3].map((k) => (k === kazanan ? cip * 3 : -cip)),
       xp: [0, 1, 2, 3].map((k) => (k === kazanan ? 40 : 12)),
       sonrakiEl: Date.now() + 12_000,

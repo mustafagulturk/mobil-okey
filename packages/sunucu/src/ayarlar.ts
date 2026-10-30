@@ -21,6 +21,8 @@ export interface Ayarlar {
 
   // Oyun zamanlamaları
   turSuresiMs: number;
+  /** 101'de hamle süresi (açma ve işleme düşünüldüğü için Okey'den uzun). */
+  turSuresi101Ms: number;
   botGecikmeMs: number;
   sonrakiElMs: number;
   /** Hızlı oyunda ilk oyuncu oturduktan sonra botlarla başlamadan önce beklenen süre. */
@@ -51,6 +53,7 @@ export function varsayilanAyarlar(ek: Partial<Ayarlar> = {}): Ayarlar {
     satinAlmaTest: false,
     googleServisHesabiJson: null,
     turSuresiMs: 25_000,
+    turSuresi101Ms: 45_000,
     botGecikmeMs: 900,
     sonrakiElMs: 8_000,
     eslesmeBeklemeMs: 10_000,

@@ -486,6 +486,72 @@
   white-space: nowrap;
 }
 
+/* Oyun türü anahtarı (Okey / 101): koyu oluk içinde iki sekme; seçili sekmenin arkasında
+   altın metal bir parça durur ve seçim değişince yaylanarak öbür tarafa kayar. */
+.oyun-anahtari {
+  --sekme-en: 58px;
+  position: relative;
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(2, var(--sekme-en));
+  padding: 3px;
+  border-radius: var(--kose-hap);
+  background: var(--cam-panel-zemin-koyu);
+  border: var(--cam-kenar);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.45), var(--cam-ust-isik);
+}
+
+.oyun-anahtari__parca {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: var(--sekme-en);
+  border-radius: var(--kose-hap);
+  background: var(--gradyan-altin-metal);
+  box-shadow: 0 0 0 1px var(--dugme-birincil-kenar), 0 3px 8px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    var(--parlama-altin);
+  transition: transform var(--sure-yavas) var(--egri-yay);
+}
+
+.oyun-anahtari--sag .oyun-anahtari__parca {
+  transform: translateX(var(--sekme-en));
+}
+
+.oyun-anahtari__sekme {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  font-family: var(--yazi-tipi-baslik);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--renk-yazi-soluk);
+  transition: color var(--sure);
+}
+
+.oyun-anahtari__sekme small {
+  margin-top: 2px;
+  font-family: var(--yazi-tipi);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.oyun-anahtari__sekme[aria-selected="true"] {
+  color: var(--dugme-birincil-yazi);
+}
+
+.oyun-anahtari__sekme:active {
+  transform: scale(0.95);
+}
+
 /* Üst menü: cam daire simge düğmeleri */
 .lobi__menu {
   margin-left: auto;

@@ -1,6 +1,6 @@
 import { generateKeyPairSync, createVerify, sign } from "node:crypto";
 import { afterEach, describe, expect, it } from "vitest";
-import { BASLANGIC_CIPI, GUNLUK_HEDIYE, GUNLUK_REKLAM_SINIRI, REKLAM_ODULU } from "@okey/kurallar";
+import { BASLANGIC_CIPI, GUNLUK_HEDIYE, GUNLUK_REKLAM_SINIRI, macPotuDagit, REKLAM_ODULU } from "@okey/kurallar";
 import { GooglePlayIstemcisi, Magaza } from "../src/magaza.ts";
 import { kufurMaskele } from "../src/sohbet.ts";
 import { Veritabani } from "../src/veritabani.ts";
@@ -164,5 +164,13 @@ describe("sohbet filtresi", () => {
     expect(kufurMaskele("oha amk ne şans")).toBe("oha *** ne şans");
     expect(kufurMaskele("SİKTİR git, orospuluk yapma")).toBe("*** git, *** yapma");
     expect(kufurMaskele("çok sıkıcı bir el, götürdün yine")).toBe("çok sıkıcı bir el, götürdün yine");
+  });
+});
+
+describe("101 pot dağıtımı", () => {
+  it("tek kazanan potun tamamını alır, eşitlikte paylaşılır, artık ilk kazanana gider", () => {
+    expect(macPotuDagit(100, [2])).toEqual([0, 0, 400, 0]);
+    expect(macPotuDagit(100, [1, 3])).toEqual([0, 200, 0, 200]);
+    expect(macPotuDagit(100, [0, 1, 2])).toEqual([134, 133, 133, 0]);
   });
 });

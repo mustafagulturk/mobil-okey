@@ -9,6 +9,7 @@
 // elindeki taşlar ve ortadaki destenin sırası hiçbir zaman istemciye gitmez.
 
 import { bitisBul, type Bitis } from "./el.ts";
+import type { OyunEylemi } from "./masa101.ts";
 import { type Deger, okeyiBul, okeyMi, sahteMi, yeniDeste, yuzDegeri } from "./tas.ts";
 
 export const KOLTUK_SAYISI = 4;
@@ -71,8 +72,13 @@ export class Masa {
     this.sira = baslayan;
   }
 
-  hamle(koltuk: number, eylem: Eylem): HamleSonucu {
+  /**
+   * Oda iki oyunun eylemlerini de aynı yoldan gönderir (OyunEylemi). 101'e özel
+   * eylemler (aç, işle) Okey masasında geçersizdir.
+   */
+  hamle(koltuk: number, eylem: OyunEylemi): HamleSonucu {
     if (this.sonuc) return hata("El bitti");
+    if (eylem.tur === "ac" || eylem.tur === "isle") return hata("Bu hamle sadece 101'de yapılır");
     if (eylem.tur === "gostergeGoster") return this.gostergeGoster(koltuk);
     if (koltuk !== this.sira) return hata("Sıra sende değil");
     const el = this.eller[koltuk];

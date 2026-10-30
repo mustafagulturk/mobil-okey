@@ -10,6 +10,7 @@ import { Gorevler } from "./ekranlar/Gorevler.tsx";
 import { Lobi } from "./ekranlar/Lobi.tsx";
 import { Magaza } from "./ekranlar/Magaza.tsx";
 import { MasaEkrani } from "./ekranlar/masa/MasaEkrani.tsx";
+import { Masa101Ekrani } from "./ekranlar/masa101/Masa101Ekrani.tsx";
 import { Profil } from "./ekranlar/Profil.tsx";
 import { Siralama } from "./ekranlar/Siralama.tsx";
 import { uygulamayiKucult, varsayilanGeri } from "./platform/geriTusu.ts";
@@ -54,8 +55,11 @@ function Ekran() {
       </div>
     );
 
-  // Odadaysak: masa varsa masa ekranı, yoksa bekleme odası.
-  if (durum.oda) return durum.oda.masa ? <MasaEkrani /> : <BeklemeOdasi />;
+  // Odadaysak: masa varsa oyun türünün masa ekranı, yoksa bekleme odası.
+  if (durum.oda) {
+    if (!durum.oda.masa) return <BeklemeOdasi />;
+    return durum.oda.oyun === "101" ? <Masa101Ekrani /> : <MasaEkrani />;
+  }
   if (durum.antrenman)
     return (
       <div className="ekran acilis">

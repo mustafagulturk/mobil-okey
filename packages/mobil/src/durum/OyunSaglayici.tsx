@@ -4,7 +4,7 @@
 // Hangi bağlantının kullanılacağına burada karar verilir:
 //  - antrenmandaysak masa mesajları YerelBaglanti'ya,
 //  - diğer her şey OnlineBaglanti'ya (ya da ?onizleme=1 ile sahte sunucuya) gider.
-import { type IstemciMesaji, type OyuncuKarti, type SunucuMesaji, VARSAYILAN_ETIKET } from "@okey/kurallar";
+import { type IstemciMesaji, type OyuncuKarti, type OyunTuru, type SunucuMesaji, VARSAYILAN_ETIKET } from "@okey/kurallar";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useReducer, useRef } from "react";
 import type { Baglanti } from "../baglanti/baglanti.ts";
 import { OnizlemeBaglanti } from "../baglanti/OnizlemeBaglanti.ts";
@@ -23,7 +23,8 @@ interface OyunBaglami {
   /** İlk giriş ya da kurtarma koduyla giriş. */
   girisYap: (ad: string, kurtarma?: { oyuncuId: string; anahtar: string }) => void;
   tekrarDene: () => void;
-  antrenmanBaslat: () => void;
+  /** Telefonda botlara karşı seçilen oyun türünde (Okey / 101) bir masa açar. */
+  antrenmanBaslat: (oyun: OyunTuru) => void;
   ekranaGit: (e: Ekran) => void;
   bildir: (metin: string, tur?: BildirimTuru) => void;
   bildirimKapat: (id: number) => void;
@@ -165,6 +166,20 @@ export function OyunSaglayici({ children }: { children: ReactNode }) {
     };
   }, [onlineBaglan]);
 
+  // SADECE GELİŞTİRME: 101 masasını sahte verilerle göstermek için (bkz. masa101/onizleme101.ts).
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    void import("../ekranlar/masa101/onizleme101.ts").then((m) => {
+      m.elHazirlaKancasiniKur();
+      m.onizlemeKancasiniKur((oda, antrenman) => {
+        yerel.current?.kapat();
+        yerel.current = null;
+        if (antrenman) dagit({ tur: "antrenman", acik: true });
+        dagit({ tur: "sunucu", kaynak: "yerel", mesaj: { t: "oda", oda }, alinma: Date.now() });
+      });
+    });
+  }, []);
+
   const gonder = useCallback((m: IstemciMesaji) => {
     const d = durumRef.current;
     if (d.antrenman && yerel.current) yerel.current.gonder(m);
@@ -180,14 +195,14 @@ export function OyunSaglayici({ children }: { children: ReactNode }) {
     if (online.current instanceof OnlineBaglanti) online.current.simdiDene();
   }, []);
 
-  const antrenmanBaslat = useCallback(() => {
+  const antrenmanBaslat = useCallback((oyun: OyunTuru) => {
     const d = durumRef.current;
     yerel.current?.kapat();
     const p = d.profil;
     const ben: OyuncuKarti = p
       ? { id: p.id, ad: p.ad, seviye: p.seviye, etiket: p.etiket }
       : { id: "yerel-oyuncu", ad: d.hesap?.ad ?? "Sen", seviye: 1, etiket: VARSAYILAN_ETIKET };
-    const b = new YerelBaglanti(ben);
+    const b = new YerelBaglanti(ben, oyun);
     yerel.current = b;
     bagla(b, "yerel");
     dagit({ tur: "antrenman", acik: true });

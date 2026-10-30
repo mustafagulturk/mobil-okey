@@ -1,8 +1,14 @@
 // Çip ekonomisi, seviyeler ve görevler. Sayıları değiştirmek için tek yer burası.
 //
-// Kurallar:
+// Kurallar (Okey):
 //  - Her el başında masadaki herkes salonun giriş çipini ortaya koyar; eli bitiren hepsini alır.
 //  - El berabere biterse (orta tükenirse) herkes çipini geri alır.
+// Kurallar (101):
+//  - Çip el başına değil MAÇ başına alınır: maç başında herkes salonun girişini bir kez koyar
+//    (miktar Okey'deki el girişiyle aynıdır, bkz. MAC101_GIRIS_CARPANI).
+//  - Pot 4 x giriştir (bot koltukları da sanal olarak koyar). Maç sonunda toplam puanı en
+//    düşük olan potu alır; eşitlikte pot paylaşılır, bölünemeyen artık ilk kazanana gider.
+// Her iki oyunda da:
 //  - Çip mağazadan satın alınabilir, günlük hediye, ödüllü reklam, görev ve seviye
 //    ödülleriyle kazanılır. Çip oyuncular arasında aktarılamaz ve paraya çevrilemez.
 
@@ -28,6 +34,13 @@ export const SALONLAR: Salon[] = [
   { id: "usta", ad: "Ustalar Salonu", giris: 2_500, enAzCip: 10_000, enFazlaCip: null },
   { id: "aga", ad: "Ağalar Konağı", giris: 10_000, enAzCip: 50_000, enFazlaCip: null },
 ];
+
+/**
+ * 101'de maç başına alınan giriş = salon girişi x bu çarpan. Bilerek 1: bir 101 maçı
+ * (4 el) Okey'deki tek elle aynı çipi riske atar, salonların çip aralıkları iki oyunda
+ * da aynı anlamı taşır.
+ */
+export const MAC101_GIRIS_CARPANI = 1;
 
 export function salonBul(id: SalonId): Salon {
   return SALONLAR.find((s) => s.id === id)!;
@@ -66,6 +79,29 @@ export const XP = {
   gostergeGosterdi: 5,
 } as const;
 
+/** 101'de XP maç sonunda bir kez verilir; maç Okey'deki bir elden uzun sürdüğü için daha cömerttir. */
+export const XP101 = {
+  macOynadi: 30,
+  macKazandi: 100,
+  /** Maç içinde bitirdiği her el için. */
+  elBitirdi: 15,
+  /** Okey atarak bitirdiği her el için (elBitirdi'ye ek). */
+  okeyleBitirdi: 10,
+} as const;
+
+/**
+ * 101 maç sonu pot dağıtımı: koltuk başına pottan alınan çip (giriş düşülmeden).
+ * Pot = koltukSayisi x giriş, kazananlar arasında eşit bölünür; artık ilk kazanana gider.
+ */
+export function macPotuDagit(giris: number, kazananlar: number[], koltukSayisi = 4): number[] {
+  const pot = giris * koltukSayisi;
+  const pay = Math.floor(pot / kazananlar.length);
+  const artik = pot - pay * kazananlar.length;
+  const alinan = Array.from({ length: koltukSayisi }, () => 0);
+  kazananlar.forEach((k, i) => (alinan[k] = pay + (i === 0 ? artik : 0)));
+  return alinan;
+}
+
 /** Seviye n'den n+1'e geçmek için gereken XP. Seviye ilerledikçe yavaşça artar. */
 export function seviyeXp(seviye: number): number {
   return 100 + (seviye - 1) * 50;
@@ -88,7 +124,8 @@ export function seviyeOdulu(yeniSeviye: number): number {
 }
 
 // --- Günlük görevler ---
-// Sunucu her oyuncuya günde 3 görev seçer. Sayaçlar el sonunda güncellenir.
+// Sunucu her oyuncuya günde 3 görev seçer. Sayaçlar Okey'de el sonunda, 101'de maç sonunda
+// güncellenir (101 maçı "oynanan" ve "kazanilan" sayaçlarını birer artırır).
 export type GorevSayaci = "oynanan" | "kazanilan" | "cift" | "okeyAtarak" | "gosterge";
 
 export interface GorevTanimi {

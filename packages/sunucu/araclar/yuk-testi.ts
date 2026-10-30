@@ -494,7 +494,9 @@ class SanalOyuncu {
 
   private hamleDene() {
     const o = this.oda;
-    if (!o?.masa || o.masa.sonuc || o.masa.sira !== o.masa.koltuk || !this.girisTamam) return;
+    // Yük testi sadece Okey masalarında oynar ("oyun" alanı yalnızca 101 görünümünde var).
+    if (!o?.masa || "oyun" in o.masa) return;
+    if (o.masa.sonuc || o.masa.sira !== o.masa.koltuk || !this.girisTamam) return;
     if (Date.now() < this.susBitis) return; // susturulduk: süre dolunca sunucu oynar
     const pi = parmakIzi(o);
     if (pi === this.islenenDurum) return;

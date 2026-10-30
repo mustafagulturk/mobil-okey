@@ -15,9 +15,11 @@ interface Ozellikler {
   acil?: boolean;
   konum: "ust" | "sol" | "sag";
   balon?: string | null;
+  /** 101: açtıysa "Seri 112" / "Çift 5". */
+  rozet?: string | null;
 }
 
-export function OyuncuYeri({ koltuk, no, tasSayisi, siraBunda, kalanOran, acil, konum, balon }: Ozellikler) {
+export function OyuncuYeri({ koltuk, no, tasSayisi, siraBunda, kalanOran, acil, konum, balon, rozet }: Ozellikler) {
   const bot = koltuk.tur === "bot";
   const ad = koltuk.tur === "insan" ? koltuk.oyuncu.ad : koltuk.tur === "bot" ? koltuk.ad : "Boş";
   const etiket = koltuk.tur === "insan" ? koltuk.oyuncu.etiket : VARSAYILAN_ETIKET;
@@ -43,6 +45,7 @@ export function OyuncuYeri({ koltuk, no, tasSayisi, siraBunda, kalanOran, acil, 
             <i className="oyuncu-yeri__tas-simge" />
             {tasSayisi}
           </span>
+          {rozet && <span className={`acma-rozeti ${rozet.startsWith("Çift") ? "acma-rozeti--cift" : ""}`}>{rozet}</span>}
         </div>
       </div>
       {kopuk && <span className="oyuncu-yeri__not">bağlantı koptu</span>}

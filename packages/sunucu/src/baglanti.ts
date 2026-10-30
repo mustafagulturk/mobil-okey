@@ -196,9 +196,9 @@ export class Baglanti {
         return this.gonder({ t: "salonlar", salonlar: salon.salonListesi() });
 
       case "hizliOyun":
-        return this.sonucBildir(salon.hizliOyun(oyuncuKarti(oyuncu), m.salon, oyuncu.cip));
+        return this.sonucBildir(salon.hizliOyun(oyuncuKarti(oyuncu), m.salon, oyuncu.cip, m.oyun));
       case "odaKur":
-        return this.sonucBildir(salon.odaKur(oyuncuKarti(oyuncu), m.salon, oyuncu.cip));
+        return this.sonucBildir(salon.odaKur(oyuncuKarti(oyuncu), m.salon, oyuncu.cip, m.oyun));
       case "odayaKatil":
         return this.sonucBildir(salon.odayaKatil(oyuncuKarti(oyuncu), m.kod, oyuncu.cip));
       case "odadanAyril":

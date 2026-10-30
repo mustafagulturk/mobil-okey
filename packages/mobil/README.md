@@ -102,7 +102,7 @@ Ekranlar ──useOyun()──► OyunSaglayici (React context + useReducer)
 - **Online ve antrenman aynı masa ekranını kullanır;** fark sadece mesajın hangi `Baglanti`ya gittiğidir.
 - **İstaka düzeni sadece telefonda tutulur** (`src/yardimci/istaka.ts`, saf fonksiyonlar):
   sunucu sadece eldeki taşları bilir; telefon gelen elle yuvaları eşitler.
-- **Sürükle-bırak** kütüphanesizdir (`ekranlar/masa/Istaka.tsx`): Pointer Events + parmağı izleyen
+- **Sürükle-bırak** kütüphanesizdir (`ekranlar/masa/Istaka.tsx`, hedefler `masa/surukleme.ts`): Pointer Events + parmağı izleyen
   "hayalet" taş + bırakılan noktada `elementFromPoint`.
 - **Platform arayüzleri:** Google Play Billing `src/platform/magaza.ts`, AdMob `src/platform/reklam.ts`
   arkasındadır; eklenti değişirse tek dosya değişir. Tarayıcıda ikisinin de test uygulaması devreye girer
@@ -124,9 +124,11 @@ packages/mobil/
 │   ├── platform/                  magaza.ts, reklam.ts, depo.ts (Preferences), cihaz.ts, ses.ts
 │   ├── bilesenler/                Tas, IsimEtiketi, Pencere, Bildirimler, Simge, Ortak
 │   ├── ekranlar/                  Giris, Lobi, BeklemeOdasi, Magaza, Profil, Ayarlar, Gorevler, Siralama
-│   │   └── masa/                  MasaEkrani, Istaka (sürükle-bırak), OyuncuYeri, SonucPenceresi, SohbetPaneli
+│   │   ├── masa/                  MasaEkrani, Istaka (sürükle-bırak), OyuncuYeri, SonucPenceresi, SohbetPaneli,
+│   │   │                          ortak.tsx (iki masanın ortak kancaları), ucuslar.tsx (taş uçuşları)
+│   │   └── masa101/               Masa101Ekrani, PerAlani, PuanTablosu, SonucPenceresi101, yardimci101.ts
 │   └── yardimci/                  istaka.ts (yuva düzeni), bicim.ts (1.250.000 / 1,2 Mn), oda.ts, kancalar.ts
-├── test/                          istaka.test.ts
+├── test/                          istaka.test.ts, yardimci101.test.ts
 ├── kaynak/                        simge ve açılış ekranı SVG kaynakları
 ├── betikler/                      simgeleri-uret.mjs, ekran-goruntusu.mjs (Playwright)
 └── android/                       Capacitor Android projesi (imzalama: app/build.gradle)
